@@ -26,7 +26,8 @@ window.SITE = {
   ],
   points: [
     { id: 'influence', title: 'Influence Graph', org: 'Salesloft', year: '2025', meta: 'Salesloft · 2025', quad: 'bl', x: -.38, y: -.78, tags: ['product', 'ai', 'research'], kind: 'vault',
-      line: 'who actually holds influence in a deal, read from the calls and emails Salesloft already had.' },
+      line: 'who actually holds influence in a deal, read from the calls and emails Salesloft already had.',
+      img: 'cases/salesloft/deal-map.jpg', video: 'cases/salesloft/deal-map.mp4', vcap: 'the deal map, in motion: who turned resistant, who no one has met yet, and the person who can win them over.' },
     { id: 'sony', title: 'Sony', org: 'Sony × UW', year: '2025', meta: 'Sony × UW · capstone', quad: 'bl', x: -.66, y: -.38, tags: ['product', 'research', 'ai'], kind: 'vault',
       line: 'reimagining a smart, sustainable Sony customer experience, after the purchase.', img: 'sony.jpg', images: ['sony.jpg', 'sony-01.jpg'],
       alt: 'A phone on a dark field glowing violet: Sonia, an AI assistant, asks before it uses your data.' },

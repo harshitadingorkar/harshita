@@ -113,11 +113,12 @@ veil.onclick = closeSheet;
 addEventListener('keydown', e => { if (e.key === 'Escape') { if (sheetOpen) closeSheet(); else if (body.classList.contains('show-index')) toggleIndex(false); } });
 const kick = p => `[ ${S.quads[p.quad].key}: ${S.quads[p.quad].name} ]`;
 const metaList = rows => h('dl', { class: 's-meta' }, rows.filter(r => r[1]).flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)]));
+const videoFig = p => p.video ? h('figure', { class: 's-video reveal' }, Object.assign(h('video', { src: A(p.video), poster: p.img ? A(p.img) : null, muted: true, loop: true, playsinline: true, autoplay: !RM, controls: RM, preload: 'metadata', 'aria-label': p.vcap || p.title }), { muted: true, defaultMuted: true }), p.vcap ? h('figcaption', { class: 'mono dim' }, p.vcap) : null) : null;
 const caseHTML = id => DATA.cases && DATA.cases[id] ? h('div', { class: 'prose reveal', html: DATA.cases[id].html }) : null;
 
 function open(p) {
   const K = kick(p), line = h('p', { class: 's-line reveal' }, p.line);
-  if (p.kind === 'vault') return openSheet('bl', K, p.title, line, metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), diagram(p.id), caseHTML(p.case), p.images ? h('div', { class: 's-imgs' }, p.images.map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null);
+  if (p.kind === 'vault') return openSheet('bl', K, p.title, line, metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), videoFig(p), diagram(p.id), caseHTML(p.case), p.images ? h('div', { class: 's-imgs' }, p.images.map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null);
   if (p.kind === 'shipped') return openSheet('br', K, p.title, line, metaList([['where', p.org], ['when', p.meta.split('·')[1]?.trim()], ['tags', p.tags.join(' · ')]]), crops(p), caseHTML(p.case));
   if (p.kind === 'archive') return ready.then(() => openArena(K));
   if (p.kind === 'films') return ready.then(() => openFilms(K));

@@ -118,6 +118,7 @@ body[data-half=work] .pt{transition:opacity .08s linear,transform .45s var(--e-d
 .s-line{font-size:16px;line-height:1.45;max-width:520px}
 .s-meta{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;margin:26px 0;font:11px/1.5 var(--mono);color:var(--ink2)}
 .s-meta dt{color:var(--ink3)}
+.s-video{margin:28px 0 0}.s-video video{width:100%;display:block;background:#1a1714}.s-video figcaption{margin-top:10px;font-size:11px}
 .s-imgs{display:grid;gap:14px;margin-top:28px}
 .s-imgs img{width:100%;display:block}
 .reveal{opacity:0;transform:translateY(8px);filter:blur(6px);transition:opacity .5s var(--e-out),transform .6s var(--e-dm),filter .6s var(--e-dm)}
