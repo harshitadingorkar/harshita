@@ -57,9 +57,7 @@
     if(S&&target.closest('[data-point-id][data-point-field]')){const el=target.closest('[data-point-id][data-point-field]');return {el,path:['points',el.dataset.pointId,el.dataset.pointField]};}
     if(S&&target.closest('.case-head .s-title'))return {el:target.closest('.s-title'),path:['points',document.querySelector('#sheet')?._p?.id,'title']};
     if(S&&target.closest('.case-head .case-line'))return {el:target.closest('.case-line'),path:['points',document.querySelector('#sheet')?._p?.id,'line']};
-    if(S&&target.closest('.about-line'))return {el:target.closest('.about-line'),path:['about','line']};
-    if(S&&target.closest('.about-small'))return {el:target.closest('.about-small'),path:['about','small']};
-    if(S&&target.closest('.about-min h2'))return {el:target.closest('.about-min h2'),path:['about','name']};
+    if(S&&target.closest('[data-about-field]')){const el=target.closest('[data-about-field]');return {el,path:['about',el.dataset.aboutField]};}
     if(S&&target.closest('.quad-name')){const q=target.closest('.qlabel').className.match(/q-(tl|tr|bl|br)/)?.[1];return q&&{el:target.closest('.quad-name'),path:['person','quads',q]};}
     if(S&&target.closest('[data-case-id][data-case-path]')){const el=target.closest('[data-case-id][data-case-path]');return {el,path:['cases',el.dataset.caseId,el.dataset.casePath]};}
     if(!S&&target.closest('#what-copy'))return {el:target.closest('#what-copy'),path:['pages',pageId,'what']};
@@ -82,6 +80,7 @@
   document.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;if(!d.moved)return;const p=d.el._p,sx=innerWidth/2-Math.max(150,innerWidth*.14)-60,sy=innerHeight/2-Math.max(84,innerHeight*.12);p.x=(e.clientX-innerWidth/2)/sx;p.y=-(e.clientY-innerHeight/2)/sy;store(['points',p.id,'x'],p.x);store(['points',p.id,'y'],p.y);save();window.refreshPortfolio?.()},true);
   document.addEventListener('keydown',e=>{if(e.shiftKey&&e.key.toLowerCase()==='e'){e.preventDefault();editing?exit():enter()}else if(e.key==='Escape'&&editing&&!e.target?.isContentEditable)exit()});
   window.PORTFOLIO_READY?.then(()=>apply(overrides,false));
-  if(new URLSearchParams(location.search).has('edit'))enter();else chip();
+  window.enterPortfolioEdit=enter;
+  if(new URLSearchParams(location.search).has('edit')){localStorage.setItem('site-editor','1');window.dispatchEvent(new Event('site-editor-enabled'));enter()}else chip();
   window.addEventListener('site-overrides-applied',e=>apply(e.detail,false));
 })();

@@ -3,6 +3,7 @@
 ## Open edit mode
 
 On the home page or any collection page, add `?edit` to the address. You can also press **Shift + E** to turn edit mode on or off.
+After visiting with `?edit` once, a quiet **edit** button stays in the home page’s bottom-right corner.
 
 In edit mode, drag a dot on the map to move it. Click supported text to rewrite it. Use **Save** to keep the changes in this browser. They stay here until you reset them.
 

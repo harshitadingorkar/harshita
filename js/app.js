@@ -21,9 +21,12 @@ const time = tz => new Date().toLocaleTimeString('en-US', { hour: 'numeric', min
 const weatherKey = 'seattle-weather', weatherCache = (() => { try { const x = JSON.parse(sessionStorage.getItem(weatherKey)); return x && Date.now() - x.at < 1800000 ? x : null; } catch { return null; } })();
 const wx = { 0:'clear',1:'mostly clear',2:'partly cloudy',3:'overcast',45:'fog',48:'fog',51:'drizzle',53:'drizzle',55:'drizzle',56:'drizzle',57:'drizzle',61:'rain',63:'rain',65:'rain',66:'rain',67:'rain',71:'snow',73:'snow',75:'snow',77:'snow',80:'showers',81:'showers',82:'showers',85:'snow',86:'snow',95:'thunder',96:'thunder',99:'thunder' };
 let weather = weatherCache && weatherCache.weather;
-const clock = () => { const condition = weather ? `, ${weather.temp}° ${weather.text}` : ''; $('#clock').innerHTML = `seattle <b>${time('America/Los_Angeles')}${condition}</b> · you, <b>${time()}</b>`; };
+const clock = () => { const condition = weather ? `, ${weather.temp}° ${weather.text}` : ''; $('#clock-time').innerHTML = `seattle <b>${time('America/Los_Angeles')}${condition}</b> · you, <b>${time()}</b>`; };
 clock(); setInterval(clock, 15000);
 if (!weatherCache) fetch('https://api.open-meteo.com/v1/forecast?latitude=47.61&longitude=-122.33&current=temperature_2m,weather_code&temperature_unit=fahrenheit').then(r => r.ok ? r.json() : Promise.reject()).then(d => { const c = d.current; weather = { temp: Math.round(c.temperature_2m), text: wx[c.weather_code] || 'overcast' }; sessionStorage.setItem(weatherKey, JSON.stringify({ at: Date.now(), weather })); clock(); }).catch(() => {});
+const editorShortcut = $('#editor-shortcut');
+const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
+if (editorShortcut) { updateEditorShortcut(); editorShortcut.addEventListener('click', () => window.enterPortfolioEdit?.()); window.addEventListener('site-editor-enabled', updateEditorShortcut); }
 
 /* ---------- filters (Ainsley-style word list) ---------- */
 const fwrap = $('#filters'), legend = $('#type-legend'); let active = null;
@@ -37,7 +40,7 @@ function preview(k) { $$('.pt').forEach(e => { const on = matches(e._p,k); e.cla
 function setFilter(k) { active = k; fwrap.classList.toggle('has-active', !!k); $$('button[data-k]', fwrap).forEach(b => b.classList.toggle('on', b.dataset.k === k)); $$('[data-type]',legend).forEach(b=>b.classList.toggle('on',k==='type:'+b.dataset.type)); preview(k); renderIndex(); }
 
 /* ---------- plane ---------- */
-const MARK = `<img src="assets/mark-ink.svg" class="ink" alt="" aria-hidden="true">`;
+const MARK = window.portfolioMark.markup();
 function buildPlane() {
   plane.innerHTML = '';
   if (mobile()) return buildMobile();
@@ -87,8 +90,6 @@ const gc = $('#grain'); let frames = [], fi = 0, lastG = 0;
 (function makeGrain() { const c = document.createElement('canvas'), s = 180; c.width = c.height = s; const x = c.getContext('2d'); for (let f = 0; f < 6; f++) { const d = x.createImageData(s, s); for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255 | 0; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } x.putImageData(d, 0, 0); frames.push(`url(${c.toDataURL()})`); } gc.style.backgroundImage = frames[0]; })();
 function tickGrain(t) {
   if (!RM && !document.hidden) { const w = Math.max(0, (wonder - .5) * 2); const iv = w > .02 ? 260 - w * 210 : Infinity; if (t - lastG > iv) { lastG = t; fi = (fi + 1) % frames.length; gc.style.backgroundImage = frames[fi]; gc.style.backgroundPosition = `${Math.random() * 180 | 0}px ${Math.random() * 180 | 0}px`; } }
-  // spin follows the same idea: slow in work, livelier in wonder
-  const mk = $('.mark svg'); if (mk) mk.style.animationDuration = (120 - wonder * 50) + 's';
   // label pill lerp
   px += (mx - px) * .2; py += (my - py) * .2; pill.style.transform = `translate3d(${px + 16}px, ${py + 14}px, 0)`;
   requestAnimationFrame(tickGrain);
@@ -328,18 +329,25 @@ function drag(el, bounds) {
 /* about */
 function openAbout() {
   curP = null;
-  openSheet('', '', '', h('div', { class: 'about-min reveal' },
-    h('img',{class:'about-mark',src:A('mark-ink.svg'),alt:''}),
-    h('h2',{},S.person.name||'Harshita Shyale'),
-    h('div',{class:'about-rule'}),
-    h('p',{class:'about-line'},S.about[0]),
-    h('p',{class:'about-small'},S.about[1]),
-    h('div',{class:'about-exp'},[
-      ['Salesloft','product designer','2025–now'],
-      ['GitHub','graduate product designer','2024'],
-      ['Hewlett Packard Enterprise','engineer → UX designer','2021–23']
-    ].map(([org,role,year])=>h('div',{class:'about-row'},h('span',{},org+' · '+role),h('span',{class:'mono'},year)))),
-    h('p',{class:'about-links'},h('a',{href:'mailto:'+S.person.email},S.person.email),h('a',{href:S.person.linkedin,target:'_blank',rel:'noopener'},'linkedin ↗'),h('a',{href:S.person.resume,target:'_blank',rel:'noopener'},'résumé ↗'),h('a',{href:'https://www.instagram.com/ashlime_soda/',target:'_blank',rel:'noopener'},'instagram ↗'))));
+  const name = S.person.name || 'Harshita Shyale';
+  openSheet('', '', '', h('div', { class: 'hello reveal' },
+    h('i', { class: 'f1' }), h('i', { class: 'f2' }), h('i', { class: 'f3' }), h('i', { class: 'f4' }),
+    h('div', { class: 'hb' },
+      h('p', { class: 'where' }, 'a note from seattle'),
+      h('h2', { class: 'hname', 'data-about-field': 'name' }, h('span', { class: 'ini' }, name.charAt(0)), name.slice(1)),
+      h('i', { class: 'fleuron', html: MARK }),
+      h('p', { class: 'p1 about-line', 'data-about-field': 'line' }, S.about[0]),
+      S.about.slice(1).map(text => h('p', { class: 'p2 about-small', 'data-about-field': 'small' }, text)),
+      h('ul', { class: 'hvals' }, S.values.map(value => h('li', {}, value))),
+      h('div', { class: 'exp' }, S.experience.flatMap(([role, org, years]) => [
+        h('div', {}, role, ' ', h('span', { class: 'o' }, '· ' + org)),
+        h('div', { class: 'w' }, years)
+      ])),
+      h('p', { class: 'links' },
+        h('a', { href: 'mailto:' + S.person.email }, S.person.email),
+        h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'linkedin ↗'),
+        h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'résumé ↗'),
+        h('a', { href: 'https://www.instagram.com/ashlime_soda/', target: '_blank', rel: 'noopener' }, 'instagram ↗')))));
 }
 $('#aboutBtn').onclick = openAbout;
 
@@ -491,16 +499,25 @@ const skipIntro = e => {
 if (sessionStorage.getItem('seen') || RM) { intro.remove(); arrive(0); }
 else {
   sessionStorage.setItem('seen', 1); body.classList.add('introing');
-  const p = $('p', intro), copy = p.textContent, chars = Array.from(copy);
-  p.replaceChildren(...chars.map((char, i) => h('span', { class: 'intro-char', style: `--i:${i};animation-delay:${i * 28}ms` }, char)));
+  const p = $('p', intro), words = p.textContent.trim().split(/\s+/);
+  p.replaceChildren(...words.map((word, i) => h('span', { class: 'intro-word', style: `--word-delay:${i * 70}ms` }, word + (i < words.length - 1 ? ' ' : ''))));
   intro.replaceChildren(h('div', { class: 'intro-inner' }, h('span', { class: 'intro-mark', html: MARK }), p));
   introActive = true; document.addEventListener('click', skipIntro, true); document.addEventListener('keydown', skipIntro, true);
-  const flightStart = (chars.length - 1) * 28 + 500 + 250, flightDuration = 750;
-  arrive(flightStart);
+  const flightStart = 1100, flightDuration = 900;
+  arrive(650);
   introTimers.push(setTimeout(() => {
-    const a = p.getBoundingClientRect(), b = $('#home').getBoundingClientRect();
-    p.style.transformOrigin = '0 0';
-    p.style.transform = `translate(${b.left - a.left}px,${b.top - a.top}px) scale(${b.height / a.height})`;
+    const flip = (element, target, scaleFromHeight = false) => {
+      const from = element.getBoundingClientRect(), to = target.getBoundingClientRect();
+      const scale = scaleFromHeight ? to.height / from.height : to.width / from.width;
+      element.style.transformOrigin = '0 0';
+      element.style.transition = 'none';
+      element.style.transform = 'none';
+      element.getBoundingClientRect();
+      element.style.transition = `transform ${flightDuration}ms var(--e-dm)`;
+      element.style.transform = `translate(${to.left - from.left}px,${to.top - from.top}px) scale(${scale})`;
+    };
+    flip(p, $('#home'), true);
+    flip($('.intro-mark', intro), $('.mark'), false);
     intro.classList.add('done');
   }, flightStart));
   introTimers.push(setTimeout(() => {
