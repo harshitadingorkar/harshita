@@ -594,11 +594,11 @@ body.show-index .qlabel.q-tr,body.index-entering .qlabel.q-tr{opacity:0}
 .about-min{width:min(700px,calc(100vw - 48px));margin:76px auto 60px}
 .about-mark{display:block;width:28px;height:28px;margin:0 0 20px}
 .about-min h2{margin:0;font:400 40px/1.12 var(--voice)}
-.about-rule{height:1px;background:var(--hair);margin:22px 0 20px}
+.about-rule{height:0;background:none;margin:22px 0 20px}
 .about-line{max-width:580px;margin:0;font:italic 400 21px/1.4 var(--voice)}
 .about-small{max-width:540px;margin:12px 0 0;color:var(--ink2);font:300 16px/1.55 var(--voice)}
-.about-exp{margin-top:30px;border-top:1px solid var(--hair)}
-.about-row{display:grid;grid-template-columns:1fr auto;gap:20px;padding:11px 0;border-bottom:1px solid var(--hair);font:13px/1.35 var(--sans)}
+.about-exp{margin-top:30px}
+.about-row{display:grid;grid-template-columns:1fr auto;gap:20px;padding:11px 0;border:0;font:13px/1.35 var(--sans)}
 .about-row .mono{font:11px var(--mono);color:var(--ink2)}
 .about-links{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:23px;font:12px var(--mono)}
 .about-links a:hover{color:var(--ox)}

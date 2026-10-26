@@ -363,8 +363,7 @@ async function customPageChannels() {
     const handmade=localChannel('my-pieces','my pieces',[
       {id:'wobblefoot',title:'Sir Wobblefoot',small:'assets/wobblefoot.jpg',aspect:.8},
       {id:'wobblefoot-01',title:'Sir Wobblefoot, side',small:'assets/wobblefoot-01.jpg',aspect:.8},
-      {id:'wobblefoot-02',title:'Sir Wobblefoot, detail',small:'assets/wobblefoot-02.jpg',aspect:.8},
-      {id:'wobblefoot-turnaround',title:'Sir Wobblefoot · turnaround',small:'assets/wobblefoot-sheet.jpg',aspect:(896/2)/(1195/3),turnaround:true}
+      {id:'wobblefoot-02',title:'Sir Wobblefoot · turnaround',small:'assets/wobblefoot-02.jpg',src:'assets/wobblefoot-sheet.jpg',aspect:(896/2)/(1195/3),turnaround:true}
     ]);
     return [handmade,...(ceramic?[ceramic]:[])];
   }
