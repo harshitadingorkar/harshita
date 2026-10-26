@@ -1,0 +1,150 @@
+{
+ "safe": {
+  "facts": "University of Washington × UW Medicine · Sept–Dec 2023 · product designer · 3 designers, 1 PM",
+  "note": "Content note: this project discusses sexual assault.",
+  "q": "How might we create a safe space for sexual assault survivors during preventative healthcare appointments?",
+  "problem": "Gynecologist visits often feel cold and transactional. For survivors of sexual trauma, routine invasive exams like pelvic exams or pap smears can be retriggering, even retraumatizing.",
+  "quote": {
+   "t": "One of the hallmarks of trauma experiences is loss of control.",
+   "by": "survivor"
+  },
+  "research": {
+   "t": "We read survivor and nurse communities online, booked an appointment to observe the exam room, surveyed survivors, providers and educators, then ran six interviews. I led two of them.",
+   "imgs": [
+    "assets/cases/safe/03.jpg",
+    "assets/cases/safe/17.jpg",
+    "assets/cases/safe/16.jpg"
+   ]
+  },
+  "steps": [
+   {
+    "n": "01",
+    "t": "Before care",
+    "d": "Patients see the exams they’re due for and pre-select them, can choose to disclose a history of trauma and ask for accommodations, and see their rights clearly before signing consent.",
+    "imgs": [
+     "assets/cases/safe/30.jpg",
+     "assets/cases/safe/34.jpg"
+    ]
+   },
+   {
+    "n": "02",
+    "t": "In the room",
+    "d": "A clinic tablet lets patients set the temperature and lighting and choose calming ceiling projections. Chairs sit below the patient’s line of sight, and a comfort box holds stress balls and warming pads.",
+    "imgs": [
+     "assets/cases/safe/22.jpg"
+    ]
+   },
+   {
+    "n": "03",
+    "t": "After care",
+    "d": "A short post-visit questionnaire lets patients reflect on the visit and shape their future care.",
+    "imgs": [
+     "assets/cases/safe/33.jpg"
+    ]
+   }
+  ],
+  "learned": "Even small changes, like a few extra steps when booking, can change how safe care feels.",
+  "closing": {
+   "img": "assets/cases/safe/37.jpg",
+   "cap": "Team FourGood, beaming after the final presentation."
+  }
+ },
+ "hpe": {
+  "facts": "Hewlett Packard Enterprise · Advanced Development Centre · Sept 2022–Mar 2023 · UX designer, with a senior UX designer, an engineer and a PM",
+  "note": "Details are under NDA. She’s happy to talk about it.",
+  "problem": "AI models get less accurate as they see new data. It’s called data drift. Data scientists were checking too many different tools to catch it in time.",
+  "quote": {
+   "t": "By the time we notice a significant performance drop, it’s often too late.",
+   "by": "Staff ML engineer, HPE"
+  },
+  "steps": [
+   {
+    "n": "01",
+    "t": "Walk in their shoes",
+    "d": "Interviewed data scientists and ML engineers, then shadowed their day to feel the pain first-hand."
+   },
+   {
+    "n": "02",
+    "t": "One place to look",
+    "d": "A single dashboard for model performance and data distributions in real time, with early warnings and automated retraining."
+   },
+   {
+    "n": "03",
+    "t": "Build it for real",
+    "d": "Built in React and Grommet with our developer, on HPE’s design system, and tested on live production data.",
+    "imgs": [
+     "assets/cases/hpe/03.jpg"
+    ]
+   }
+  ],
+  "learned": "Complex data mustn’t be dumbed down for usability. This was her first design job after software engineering, and the project where she decided to become a designer."
+ },
+ "github": {
+  "facts": "GitHub × University of Washington · Jan–Mar 2024 · product designer & researcher · 3 designers, 1 senior researcher, 1 PM",
+  "q": "How might we improve code review for better collaboration among developers?",
+  "problem": "In early 2024 GitHub was beta-testing a more “accessible” code review with floating comments. In usability tests it scored lower than the design it was replacing.",
+  "numbers": [
+   [
+    "66.75",
+    "new UI · usability score (SUS)"
+   ],
+   [
+    "75.5",
+    "original UI"
+   ]
+  ],
+  "research": {
+   "t": "We tested with six experienced developers across four setups (old and new UI, as code author and as reviewer), varying the order to avoid bias.",
+   "imgs": [
+    "assets/cases/github/05.jpg"
+   ]
+  },
+  "steps": [
+   {
+    "n": "01",
+    "t": "Bring comments to you",
+    "d": "Four of six developers used multiple monitors, so right-aligned comments meant constant scanning. We moved the indicators left and made the whole line clickable: 60% less mouse movement, 25% faster reviews.",
+    "imgs": [
+     "assets/cases/github/09.jpg",
+     "assets/cases/github/12.jpg",
+     "assets/cases/github/14.jpg"
+    ]
+   },
+   {
+    "n": "02",
+    "t": "Let people choose",
+    "d": "Long discussions broke flow when floating. A setting now switches between floating and inline comments.",
+    "imgs": [
+     "assets/cases/github/16.jpg"
+    ]
+   },
+   {
+    "n": "03",
+    "t": "Make it visible",
+    "d": "Colour-blind developers struggled to spot the new comment indicators on highlighted code, so we raised the contrast.",
+    "imgs": [
+     "assets/cases/github/18.jpg"
+    ]
+   },
+   {
+    "n": "04",
+    "t": "Find the conversation",
+    "d": "Comment counts in the file tree, so no one hunts for discussions: 40% faster file navigation.",
+    "imgs": [
+     "assets/cases/github/19.jpg"
+    ]
+   }
+  ],
+  "learned": "“Accessible” isn’t always accessible. It means understanding how people actually work, not just following guidelines. The study shaped GitHub’s roadmap for the feature.",
+  "closing": {
+   "img": "assets/cases/github/21.jpg",
+   "cap": "How a few seconds saved per comment ripple out across GitHub."
+  }
+ },
+ "rox": {
+  "facts": "roxHealth AI · June–Dec 2024 · product designer & researcher.",
+  "problem": "Meeting analysis + guided journaling to build confidence at work.",
+  "note": "NDA/stealth: ask her about it.",
+  "hero": "assets/cases/rox/02.jpg"
+ }
+}

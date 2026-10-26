@@ -1,92 +1,433 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>The Generative Power of Props — Harshita Shyale</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist+Mono&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,300..500&display=swap" rel="stylesheet">
-<style>
-:root{--ground:#F2EFE7;--ink:#191915;--ink2:rgba(25,25,21,.56);--ink3:rgba(25,25,21,.3);--hair:rgba(25,25,21,.14);--ox:#6B2A2F;--e:cubic-bezier(.22,1,.36,1)}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--ground);color:var(--ink);font:400 19px/1.62 'Newsreader',Georgia,serif;font-optical-sizing:auto;-webkit-font-smoothing:antialiased}
-::selection{background:var(--ox);color:var(--ground)}
-a{color:inherit}
-#grain{position:fixed;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:multiply;z-index:9}
-.run{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:22px 28px;font:11px 'Geist Mono',monospace;color:var(--ink2);z-index:5;background:linear-gradient(var(--ground) 60%,transparent)}
-.run a{text-decoration:none;transition:color .16s}.run a:hover{color:var(--ox)}
-.progress{position:fixed;left:0;top:0;height:1px;background:var(--ox);width:0;z-index:6}
-.book{max-width:1120px;margin:0 auto;padding:0 28px}
-.title-page{min-height:100vh;display:grid;place-content:center;text-align:center;padding:120px 0 80px}
-.title-page .front{font:11px 'Geist Mono',monospace;color:var(--ink2);margin-bottom:56px}
-.title-page h1{font:400 clamp(48px,7vw,92px)/.95 'Instrument Serif',serif;letter-spacing:-.015em;max-width:12ch;margin:0 auto}
-.title-page h2{font:italic 300 22px/1.35 'Newsreader',serif;color:var(--ink2);margin:26px auto 0;max-width:30ch}
-.title-page .by{margin-top:60px;font:13px 'Instrument Sans',sans-serif;letter-spacing:.02em}
-.title-page .orn{margin:40px auto 0;width:42px;color:var(--ink)}
-.epigraph{max-width:560px;margin:0 auto 120px;font:italic 300 20px/1.5 'Newsreader',serif;color:var(--ink2);text-align:center}
-.chapter{display:grid;grid-template-columns:1fr minmax(0,620px) 1fr;column-gap:56px;margin-bottom:120px}
-.chapter>*{grid-column:2}
-.chapter h3{font:400 13px 'Geist Mono',monospace;color:var(--ox);letter-spacing:.02em;margin-bottom:10px}
-.chapter h3 + .ct{font:400 44px/1.04 'Instrument Serif',serif;letter-spacing:-.01em;margin-bottom:42px}
-.chapter p{margin-bottom:0;text-indent:1.6em;hyphens:auto;text-wrap:pretty}
-.chapter .ct + p,.chapter p.first{text-indent:0}
-.chapter .ct + p::first-letter{float:left;font:400 88px/.78 'Instrument Serif',serif;padding:8px 10px 0 0;color:var(--ox)}
-.chapter blockquote{margin:28px 0;padding-left:22px;box-shadow:inset 1px 0 0 var(--ox);font-style:italic;color:var(--ink2)}
-.fn{font:10px 'Geist Mono',monospace;color:var(--ox);vertical-align:super;text-decoration:none;margin-left:1px}
-.side{grid-column:3;grid-row:auto;font:12px/1.5 'Instrument Sans',sans-serif;color:var(--ink2);align-self:start;position:relative}
-.folio{grid-column:2;text-align:center;font:11px 'Geist Mono',monospace;color:var(--ink3);margin-top:56px}
-.notes{max-width:620px;margin:0 auto 160px;font:14px/1.55 'Newsreader',serif;color:var(--ink2)}
-.notes h4{font:11px 'Geist Mono',monospace;color:var(--ox);font-weight:400;margin-bottom:16px}
-.notes li{margin:0 0 10px 1.2em}
-.end{text-align:center;font:italic 22px 'Instrument Serif',serif;margin:0 0 140px}
-.end a{text-decoration:none;border-bottom:1px solid currentColor}
-.rv{opacity:0;transform:translateY(10px);transition:opacity .8s var(--e),transform 1s var(--e)}
-.rv.in{opacity:1;transform:none}
-@media(max-width:900px){.chapter{grid-template-columns:1fr;column-gap:0}.chapter>*,.side,.folio{grid-column:1}.side{margin:14px 0}body{font-size:18px}.chapter h3 + .ct{font-size:36px}}
-@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F2EFE7">
+  <title>The Generative Power of Props — Harshita Shyale</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;1,300;1,400&family=Geist+Mono:wght@400&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ground: #F2EFE7;
+      --paper: #FBF8F0;
+      --ink: #302d27;
+      --muted: #777166;
+      --rule: rgba(48, 45, 39, .16);
+      --page-width: min(42vw, 520px);
+      --page-height: calc(var(--page-width) * 1.414);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background: var(--ground);
+      font-family: "Instrument Sans", sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    button, a { color: inherit; }
+
+    .topbar {
+      width: min(100% - 48px, 1160px);
+      min-height: 64px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      color: var(--muted);
+      font: 11px/1.4 "Geist Mono", monospace;
+      letter-spacing: .025em;
+      text-transform: lowercase;
+    }
+
+    .topbar a {
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 180ms ease;
+    }
+
+    .topbar a:hover { border-color: currentColor; }
+
+    .topbar-title {
+      text-align: right;
+      letter-spacing: .08em;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 0 24px 12px;
+    }
+
+    .book-stage {
+      position: relative;
+      width: calc(var(--page-width) * 2);
+      height: var(--page-height);
+      overflow: clip;
+      perspective: 2200px;
+      isolation: isolate;
+      filter: drop-shadow(0 15px 22px rgba(61, 53, 41, .09));
+    }
+
+    .book-stage::before {
+      position: absolute;
+      z-index: 3;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      content: "";
+      background: rgba(75, 66, 54, .14);
+      box-shadow: 0 0 11px 4px rgba(70, 61, 49, .055);
+      pointer-events: none;
+    }
+
+    .page {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: inset 0 0 0 1px rgba(65, 56, 43, .055);
+    }
+
+    .page-left {
+      left: 0;
+      box-shadow:
+        inset -22px 0 28px -28px rgba(50, 43, 33, .45),
+        inset 0 0 0 1px rgba(65, 56, 43, .055);
+    }
+
+    .page-right {
+      right: 0;
+      box-shadow:
+        inset 22px 0 28px -28px rgba(50, 43, 33, .45),
+        inset 0 0 0 1px rgba(65, 56, 43, .055);
+    }
+
+    .page-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: clamp(30px, 4vw, 54px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-left .page-content { padding-right: clamp(32px, 4.4vw, 58px); }
+    .page-right .page-content { padding-left: clamp(32px, 4.4vw, 58px); }
+
+    .page-leaf {
+      position: absolute;
+      z-index: 4;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100%;
+      visibility: hidden;
+      transform: rotateY(0);
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      will-change: transform;
+      pointer-events: none;
+    }
+
+    .page-leaf.backward {
+      right: auto;
+      left: 0;
+      transform-origin: right center;
+    }
+
+    .page-leaf.is-visible { visibility: visible; }
+
+    .leaf-face {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--paper);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      box-shadow: inset 0 0 0 1px rgba(65, 56, 43, .06);
+    }
+
+    .leaf-face::after {
+      position: absolute;
+      z-index: 5;
+      inset: 0;
+      content: "";
+      opacity: var(--turn-shade, 0);
+      pointer-events: none;
+      background: linear-gradient(90deg,
+        rgba(39, 32, 24, .43) 0%,
+        rgba(255, 255, 255, .30) 17%,
+        rgba(255, 255, 255, 0) 43%,
+        rgba(42, 34, 25, .18) 100%);
+      background-size: 180% 100%;
+      background-position: var(--shade-position, 0%) 0;
+    }
+
+    .leaf-back { transform: rotateY(180deg); }
+
+    .controls {
+      min-height: 82px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 28px;
+      padding: 10px 24px 24px;
+      color: var(--muted);
+      font-family: "Geist Mono", monospace;
+      font-size: 11px;
+      letter-spacing: .025em;
+      text-transform: lowercase;
+    }
+
+    .controls button {
+      min-width: 44px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      text-transform: inherit;
+    }
+
+    .controls button:hover:not(:disabled) { text-decoration: underline; }
+    .controls button:disabled { color: #aaa49a; cursor: default; }
+    .page-count { min-width: 92px; text-align: center; }
+
+    .cover-page {
+      justify-content: center;
+      gap: 0;
+    }
+
+    .cover-page h1 {
+      max-width: 11ch;
+      margin: 0;
+      font: italic 400 clamp(38px, 4.2vw, 58px)/.95 "Averia Serif Libre", serif;
+      letter-spacing: -.035em;
+    }
+
+    .cover-subtitle {
+      max-width: 29ch;
+      margin: 28px 0 0;
+      color: #5e594f;
+      font: 400 clamp(14px, 1.35vw, 17px)/1.5 "Instrument Sans", sans-serif;
+    }
+
+    .cover-author {
+      margin-top: 46px;
+      color: var(--muted);
+      font: 11px/1.4 "Geist Mono", monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .epigraph-page {
+      justify-content: center;
+    }
+
+    .epigraph {
+      margin: 0;
+      font: italic 400 clamp(25px, 2.7vw, 36px)/1.2 "Averia Serif Libre", serif;
+      letter-spacing: -.015em;
+    }
+
+    .epigraph cite {
+      display: block;
+      margin-top: 26px;
+      color: var(--muted);
+      font: normal 10px/1.5 "Geist Mono", monospace;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+
+    .front-note-page {
+      justify-content: flex-end;
+    }
+
+    .front-note {
+      max-width: 26ch;
+      margin: 0;
+      color: var(--muted);
+      font: 400 13px/1.7 "Instrument Sans", sans-serif;
+    }
+
+    .scene-heading {
+      justify-content: space-between;
+    }
+
+    .scene-number {
+      color: var(--muted);
+      font: 10px/1.4 "Geist Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-variant: small-caps;
+    }
+
+    .scene-title {
+      margin: auto 0 25px;
+      font: italic 400 clamp(36px, 4vw, 54px)/.98 "Averia Serif Libre", serif;
+      letter-spacing: -.025em;
+    }
+
+    .pull-quote {
+      max-width: 31ch;
+      margin: 0;
+      padding-top: 17px;
+      border-top: 1px solid var(--rule);
+      color: #595449;
+      font: italic 400 clamp(17px, 1.7vw, 21px)/1.35 "Averia Serif Libre", serif;
+    }
+
+    .scene-copy {
+      justify-content: center;
+    }
+
+    .scene-copy p {
+      margin: 0 0 1.05em;
+      font: 400 clamp(13px, 1.25vw, 16px)/1.65 "Instrument Sans", sans-serif;
+      text-wrap: pretty;
+    }
+
+    .scene-copy p:last-child { margin-bottom: 0; }
+
+    .footnote {
+      color: var(--muted);
+      font: 9px/1 "Geist Mono", monospace;
+      vertical-align: super;
+    }
+
+    .colophon {
+      justify-content: center;
+      gap: 22px;
+    }
+
+    .colophon-title {
+      margin: 0;
+      font: italic 400 34px/1.05 "Averia Serif Libre", serif;
+    }
+
+    .colophon a {
+      width: fit-content;
+      color: var(--muted);
+      font: 11px/1.5 "Geist Mono", monospace;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+      text-transform: lowercase;
+    }
+
+    .book-stage.single {
+      width: min(86vw, 520px);
+      height: calc(min(86vw, 520px) * 1.414);
+    }
+
+    .book-stage.single::before,
+    .book-stage.single .page-left { display: none; }
+
+    .book-stage.single .page-right {
+      right: auto;
+      left: 0;
+      width: 100%;
+      box-shadow: inset 0 0 0 1px rgba(65, 56, 43, .055);
+    }
+
+    .book-stage.single .page-content {
+      padding: clamp(26px, 7vw, 42px);
+    }
+
+    .book-stage.single .page-leaf {
+      width: 100%;
+      transform-origin: left center;
+    }
+
+    .book-stage.single .page-leaf.backward { transform-origin: right center; }
+
+    .book-stage.single .cover-page h1 { font-size: clamp(40px, 11vw, 52px); }
+    .book-stage.single .cover-subtitle { font-size: 14px; }
+    .book-stage.single .scene-title { font-size: clamp(38px, 11vw, 50px); }
+    .book-stage.single .scene-copy p { font-size: 13px; line-height: 1.45; }
+
+    @media (max-width: 760px) {
+      :root {
+        --page-width: min(86vw, 520px);
+        --page-height: calc(var(--page-width) * 1.414);
+      }
+
+      .topbar {
+        width: calc(100% - 32px);
+        min-height: 54px;
+        font-size: 9px;
+      }
+
+      .topbar-title { max-width: 42%; }
+
+      main { padding: 2px 0 12px; }
+
+      .controls {
+        min-height: 68px;
+        gap: 22px;
+        padding-top: 6px;
+        font-size: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+
+      .page-leaf { display: none !important; }
+
+      .book-stage.is-crossfading .page {
+        animation: paper-crossfade 240ms ease both;
+      }
+
+      @keyframes paper-crossfade {
+        from { opacity: .35; }
+        to { opacity: 1; }
+      }
+    }
+  </style>
 </head>
 <body>
-<div id="grain"></div><div class="progress" id="progress"></div>
-<div class="run"><a href="./">← harshita shyale</a><span id="runhead">the generative power of props</span><span id="pg">i</span></div>
-<main class="book" id="book"></main>
-<script>
-(async () => {
-  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/_(.+?)_/g,'<i>$1</i>').replace(/\[\^(\d+)\]/g,'<a class="fn" href="#n$1" id="r$1">$1</a>');
-  const md = await (await fetch('data/paper.md')).text();
-  const lines = md.split(/\n/); let front = '', title = '', sub = '', epi = '', chapters = [], notes = [], cur = null, para = [];
-  const flush = () => { if (para.length && cur) cur.body.push(para.join(' ')); para = []; };
-  for (const L of lines) {
-    let m;
-    if ((m = L.match(/^\[\^(\d+)\]:\s*(.*)/))) { flush(); notes.push([m[1], m[2]]); continue; }
-    if (L.startsWith('# ')) { title = L.slice(2); continue; }
-    if (L.startsWith('## ')) { sub = L.slice(3); continue; }
-    if (L.startsWith('### ')) { flush(); const t = L.slice(4); const [k, ...r] = t.split(':'); cur = { k: r.length ? k.trim() : '', t: (r.length ? r.join(':') : t).trim(), body: [] }; chapters.push(cur); continue; }
-    if (L.startsWith('> ')) { if (!cur) { epi += L.slice(2) + ' '; continue; } flush(); cur.body.push('>' + L.slice(2)); continue; }
-    if (!L.trim()) { flush(); continue; }
-    if (!title) { front += L; continue; }
-    para.push(L.trim());
-  }
-  flush();
-  const roman = n => ['i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii'][n] || n;
-  let html = `<section class="title-page"><p class="front">${esc(front)}</p><h1>${inline(title)}</h1><h2>${inline(sub)}</h2><svg class="orn" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">${[0,60,120,180,240,300].map(r=>`<path transform="rotate(${r} 50 50)" d="M50 50 C 44 36, 40 22, 50 14 C 60 22, 56 36, 50 50"/>`).join('')}</g></svg><p class="by">Harshita Shyale</p></section>`;
-  if (epi) html += `<blockquote class="epigraph rv">${inline(epi.trim())}</blockquote>`;
-  chapters.forEach((c, i) => {
-    html += `<section class="chapter" data-k="${esc(c.t.toLowerCase())}" data-pg="${roman(i + 1)}"><h3 class="rv">${esc(c.k || 'Scene ' + (i + 1))}</h3><div class="ct rv">${inline(c.t)}</div>`;
-    c.body.forEach(p => { html += p.startsWith('>') ? `<blockquote class="rv">${inline(p.slice(1))}</blockquote>` : `<p class="rv">${inline(p)}</p>`; });
-    html += `<p class="folio">— ${roman(i + 1)} —</p></section>`;
-  });
-  if (notes.length) html += `<section class="notes rv"><h4>notes</h4><ol>${notes.map(([n, t]) => `<li id="n${n}">${inline(t)} <a class="fn" href="#r${n}">↩</a></li>`).join('')}</ol></section>`;
-  html += `<p class="end rv"><a href="./">close the book</a></p>`;
-  document.getElementById('book').innerHTML = html;
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
-  document.querySelectorAll('.rv').forEach(el => io.observe(el));
-  const rh = document.getElementById('runhead'), pg = document.getElementById('pg'), pr = document.getElementById('progress');
-  const chs = [...document.querySelectorAll('.chapter')];
-  addEventListener('scroll', () => { const y = scrollY + innerHeight * .35; let c = null; chs.forEach(s => { if (s.offsetTop < y) c = s; }); rh.textContent = c ? c.dataset.k : 'the generative power of props'; pg.textContent = c ? c.dataset.pg : 'i'; pr.style.width = (scrollY / (document.documentElement.scrollHeight - innerHeight) * 100) + '%'; }, { passive: true });
-  const cv = document.createElement('canvas'); cv.width = cv.height = 180; const x = cv.getContext('2d'), d = x.createImageData(180, 180); for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255 | 0; d.data[i] = d.data[i+1] = d.data[i+2] = v; d.data[i+3] = 255; } x.putImageData(d, 0, 0); document.getElementById('grain').style.background = `url(${cv.toDataURL()})`;
-})();
-</script>
+  <header class="topbar">
+    <a href="index.html">back to the map</a>
+    <span class="topbar-title">The Generative Power of Props</span>
+  </header>
+  <main>
+    <div class="book-stage" id="book" aria-label="The Generative Power of Props, page-flip reader">
+      <section class="page page-left" id="page-left" aria-label="Left page">
+        <div class="page-content" id="content-left"></div>
+      </section>
+      <section class="page page-right" id="page-right" aria-label="Right page">
+        <div class="page-content" id="content-right"></div>
+      </section>
+      <div class="page-leaf" id="page-leaf" aria-hidden="true">
+        <div class="leaf-face leaf-front"><div class="page-content" id="leaf-front"></div></div>
+        <div class="leaf-face leaf-back"><div class="page-content" id="leaf-back"></div></div>
+      </div>
+    </div>
+  </main>
+  <nav class="controls" aria-label="Paper pages">
+    <button type="button" id="prev" aria-label="Previous page">prev</button>
+    <span class="page-count" id="page-count" aria-live="polite"></span>
+    <button type="button" id="next" aria-label="Next page">next</button>
+  </nav>
+  <script src="paper-reader.js"></script>
 </body>
 </html>
