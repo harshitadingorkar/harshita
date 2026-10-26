@@ -35,9 +35,9 @@ function buildPlane() {
   plane.append(h('div', { class: 'axis h' }), h('div', { class: 'axis v' }), h('div', { class: 'ticks', id: 'ticks' }));
   for (const [side, w] of [['top', 'work'], ['bottom', 'wonder'], ['left', 'gather'], ['right', 'make']]) plane.append(h('div', { class: 'alabel ' + side, tabindex: 0 }, w, h('small', {}, S.axes[w].gloss)));
   for (const [q, d] of Object.entries(S.quads)) plane.append(h('div', { class: 'qlabel q-' + q, html: `${d.name}<small>${d.key}</small>` }));
-  const mark = h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint">(hello)</span>', onclick: () => openAbout() });
+  const mark = h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: () => openAbout() });
   plane.append(mark);
-  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'aria-label': `${p.title}, ${p.meta}` }, h('span', { class: 'dot' }), h('span', { class: 'lbl' }, p.title, h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
+  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, h('span', { class: 'dot' }), h('span', { class: 'lbl' }, p.title, h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
   layout(); preview(active);
 }
 function layout() {
@@ -53,8 +53,8 @@ function layout() {
   for (let y = cy % step; y < H; y += step) t.append(h('i', { style: `top:${y}px;left:${cx - 3}px;height:1px;width:7px` }));
 }
 function buildMobile() {
-  plane.append(h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK, onclick: () => openAbout() }));
-  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind }, h('span', { class: 'dot' }), h('span', { class: 'lbl' }, p.title, h('em', {}, p.meta))); e._p = p; e.onclick = () => ready.then(() => open(p, e.querySelector('.dot').getBoundingClientRect())); g.append(e); }); plane.append(g); }
+  plane.append(h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: () => openAbout() }));
+  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-id': p.id }, h('span', { class: 'dot' }), h('span', { class: 'lbl' }, p.title, h('em', {}, p.meta))); e._p = p; e.onclick = () => ready.then(() => open(p, e.querySelector('.dot').getBoundingClientRect())); g.append(e); }); plane.append(g); }
   preview(active);
 }
 
@@ -106,7 +106,7 @@ function srcRect(p) { const m = plate.classList.contains('on') && plate.firstEle
 const thumbSrc = q => q.img ? A(q.img) : q.kind === 'archive' && DATA.arena ? (b => b && (b.image.local || b.image.thumb))(DATA.arena.channels.flatMap(c => c.blocks).find(b => b.image)) : q.kind === 'films' && DATA.films && DATA.films[0] ? DATA.films[0].local || DATA.films[0].poster : null;
 function heroFor(p) {
   if (p.video) return Object.assign(h('video', { src: A(p.video), poster: p.img ? A(p.img) : null, muted: true, loop: true, playsinline: true, autoplay: !RM, controls: RM, 'aria-label': p.vcap || p.title }), { muted: true, defaultMuted: true });
-  if (p.kind === 'archive' || p.kind === 'films' || (p.kind === 'room' && p.room === 'odds')) return plateFor(p);
+  if (p.kind === 'films' || (p.kind === 'room' && p.room === 'odds')) return plateFor(p);
   return p.img ? h('img', { src: A(p.img), alt: p.alt || '' }) : null;
 }
 function dockFor(cur) {
@@ -149,18 +149,79 @@ addEventListener('keydown', e => { if (e.key === 'Escape') { if (sheetOpen) clos
 const kick = p => `${S.quads[p.quad].name} · ${S.quads[p.quad].key}`;
 const metaList = rows => h('dl', { class: 's-meta' }, rows.filter(r => r[1]).flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)]));
 const videoFig = p => p.video ? h('figure', { class: 's-video reveal' }, Object.assign(h('video', { src: A(p.video), poster: p.img ? A(p.img) : null, muted: true, loop: true, playsinline: true, autoplay: !RM, controls: RM, preload: 'metadata', 'aria-label': p.vcap || p.title }), { muted: true, defaultMuted: true }), p.vcap ? h('figcaption', { class: 'mono dim' }, p.vcap) : null) : null;
-function shortCase(c) {
+function shortCase(c, point, kicker) {
   const im = f => h('img', { class: 'reveal', src: f, alt: '', loading: 'lazy' }), imgs = l => l && l.length ? h('div', { class: 'c-imgs n' + Math.min(l.length, 3) }, l.map(im)) : null;
   const R = typeof c.research === 'string' ? { t: c.research } : c.research, Q = typeof c.quote === 'string' ? { t: c.quote } : c.quote;
-  return h('div', { class: 'short' },
-    c.facts ? h('p', { class: 'c-facts reveal' }, c.facts) : null, c.note ? h('p', { class: 'c-note reveal' }, c.note) : null,
-    c.q ? h('p', { class: 'c-q reveal' }, c.q) : null, c.problem ? h('p', { class: 'c-p reveal' }, c.problem) : null,
-    c.numbers ? h('div', { class: 'c-nums reveal' }, c.numbers.map(([n, l]) => h('div', {}, h('b', {}, n), h('span', {}, l)))) : null,
-    Q ? h('blockquote', { class: 'c-quote reveal' }, '“' + Q.t.replace(/^["“\s]+|["”\s]+$/g, '') + '”', Q.by ? h('cite', {}, '— ' + Q.by) : null) : null,
-    R ? h('div', {}, h('p', { class: 'c-p reveal' }, R.t), imgs(R.imgs)) : null,
-    (c.steps || []).map(s => h('section', { class: 'c-step' }, h('div', { class: 'c-sh reveal' }, h('span', { class: 'c-n' }, s.n), h('h3', {}, s.t)), h('p', { class: 'c-p reveal' }, s.d), imgs(s.imgs))),
-    c.learned ? h('p', { class: 'c-learned reveal' }, h('span', {}, 'what she learned'), c.learned) : null,
-    c.closing ? h('figure', { class: 'c-fig reveal' }, im(c.closing.img), c.closing.cap ? h('figcaption', {}, c.closing.cap) : null) : null);
+  const numbers = () => c.numbers ? h('div', { class: 'c-nums reveal' }, c.numbers.map(([n, l]) => h('div', {}, h('b', {}, n), h('span', {}, l)))) : null;
+  const quote = () => Q ? h('blockquote', { class: 'c-quote reveal' }, '“' + Q.t.replace(/^["“\s]+|["”\s]+$/g, '') + '”', Q.by ? h('cite', {}, '— ' + Q.by) : null) : null;
+  const research = () => R ? h('div', {}, h('p', { class: 'c-p reveal' }, R.t), imgs(R.imgs)) : null;
+  const steps = prefix => (c.steps || []).map(s => h('section', { class: 'c-step', id: prefix + s.n, 'data-step': s.n }, h('div', { class: 'c-sh reveal' }, h('span', { class: 'c-n' }, s.n), h('h3', {}, s.t)), h('p', { class: 'c-p reveal' }, s.d), imgs(s.imgs)));
+  const learned = () => c.learned ? h('p', { class: 'c-learned reveal' }, h('span', {}, 'what she learned'), c.learned) : null;
+  const closing = () => c.closing ? h('figure', { class: 'c-fig reveal' }, im(c.closing.img), c.closing.cap ? h('figcaption', {}, c.closing.cap) : null) : null;
+  const stackedContent = () => [
+    c.facts ? h('p', { class: 'c-facts reveal' }, c.facts) : null,
+    c.note ? h('p', { class: 'c-note reveal' }, c.note) : null,
+    c.q ? h('p', { class: 'c-q reveal' }, c.q) : null,
+    c.problem ? h('p', { class: 'c-p reveal' }, c.problem) : null,
+    numbers(), quote(), research(), ...steps('github-stacked-step-'), learned(), closing(),
+  ].filter(Boolean);
+  if (!point || point.case !== 'github') return h('div', { class: 'short' }, ...stackedContent());
+
+  const initialLayout = mobile() ? 'stacked' : 'side-by-side';
+  const root = h('div', { class: 'short github-case', 'data-layout': initialLayout });
+  const sideButton = h('button', { class: 'side-by-side', 'aria-pressed': String(initialLayout === 'side-by-side') }, 'side-by-side');
+  const stackedButton = h('button', { class: 'stacked', 'aria-pressed': String(initialLayout === 'stacked') }, 'stacked');
+  const layoutSwitch = h('div', { class: 'github-layout-switch mono' }, h('span', {}, 'layout: '), sideButton, ' / ', stackedButton);
+  const tocLinks = new Map();
+  const toc = h('nav', { class: 'github-toc', 'aria-label': 'Case study sections' },
+    h('p', { class: 'mono' }, 'in this study'),
+    (c.steps || []).map(s => {
+      const link = h('button', { type: 'button', onclick: () => {
+        const target = $(`#github-step-${s.n}`, root), box = target.getBoundingClientRect(), sheetBox = sheet.getBoundingClientRect();
+        sheet.scrollTo({ top: sheet.scrollTop + box.top - sheetBox.top - 96, behavior: RM ? 'auto' : 'smooth' });
+      } }, h('span', { class: 'mono' }, s.n), ' ' + s.t);
+      tocLinks.set(s.n, link); return link;
+    }));
+  const side = h('aside', { class: 'github-side' },
+    h('p', { class: 'c-kick' }, kicker), h('h2', { class: 's-title' }, point.title),
+    c.facts ? h('p', { class: 'c-facts reveal' }, c.facts) : null,
+    c.q ? h('p', { class: 'c-q reveal' }, c.q) : null,
+    numbers(), toc);
+  const story = h('div', { class: 'github-story' },
+    c.problem ? h('p', { class: 'c-p reveal' }, c.problem) : null,
+    quote(), research(), ...steps('github-step-'), learned(), closing());
+  const layout = h('div', { class: 'github-layout', 'data-layout': initialLayout }, side, story);
+  const stacked = h('div', { class: 'github-stacked' },
+    h('p', { class: 'c-kick c-in' }, kicker), h('h2', { class: 's-title c-in' }, point.title),
+    ...stackedContent());
+  const setLayout = value => {
+    if (mobile() && value === 'side-by-side') value = 'stacked';
+    root.dataset.layout = value; layout.dataset.layout = value;
+    sideButton.classList.toggle('on', value === 'side-by-side'); sideButton.setAttribute('aria-pressed', String(value === 'side-by-side'));
+    stackedButton.classList.toggle('on', value === 'stacked'); stackedButton.setAttribute('aria-pressed', String(value === 'stacked'));
+  };
+  sideButton.onclick = () => setLayout('side-by-side'); stackedButton.onclick = () => setLayout('stacked');
+  root.append(layoutSwitch, layout, stacked); setLayout(initialLayout);
+
+  const sideSteps = $$('.c-step[data-step]', story);
+  const setActive = n => tocLinks.forEach((link, key) => link.classList.toggle('active', key === n));
+  setActive(c.steps && c.steps[0] ? c.steps[0].n : '');
+  if ('IntersectionObserver' in window) requestAnimationFrame(() => {
+    if (!story.isConnected) return;
+    const updateActive = () => {
+      const top = sheet.getBoundingClientRect().top + 110;
+      const inView = sideSteps.filter(step => { const rect = step.getBoundingClientRect(); return rect.top <= top && rect.bottom > top; });
+      const activeStep = inView[inView.length - 1] || sideSteps.find(step => step.getBoundingClientRect().bottom > top);
+      if (activeStep) setActive(activeStep.dataset.step);
+    };
+    if (sheet._scrollSpyCleanup) sheet._scrollSpyCleanup();
+    const observer = new IntersectionObserver(updateActive, { root: sheet, rootMargin: '-90px 0px -62% 0px', threshold: 0 });
+    sideSteps.forEach(step => observer.observe(step));
+    sheet.addEventListener('scroll', updateActive, { passive: true });
+    sheet._scrollSpyCleanup = () => { observer.disconnect(); sheet.removeEventListener('scroll', updateActive); };
+    updateActive();
+  });
+  return root;
 }
 const caseHTML = id => DATA.cases && DATA.cases[id] ? h('div', { class: 'prose reveal', html: DATA.cases[id].html }) : null;
 
@@ -168,7 +229,12 @@ function open(p, rect) {
   if (sheetOpen) $$('video', sheet).forEach(v => v.pause());
   curP = p; fromR = rect || srcRect(p);
   const K = kick(p), line = h('p', { class: 's-line reveal' }, p.line);
-  const sc = p.case && DATA.short && DATA.short[p.case] ? shortCase(DATA.short[p.case]) : null;
+  const sc = p.case && DATA.short && DATA.short[p.case] ? shortCase(DATA.short[p.case], p, K) : null;
+  if (p.case === 'github' && sc) {
+    openSheet(p.quad, K, '', sc);
+    $('.body', sheet).classList.add('wide');
+    return;
+  }
   if (p.kind === 'vault' || p.kind === 'shipped') return openSheet(p.quad, K, p.title, sc || line, sc ? null : metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), p.video ? h('p', { class: 'c-cap reveal' }, p.vcap) : null, diagram(p.id), sc ? null : p.kind === 'shipped' ? crops(p) : p.images ? h('div', { class: 's-imgs' }, p.images.slice(1).map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null);
   if (p.kind === 'archive') return ready.then(() => openArena(K));
   if (p.kind === 'films') return ready.then(() => openFilms(K));
@@ -203,15 +269,195 @@ function crops(p) {
   return h('div', {}, list.map(c => h('div', {}, h('div', { class: 'crop', style: `--z:${c.z};--ox-o:${c.o}`, onclick: e => e.currentTarget.classList.toggle('zoom') }, h('img', { src: A(c.f), alt: p.alt || '' }), c.a.map(([l, t, txt]) => h('span', { class: 'anno', style: `left:${l};top:${t}` }, h('b', {}, txt)))), h('div', { class: 'cropcap' }, h('span', {}, c.cap), h('span', {}, 'click to zoom out')))), h('div', { class: 's-imgs' }, extra));
 }
 
-/* are.na */
+/* collection */
 function openArena(K) {
-  const a = DATA.arena; const fmt = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toLowerCase() : '';
-  const grid = h('div', { class: 'masonry' }); let ch = null;
-  const draw = () => { grid.replaceChildren(...(a ? a.channels.filter(c => !ch || c.slug === ch).flatMap(c => c.blocks.filter(b => b.image).map(b => h('a', { class: 'blk', href: c.url, target: '_blank', rel: 'noopener', title: `open “${c.title}” on are.na` }, h('img', { src: b.image.local || b.image.display || b.image.thumb, alt: b.title || '', loading: 'lazy' }), h('span', { class: 'tag' }, c.title + (b.connected_at || b.created_at ? ' · clipped ' + fmt(b.connected_at || b.created_at) : ''))))) : [h('p', { class: 'dim' }, 'loading the archive…')])); };
-  const chans = h('div', { class: 'channels mono' }, h('button', { class: 'on', onclick: e => { ch = null; mark(e); } }, 'all'), (a ? a.channels : []).map(c => h('button', { onclick: e => { ch = c.slug; mark(e); } }, c.title)));
-  const mark = e => { $$('button', chans).forEach(b => b.classList.toggle('on', b === e.currentTarget)); draw(); };
-  draw();
-  openSheet('bl', K, 'visual research & archives', h('p', { class: 'credit reveal' }, 'An index of curated imagery, references, and design artifacts streamed from my public Are.na channels. All rights remain with the original creators.'), chans, grid, h('p', { class: 'mono', style: 'margin-top:20px' }, h('a', { href: S.person.arena, target: '_blank', rel: 'noopener', style: 'color:var(--ox)' }, 'are.na/harshita-shyale ↗')));
+  const channels = DATA.arena ? DATA.arena.channels : [];
+  const fmt = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toLowerCase() : '';
+  const canvas = h('div', { class: 'collection-canvas', 'aria-label': 'A pannable canvas of eight image collections' });
+  const world = h('div', { class: 'collection-world', style: 'width:3200px;height:2200px' });
+  const ns = 'http://www.w3.org/2000/svg', threads = document.createElementNS(ns, 'svg');
+  const labels = h('div', { class: 'collection-labels' });
+  threads.setAttribute('class', 'collection-threads'); threads.setAttribute('viewBox', '0 0 3200 2200');
+  threads.setAttribute('width', '3200'); threads.setAttribute('height', '2200'); threads.setAttribute('aria-hidden', 'true');
+  world.append(threads, labels);
+
+  const positions = [[360, 390], [1120, 390], [2040, 390], [2820, 390], [360, 1630], [1120, 1630], [2040, 1630], [2820, 1630]];
+  let fitBounds = null;
+  const randomFor = seed => {
+    let n = 2166136261;
+    for (const ch of seed) n = Math.imul(n ^ ch.charCodeAt(0), 16777619);
+    return () => { n += 0x6D2B79F5; let t = n; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  };
+  const filters = h('div', { class: 'collection-filters mono', role: 'group', 'aria-label': 'Filter collections' });
+  const filterButtons = new Map();
+  const focusChannel = (slug, animated = true) => {
+    world.dataset.focus = slug || '';
+    world.classList.toggle('has-focus', !!slug);
+    $$('.collection-cluster', world).forEach(cluster => cluster.classList.toggle('focused', cluster.dataset.channel === slug));
+    $$('.collection-thread', world).forEach(thread => thread.classList.toggle('focused', thread.dataset.channel === slug));
+    filterButtons.forEach((button, key) => button.classList.toggle('on', key === (slug || 'all')));
+    if (!slug) {
+      fitWorld(animated);
+    } else {
+      const cluster = world.querySelector(`.collection-cluster[data-channel="${slug}"]`);
+      if (!cluster) return;
+      const scale = world._scale || .48, rect = canvas.getBoundingClientRect();
+      world._tx = rect.width / 2 - Number(cluster.dataset.x) * scale;
+      world._ty = rect.height / 2 - Number(cluster.dataset.y) * scale;
+    }
+    applyTransform(animated);
+  };
+  const allButton = h('button', { class: 'on', onclick: () => focusChannel(null) }, 'all');
+  filters.append(allButton); filterButtons.set('all', allButton);
+
+  channels.forEach((channel, channelIndex) => {
+    const blocks = channel.blocks.filter(block => block.image);
+    const blockCount = channel.count || blocks.length;
+    const [x, y] = positions[channelIndex] || [400 + channelIndex % 4 * 760, 390 + Math.floor(channelIndex / 4) * 1240];
+    const radius = 112 + Math.sqrt(blockCount) * 22;
+    const cluster = h('div', { class: 'collection-cluster', 'data-channel': channel.slug, 'data-x': x, 'data-y': y, style: `left:${x}px;top:${y}px` });
+    cluster.append(h('div', { class: 'collection-orbit', style: `width:${radius * 2}px;height:${radius * 2}px;left:${-radius}px;top:${-radius}px` }));
+    const label = h('button', { class: 'collection-label', style: `left:${x}px;top:${y}px`, onclick: e => { e.stopPropagation(); focusChannel(channel.slug); } },
+      h('span', {}, channel.title), h('small', { class: 'mono' }, `${channel.count || channel.blocks.length} kept`));
+    labels.append(label);
+    const filter = h('button', { onclick: () => focusChannel(channel.slug) }, channel.title);
+    filters.append(filter); filterButtons.set(channel.slug, filter);
+
+    blocks.forEach((block, blockIndex) => {
+      const random = randomFor(`${channel.slug}:${block.id}`);
+      const angle = random() * Math.PI * 2, distance = radius * (.55 + random() * .52);
+      const width = Math.round(120 + random() * 60), offsetX = Math.cos(angle) * distance, offsetY = Math.sin(angle) * distance;
+      const tilt = (random() * 6 - 3).toFixed(2), cardX = x + offsetX, cardY = y + offsetY;
+      const image = block.image.local || block.image.display || block.image.thumb;
+      const date = block.connected_at || block.created_at;
+      const dimensions = block.image.width && block.image.height ? { width: block.image.width, height: block.image.height } : {};
+      const thread = document.createElementNS(ns, 'path');
+      thread.setAttribute('class', 'collection-thread'); thread.setAttribute('data-channel', channel.slug);
+      thread.setAttribute('d', `M${x} ${y} C${x + offsetX * .35} ${y + offsetY * .12},${x + offsetX * .72} ${y + offsetY * .88},${cardX} ${cardY}`);
+      threads.append(thread);
+
+      const card = h('a', {
+        class: 'collection-card',
+        href: block.block_url || channel.url,
+        target: '_blank',
+        rel: 'noopener',
+        title: `open “${block.title || channel.title}” in its original collection`,
+        style: `left:${offsetX}px;top:${offsetY}px;width:${width}px;--tilt:${tilt}deg;--delay:${channelIndex * 70 + Math.min(blockIndex * 5, 35)}ms`,
+      },
+        h('img', { src: image, alt: block.title || channel.title, loading: 'lazy', ...dimensions }),
+        h('span', { class: 'collection-caption mono' }, '◇ ' + channel.title),
+        h('span', { class: 'collection-tag mono' }, channel.title + (date ? ' · clipped ' + fmt(date) : '')));
+      card.addEventListener('mouseenter', () => thread.classList.add('active'));
+      card.addEventListener('mouseleave', () => thread.classList.remove('active'));
+      cluster.append(card);
+    });
+    world.append(cluster);
+  });
+
+  const controls = h('div', { class: 'collection-controls', role: 'group', 'aria-label': 'Canvas controls' });
+  const control = (label, title, action) => h('button', { type: 'button', 'aria-label': title, title, onclick: action }, label);
+  const zoomAt = (factor, x, y) => {
+    const rect = canvas.getBoundingClientRect(), px = x ?? rect.width / 2, py = y ?? rect.height / 2;
+    const oldScale = world._scale || .48, scale = Math.max(.35, Math.min(1.6, oldScale * factor));
+    world._tx = px - (px - (world._tx || 0)) * scale / oldScale;
+    world._ty = py - (py - (world._ty || 0)) * scale / oldScale;
+    world._scale = scale; applyTransform(false);
+  };
+  controls.append(
+    control('+', 'Zoom in', () => zoomAt(1.2)),
+    control('−', 'Zoom out', () => zoomAt(1 / 1.2)),
+    control('◎', 'Centre all collections', () => fitWorld(true)));
+  canvas.append(world, controls);
+
+  let pointerPoints = new Map(), panStart = null, pinchStart = null, moved = false, suppressClick = false;
+  let velocityX = 0, velocityY = 0, lastPointerTime = 0, inertiaFrame = 0;
+  const applyTransform = animated => {
+    world.style.transition = animated && !RM ? 'transform .9s cubic-bezier(.77,0,.175,1)' : 'none';
+    world.style.transform = `translate3d(${world._tx || 0}px,${world._ty || 0}px,0) scale(${world._scale || .48})`;
+  };
+  const fitWorld = animated => {
+    const rect = canvas.getBoundingClientRect();
+    if (!fitBounds) {
+      const measured = [...$$('.collection-card', world), ...$$('.collection-label', labels)].map(el => el.getBoundingClientRect());
+      const left = Math.min(...measured.map(r => r.left - rect.left)), top = Math.min(...measured.map(r => r.top - rect.top));
+      const right = Math.max(...measured.map(r => r.right - rect.left)), bottom = Math.max(...measured.map(r => r.bottom - rect.top));
+      fitBounds = { left, top, width: right - left, height: bottom - top };
+    }
+    const scale = Math.max(.35, Math.min(1.6, Math.min((rect.width - 96) / fitBounds.width, (rect.height - 96) / fitBounds.height)));
+    world._scale = scale;
+    world._tx = (rect.width - fitBounds.width * scale) / 2 - fitBounds.left * scale;
+    world._ty = (rect.height - fitBounds.height * scale) / 2 - fitBounds.top * scale;
+    applyTransform(false);
+  };
+
+  canvas.addEventListener('pointerdown', e => {
+    if (e.target.closest('.collection-controls,.collection-label')) return;
+    canvas.setPointerCapture(e.pointerId); pointerPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    cancelAnimationFrame(inertiaFrame); velocityX = velocityY = 0; moved = false;
+    if (pointerPoints.size === 1) {
+      panStart = { x: e.clientX, y: e.clientY, tx: world._tx || 0, ty: world._ty || 0, lastX: e.clientX, lastY: e.clientY };
+      lastPointerTime = performance.now();
+    } else if (pointerPoints.size === 2) {
+      const [a, b] = [...pointerPoints.values()], midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2;
+      const rect = canvas.getBoundingClientRect(), scale = world._scale || .48;
+      pinchStart = { distance: Math.hypot(b.x - a.x, b.y - a.y), scale, x: midX - rect.left, y: midY - rect.top, worldX: (midX - rect.left - (world._tx || 0)) / scale, worldY: (midY - rect.top - (world._ty || 0)) / scale };
+      panStart = null;
+    }
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!pointerPoints.has(e.pointerId)) return;
+    pointerPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointerPoints.size > 1 && pinchStart) {
+      const [a, b] = [...pointerPoints.values()], rect = canvas.getBoundingClientRect();
+      const midX = (a.x + b.x) / 2 - rect.left, midY = (a.y + b.y) / 2 - rect.top;
+      const scale = Math.max(.35, Math.min(1.6, pinchStart.scale * Math.hypot(b.x - a.x, b.y - a.y) / pinchStart.distance));
+      world._scale = scale; world._tx = midX - pinchStart.worldX * scale; world._ty = midY - pinchStart.worldY * scale;
+      moved = true; applyTransform(false); return;
+    }
+    if (!panStart) return;
+    const dx = e.clientX - panStart.lastX, dy = e.clientY - panStart.lastY, now = performance.now(), dt = Math.max(1, now - lastPointerTime);
+    if (Math.hypot(e.clientX - panStart.x, e.clientY - panStart.y) > 4) moved = true;
+    world._tx = (world._tx || 0) + dx; world._ty = (world._ty || 0) + dy;
+    velocityX = dx / dt * 16; velocityY = dy / dt * 16; panStart.lastX = e.clientX; panStart.lastY = e.clientY; lastPointerTime = now;
+    applyTransform(false);
+  });
+  const endPointer = e => {
+    pointerPoints.delete(e.pointerId);
+    if (pointerPoints.size === 1) {
+      const [remaining] = [...pointerPoints.entries()];
+      panStart = { x: remaining[1].x, y: remaining[1].y, lastX: remaining[1].x, lastY: remaining[1].y };
+      pinchStart = null;
+    } else if (!pointerPoints.size) {
+      pinchStart = panStart = null;
+      suppressClick = moved;
+      if (moved && !RM) {
+        const coast = () => {
+          world._tx += velocityX; world._ty += velocityY; velocityX *= .92; velocityY *= .92; applyTransform(false);
+          if (Math.abs(velocityX) + Math.abs(velocityY) > .25) inertiaFrame = requestAnimationFrame(coast);
+        };
+        inertiaFrame = requestAnimationFrame(coast);
+      }
+    }
+  };
+  canvas.addEventListener('pointerup', endPointer); canvas.addEventListener('pointercancel', endPointer);
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault(); zoomAt(Math.exp(-e.deltaY * .001), e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+  }, { passive: false });
+  canvas.addEventListener('click', e => {
+    if (suppressClick) {
+      if (e.target.closest('.collection-card')) { e.preventDefault(); e.stopPropagation(); }
+      suppressClick = false; return;
+    }
+    if (!e.target.closest('.collection-card,.collection-label,.collection-controls')) focusChannel(null);
+  });
+  openSheet('bl', K, '',
+    h('p', { class: 'collection-copy serif reveal' }, 'An index of curated imagery, references, and design artifacts, kept in eight collections. All rights remain with the original creators.'),
+    filters, canvas,
+    h('p', { class: 'collection-credit mono' }, h('a', { href: S.person.arena, target: '_blank', rel: 'noopener' }, 'kept on are.na ↗')));
+  $('.body', sheet).classList.add('wide', 'collection-body');
+  const fitWhenReady = () => requestAnimationFrame(() => fitWorld(false));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitWhenReady);
+  else fitWhenReady();
 }
 function openFilms(K) {
   const f = DATA.films || []; const stars = r => r ? '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '') : '';
@@ -275,20 +521,110 @@ function buildIndex(ix) {
 }
 const views = $('#views'), vpill = $('.vpill', views);
 function placePill() { const b = $('button.on', views); if (!b) return; vpill.style.transform = `translateX(${b.offsetLeft}px)`; vpill.style.width = b.offsetWidth + 'px'; }
+const indexMotion = { animations: [], clones: [], timers: [], phase: null, token: 0 };
+const indexGlyph = row => {
+  const section = row.closest('.iacc');
+  return section && section.classList.contains('open') ? $('.g', row) : $('.ihead .g', section);
+};
+function cancelIndexMotion() {
+  indexMotion.token++;
+  indexMotion.animations.forEach(animation => { try { animation.cancel(); } catch {} });
+  indexMotion.clones.forEach(clone => clone.remove());
+  indexMotion.timers.forEach(timer => clearTimeout(timer));
+  indexMotion.animations = []; indexMotion.clones = []; indexMotion.timers = []; indexMotion.phase = null;
+  body.classList.remove('index-entering', 'index-leaving', 'index-labels-in', 'index-crossfade', 'index-crossfade-entering', 'index-crossfade-leaving');
+  $$('.glyph-landed,.map-dot-landed').forEach(el => el.classList.remove('glyph-landed', 'map-dot-landed'));
+  const card = $('.icard', $('#index')); if (card) card.style.clipPath = '';
+}
+function readIndexRects(ix) {
+  const rows = new Map($$('.pt-row', ix).map(row => [row._p, { row, glyph: indexGlyph(row) }]));
+  const entries = $$('.pt').map(point => {
+    const source = point.querySelector('.dot').getBoundingClientRect(), target = rows.get(point._p);
+    return target && target.glyph ? { point, row: target.row, glyph: target.glyph, source, target: target.glyph.getBoundingClientRect() } : null;
+  }).filter(Boolean);
+  [...$$('.pt .lbl'), ...$$('.axis,.alabel,.qlabel,.mark'), ...$$('.irow,.ihead .g,.icard,.ifig', ix)].forEach(el => el.getBoundingClientRect());
+  return entries;
+}
+function flyDots(entries, reverse, token) {
+  const ordered = [...entries].sort((a, b) => (reverse ? a.target.top - b.target.top : a.target.top - b.target.top) || a.target.left - b.target.left);
+  const duration = reverse ? 420 : 420;
+  ordered.forEach((entry, order) => {
+    const from = reverse ? entry.target : entry.source, to = reverse ? entry.source : entry.target;
+    const dx = to.left + to.width / 2 - from.left - from.width / 2, dy = to.top + to.height / 2 - from.top - from.height / 2;
+    const clone = h('i', { class: 'flydot', style: `left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px` });
+    body.append(clone); indexMotion.clones.push(clone);
+    const animation = clone.animate([
+      { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 },
+      { transform: `translate3d(${dx * .5}px,${dy * .5 - 40}px,0) scale(1.3)`, opacity: 1, offset: .5 },
+      { transform: `translate3d(${dx}px,${dy}px,0) scale(.8)`, opacity: 0 }
+    ], { duration, delay: order * 26, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'both' });
+    indexMotion.animations.push(animation);
+    animation.onfinish = () => {
+      if (indexMotion.token !== token) return;
+      clone.remove();
+      if (reverse) entry.point.querySelector('.dot').classList.add('map-dot-landed');
+      else entry.glyph.classList.add('glyph-landed');
+    };
+  });
+  return ordered.length ? (ordered.length - 1) * 26 + duration : 0;
+}
 function flyToList() {
   if (RM || mobile()) return;
-  const ix = $('#index'), T = new Map();
-  $$('.pt-row', ix).forEach(r => { const sec = r.closest('.iacc'); T.set(r._p, $(sec.classList.contains('open') ? '.g' : '.ihead .g', sec.classList.contains('open') ? r : sec).getBoundingClientRect()); });
-  $$('.pt').forEach((e, n) => { const a2 = e.querySelector('.dot').getBoundingClientRect(), t = T.get(e._p); if (!t || !a2.width) return;
-    const c = h('i', { class: 'flydot', style: `left:${a2.left}px;top:${a2.top}px;width:${a2.width}px;height:${a2.height}px` }); body.append(c);
-    c.animate([{ transform: 'none', opacity: 1 }, { opacity: 1, offset: .85 }, { transform: `translate(${t.left + t.width / 2 - a2.left - a2.width / 2}px,${t.top + t.height / 2 - a2.top - a2.height / 2}px) scale(.7)`, opacity: 0 }], { duration: 780, delay: n * 24, easing: 'cubic-bezier(.77,0,.175,1)', fill: 'both' }).onfinish = () => c.remove(); });
+  const ix = $('#index'); renderIndex();
+  const entries = readIndexRects(ix), token = ++indexMotion.token;
+  indexMotion.phase = 'in';
+  plate.classList.remove('on'); pill.classList.remove('on');
+  body.classList.add('show-index', 'index-entering');
+  const card = $('.icard', ix);
+  if (card) {
+    const animation = card.animate([{ clipPath: 'inset(0 0 100% 0 round 6px)' }, { clipPath: 'inset(0 round 6px)' }], { duration: 600, delay: 120, easing: 'cubic-bezier(.77,0,.175,1)', fill: 'both' });
+    indexMotion.animations.push(animation);
+  }
+  const fig = $('.ifig', ix);
+  if (fig) {
+    fig.classList.remove('on');
+    indexMotion.timers.push(setTimeout(() => { if (indexMotion.token === token) fig.classList.add('on'); }, 450));
+  }
+  const landing = flyDots(entries, false, token);
+  indexMotion.timers.push(setTimeout(() => { if (indexMotion.token === token) { body.classList.remove('index-entering'); indexMotion.phase = 'list'; } }, landing + 180));
+}
+function flyToMap() {
+  if (RM || mobile()) return;
+  const ix = $('#index'), entries = readIndexRects(ix), token = ++indexMotion.token;
+  indexMotion.phase = 'out'; body.classList.add('index-leaving');
+  const card = $('.icard', ix);
+  if (card) {
+    const animation = card.animate([{ clipPath: 'inset(0 round 6px)' }, { clipPath: 'inset(0 0 100% 0 round 6px)' }], { duration: 450, easing: 'cubic-bezier(.77,0,.175,1)', fill: 'both' });
+    indexMotion.animations.push(animation);
+  }
+  const landing = flyDots(entries, true, token);
+  indexMotion.timers.push(setTimeout(() => { if (indexMotion.token === token) body.classList.add('index-labels-in'); }, landing + 20));
+  indexMotion.timers.push(setTimeout(() => {
+    if (indexMotion.token !== token) return;
+    body.classList.remove('show-index', 'index-leaving', 'index-labels-in'); indexMotion.phase = null;
+  }, landing + 260));
+}
+function crossfadeIndex(on) {
+  renderIndex(); indexMotion.phase = on ? 'crossfade-in' : 'crossfade-out';
+  body.classList.add('index-crossfade', on ? 'index-crossfade-entering' : 'index-crossfade-leaving');
+  if (on) requestAnimationFrame(() => body.classList.add('show-index'));
+  else body.classList.remove('show-index');
+  indexMotion.timers.push(setTimeout(() => { body.classList.remove('index-crossfade', 'index-crossfade-entering', 'index-crossfade-leaving'); indexMotion.phase = on ? 'list' : null; }, 260));
 }
 function toggleIndex(on) {
-  if (on === body.classList.contains('show-index')) return;
+  const moving = !!indexMotion.phase;
+  if (!moving && on === body.classList.contains('show-index')) return;
+  cancelIndexMotion();
   $$('button', views).forEach(b => b.classList.toggle('on', (b.dataset.v === 'list') === on)); placePill();
   plate.classList.remove('on'); pill.classList.remove('on');
-  if (on) { renderIndex(); body.classList.add('show-index'); flyToList(); }
-  else { body.classList.remove('show-index'); if (!RM) { body.classList.add('returning'); clearTimeout(toggleIndex._t); toggleIndex._t = setTimeout(() => body.classList.remove('returning'), 1500); } }
+  if (on) {
+    body.classList.remove('show-index');
+    if (RM || mobile()) crossfadeIndex(true);
+    else flyToList();
+  } else if (body.classList.contains('show-index')) {
+    if (RM || mobile()) crossfadeIndex(false);
+    else flyToMap();
+  }
 }
 $$('button', views).forEach(b => b.onclick = () => toggleIndex(b.dataset.v === 'list'));
 requestAnimationFrame(placePill); document.fonts && document.fonts.ready.then(placePill);
@@ -298,10 +634,34 @@ $('#home').onclick = e => { e.preventDefault(); toggleIndex(false); closeSheet()
 plane.addEventListener('click', e => { if (!e.target.closest('.pt,.mark,button,a') && active) setFilter(null); });
 buildPlane(); renderIndex();
 let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); } else layout(); });
-const intro = $('#intro'), arrive = d => { body.style.setProperty('--ad', d + 'ms'); body.classList.add('arriving'); setTimeout(() => body.classList.remove('arriving'), d + 2800); };
+const intro = $('#intro');
+let arrivalTimer = 0, introTimers = [], introActive = false;
+const arrive = d => { clearTimeout(arrivalTimer); body.style.setProperty('--ad', d + 'ms'); body.classList.add('arriving'); arrivalTimer = setTimeout(() => body.classList.remove('arriving'), d + 2800); };
+const unlistenIntro = () => { document.removeEventListener('click', skipIntro, true); document.removeEventListener('keydown', skipIntro, true); };
+const skipIntro = e => {
+  if (!introActive) return;
+  e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+  introActive = false; introTimers.forEach(clearTimeout); clearTimeout(arrivalTimer); unlistenIntro();
+  body.classList.remove('introing', 'arriving'); intro.remove();
+};
 if (sessionStorage.getItem('seen') || RM) { intro.remove(); arrive(0); }
-else { sessionStorage.setItem('seen', 1); body.classList.add('introing'); arrive(1700);
-  setTimeout(() => { const p = $('p', intro), a = p.getBoundingClientRect(), b = $('#home').getBoundingClientRect(); p.style.transformOrigin = '0 0'; p.style.transform = `translate(${b.left - a.left}px,${b.top - a.top}px) scale(${b.height / a.height})`; intro.classList.add('done'); }, 1150);
-  setTimeout(() => { body.classList.remove('introing'); intro.remove(); }, 2200); }
+else {
+  sessionStorage.setItem('seen', 1); body.classList.add('introing');
+  const p = $('p', intro), copy = p.textContent, chars = Array.from(copy);
+  p.replaceChildren(...chars.map((char, i) => h('span', { class: 'intro-char', style: `--i:${i};animation-delay:${i * 28}ms` }, char)));
+  intro.replaceChildren(h('div', { class: 'intro-inner' }, h('span', { class: 'intro-mark', html: MARK }), p));
+  introActive = true; document.addEventListener('click', skipIntro, true); document.addEventListener('keydown', skipIntro, true);
+  const flightStart = (chars.length - 1) * 28 + 500 + 250, flightDuration = 750;
+  arrive(flightStart);
+  introTimers.push(setTimeout(() => {
+    const a = p.getBoundingClientRect(), b = $('#home').getBoundingClientRect();
+    p.style.transformOrigin = '0 0';
+    p.style.transform = `translate(${b.left - a.left}px,${b.top - a.top}px) scale(${b.height / a.height})`;
+    intro.classList.add('done');
+  }, flightStart));
+  introTimers.push(setTimeout(() => {
+    introActive = false; unlistenIntro(); body.classList.remove('introing'); intro.remove();
+  }, flightStart + flightDuration));
+}
 ready.then(() => {});
 })();

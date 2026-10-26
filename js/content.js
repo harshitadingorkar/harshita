@@ -40,7 +40,7 @@ window.SITE = {
     { id: 'hpe', title: 'Keeping AI models in check', org: 'Hewlett Packard Enterprise', year: '2022', meta: 'HPE · 2022–23', quad: 'tr', x: .30, y: .80, tags: ['product', 'ai'], kind: 'shipped', case: 'hpe',
       line: 'a monitoring dashboard that catches data drift before models quietly get worse — designed, then built in React.', img: 'hpe.jpg', images: ['hpe.jpg', 'hpe-01.jpg', 'hpe-02.jpg'],
       alt: 'The AI model monitoring dashboard: performance and drift charts.' },
-    { id: 'arena', title: 'Are.na', org: 'are.na/harshita-shyale', year: '', meta: '8 public channels', quad: 'bl', x: -.40, y: -.72, tags: ['archive'], kind: 'archive',
+    { id: 'arena', title: 'The collection', org: 'eight collections', year: '', meta: 'eight collections', quad: 'bl', x: -.40, y: -.72, tags: ['archive'], kind: 'archive',
       line: 'an index of curated imagery, references and design artifacts, kept in public.' },
     { id: 'odds', title: 'Odds & ends', org: 'visual notes', year: '', meta: 'visual notes', quad: 'bl', x: -.70, y: -.40, tags: ['photographs'], kind: 'room', room: 'odds',
       line: 'patterns in the ordinary, and how we move through everyday spaces.', img: 'odds-03.jpg' },
