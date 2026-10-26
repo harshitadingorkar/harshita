@@ -430,3 +430,9 @@ body.show-index .icard{animation:cardIn .6s var(--e-dm) .18s both}
 }
 @media (prefers-reduced-motion:reduce){.icard,.irow,.returning .pt{animation:none!important}}
 @media (max-width:760px){.icard{margin-top:220px}}
+.c-hero img{max-width:min(1040px,calc(100vw - 48px));max-height:64vh}
+.c-in{animation:cIn .6s var(--e-dm) .26s both}
+.c-in+.c-in{animation-delay:.32s}
+@keyframes cIn{from{opacity:0;filter:blur(6px);translate:0 8px}}
+.views button:focus-visible{outline-offset:0;border-radius:8px}
+@media (prefers-reduced-motion:reduce){.c-in{animation:none}}

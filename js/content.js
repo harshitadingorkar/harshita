@@ -29,7 +29,7 @@ window.SITE = {
       line: 'who actually holds influence in a deal, read from the calls and emails Salesloft already had.',
       img: 'cases/salesloft/deal-map.jpg', video: 'cases/salesloft/deal-map.mp4', vcap: 'the deal map, in motion: who turned resistant, who no one has met yet, and the person who can win them over.' },
     { id: 'sony', title: 'Sony', org: 'Sony × UW', year: '2025', meta: 'Sony × UW · capstone', quad: 'tl', x: -.66, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
-      line: 'reimagining a smart, sustainable Sony customer experience, after the purchase.', img: 'sony.jpg', images: ['sony.jpg', 'sony-01.jpg'],
+      line: 'reimagining a smart, sustainable Sony customer experience, after the purchase.', img: 'sony.jpg', images: ['sony.jpg'],
       alt: 'A phone on a dark field glowing violet: Sonia, an AI assistant, asks before it uses your data.' },
     { id: 'safe', title: 'A Safe Space', org: 'UW + UW Medicine', year: '2023', meta: 'UW + UW Medicine · 2023', quad: 'tl', x: -.18, y: .40, tags: ['research', 'health'], kind: 'vault', case: 'safe',
       line: 'trauma-informed care for invasive exams — a gentler room, and a kinder way to book.', img: 'safe.jpg', images: ['safe.jpg', 'safe-01.jpg', 'safe-02.jpg', 'safe-03.jpg'],
