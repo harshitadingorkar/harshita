@@ -36,6 +36,7 @@ const seedFor = value => {
   };
 };
 let allChannels = [], activeChannel = '', activeBlocks = [], stamps = [], stampPool = [];
+let poolDims = null;
 let offsetX = 0, offsetY = 0, velocityX = 0, velocityY = 0, raf = 0, updateRaf = 0, drag = null, dragged = false, hovering = false, suppressCardClick = false;
 let lightboxState = null, lightboxAnimation = null, lastSync = 0, drawerStartY = null, filterToken = 0, turnaroundTimer = 0;
 
@@ -173,25 +174,29 @@ function makePool() {
   field.replaceChildren();
   stampPool = [];
   if (!activeBlocks.length) return;
-  const cols = 8, rows = Math.ceil(activeBlocks.length / cols), dims = { cols, tileW: cols * 280, tileH: rows * 300 };
-  for (let cy = -1; cy <= 1; cy++) for (let cx = -1; cx <= 1; cx++) {
-    activeBlocks.forEach((block, i) => {
+  const cols = Math.min(8, activeBlocks.length), rows = Math.ceil(activeBlocks.length / cols);
+  const dims = poolDims = { cols, rows, tileW: cols * 280, tileH: rows * 300 };
+  const copiesX = Math.max(1, Math.ceil(window.innerWidth / dims.tileW));
+  const copiesY = Math.max(1, Math.ceil(window.innerHeight / dims.tileH));
+  for (let cy = -copiesY; cy <= copiesY; cy++) for (let cx = -copiesX; cx <= copiesX; cx++) {
+    for (let i = 0; i < rows * cols; i++) {
+      const block = activeBlocks[i % activeBlocks.length];
       const stamp = buildStamp(block, i, cx, cy, dims);
       field.append(stamp); stampPool.push(stamp);
-    });
+    }
   }
   positionPool();
   requestAnimationFrame(() => field.classList.remove('filtering'));
 }
 function positionPool() {
-  if (!stampPool.length) return;
+  if (!stampPool.length || !poolDims) return;
   const width = wall.clientWidth, height = wall.clientHeight;
-  const tileW = 2240, rows = Math.ceil(activeBlocks.length / 8), tileH = rows * 300;
+  const { tileW, tileH } = poolDims;
   for (const node of stampPool) {
     const p = node._position;
     const baseX = p.x - p.copyX * tileW, baseY = p.y - p.copyY * tileH;
-    const x = ((baseX - offsetX + tileW) % tileW + tileW) % tileW + (p.copyX - 1) * tileW;
-    const y = ((baseY - offsetY + tileH) % tileH + tileH) % tileH + (p.copyY - 1) * tileH;
+    const x = ((baseX - offsetX + tileW) % tileW + tileW) % tileW + p.copyX * tileW;
+    const y = ((baseY - offsetY + tileH) % tileH + tileH) % tileH + p.copyY * tileH;
     node.style.transform = `translate3d(${x}px,${y}px,0)`;
     node.style.setProperty('--arrival', `${p.arrival}ms`);
   }
@@ -202,6 +207,7 @@ function schedulePosition() {
   if (updateRaf) return;
   updateRaf = requestAnimationFrame(() => { updateRaf = 0; positionPool(); });
 }
+window.addEventListener('resize', () => { if (activeBlocks.length) makePool(); else schedulePosition(); });
 function renderSidebar() {
   const list = $('#channel-list'), lately = $('#lately');
   $('#clay-meditation').hidden = pageId !== 'clay';
@@ -358,7 +364,7 @@ async function customPageChannels() {
       {id:'wobblefoot',title:'Sir Wobblefoot',small:'assets/wobblefoot.jpg',aspect:.8},
       {id:'wobblefoot-01',title:'Sir Wobblefoot, side',small:'assets/wobblefoot-01.jpg',aspect:.8},
       {id:'wobblefoot-02',title:'Sir Wobblefoot, detail',small:'assets/wobblefoot-02.jpg',aspect:.8},
-      {id:'wobblefoot-turnaround',title:'Sir Wobblefoot · turnaround',small:'assets/wobblefoot-sheet.jpg',aspect:896/1195,turnaround:true}
+      {id:'wobblefoot-turnaround',title:'Sir Wobblefoot · turnaround',small:'assets/wobblefoot-sheet.jpg',aspect:(896/2)/(1195/3),turnaround:true}
     ]);
     return [handmade,...(ceramic?[ceramic]:[])];
   }
