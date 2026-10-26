@@ -105,7 +105,7 @@ function openSheet(quadKey, kicker, title, ...content) {
   lastFocus = document.activeElement; sheet.dataset.quad = quadKey || '';
   sheet.replaceChildren(h('div', { class: 'close' }, h('span', { class: 'mono dim' }, kicker), h('button', { class: 'mono', onclick: closeSheet, 'aria-label': 'Close' }, 'close ×')), h('div', { class: 'body' }, h('h2', { class: 's-title' }, title), ...content));
   sheet.scrollTop = 0; sheetOpen = true; sheet.classList.add('on'); veil.classList.add('on'); sheet.focus({ preventScroll: true });
-  const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: sheet, threshold: .15 });
+  const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: sheet, threshold: 0, rootMargin: '0px 0px -8% 0px' });
   $$('.reveal,.crop', sheet).forEach((el, i) => { el.style.transitionDelay = Math.min(i, 6) * 40 + 'ms'; io.observe(el); });
 }
 function closeSheet() { sheetOpen = false; sheet.classList.remove('on'); veil.classList.remove('on'); lastFocus && lastFocus.focus({ preventScroll: true }); }
