@@ -61,7 +61,6 @@ window.SITE = {
   odds: Array.from({ length: 13 }, (_, i) => 'odds-' + String(i + 1).padStart(2, '0') + '.jpg'),
   experience: [
     ['Product Designer', 'Salesloft', '2025 — now'],
-    ['Product Design Intern', 'RoxHealth AI', '2024'],
     ['Graduate Product Designer', 'GitHub', '2024'],
     ['M.S. Human Centered Design & Engineering', 'University of Washington', '2023 — 2025'],
     ['Product Design Intern', 'Focused Space', '2023'],
@@ -77,7 +76,7 @@ window.SITE = {
   ],
   bio: [
     '<b>Product designer</b> at <b>Salesloft</b>, in <b>Seattle</b>, working on how people sell with AI.',
-    'Before that: <b>GitHub</b>, <b>Hewlett Packard Enterprise</b> and <b>roxHealth AI</b>.',
+    'Before that: <b>GitHub</b> and <b>Hewlett Packard Enterprise</b>.',
     'Started as a <b>software engineer</b> building machine learning systems.',
     'Studied <b>Computer Science</b> and <b>Theatre</b>, then an <b>M.S. in Human Centered Design &amp; Engineering</b> at UW.',
   ],
