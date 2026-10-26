@@ -75,5 +75,11 @@ window.SITE = {
     'I started as a software engineer building machine learning systems, and found my calling in shaping how people interact with them.',
     'Beyond design: cinema, music, making lists, and taking pictures of silly things.',
   ],
+  bio: [
+    '<b>Product designer</b> at <b>Salesloft</b>, in <b>Seattle</b>, working on how people sell with AI.',
+    'Before that: <b>GitHub</b>, <b>Hewlett Packard Enterprise</b> and <b>roxHealth AI</b>.',
+    'Started as a <b>software engineer</b> building machine learning systems.',
+    'Studied <b>Computer Science</b> and <b>Theatre</b>, then an <b>M.S. in Human Centered Design &amp; Engineering</b> at UW.',
+  ],
   values: ['Quality in the details', 'Experiences that respect people’s time', 'Thorough research to inform design decisions', 'Making enterprise software feel human', 'Bridging design ambition with technical reality'],
 };

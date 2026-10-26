@@ -129,7 +129,7 @@ function openSheet(quadKey, kicker, title, ...content) {
   sheet.dataset.quad = quadKey || ''; sheet._p = p; sheet.classList.remove('leaving');
   const hero = p ? heroFor(p) : null, [dock, name] = dockFor(p);
   if (was) dock.classList.add('still');
-  sheet.replaceChildren(...[h('div', { class: 'c-top' }, h('button', { class: 'c-x', onclick: closeSheet, 'aria-label': 'Close' }, '×'), dock), h('div', { class: 'c-namewrap' }, name), hero ? h('div', { class: 'c-hero' + (hero.tagName === 'VIDEO' ? ' v' : '') }, hero) : null, h('div', { class: 'body' }, h('p', { class: 'c-kick reveal' }, kicker), h('h2', { class: 's-title reveal' }, title), ...content)].filter(Boolean));
+  sheet.replaceChildren(...[h('div', { class: 'c-top' }, h('button', { class: 'c-x', onclick: closeSheet, 'aria-label': 'Close' }, '×'), dock), h('div', { class: 'c-namewrap' }, name), hero ? h('div', { class: 'c-hero' + (hero.tagName === 'VIDEO' ? ' v' : '') }, hero) : null, h('div', { class: 'body' }, title ? [h('p', { class: 'c-kick reveal' }, kicker), h('h2', { class: 's-title reveal' }, title)] : null, ...content)].filter(Boolean));
   sheet.scrollTop = 0; sheetOpen = true; sheet.classList.add('on'); body.classList.add('case-open'); sheet.focus({ preventScroll: true });
   const card = $('.c-hero', sheet); if (card) grow(card, from);
   const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: sheet, threshold: 0, rootMargin: '0px 0px -6% 0px' });
@@ -246,20 +246,52 @@ function drag(el, bounds) {
 
 /* about */
 function openAbout() {
-  openSheet('', 'a note from harshita', 'Hello.', h('div', { class: 'prose' }, S.about.map(t => h('p', { class: 'reveal' }, t)), h('h4', {}, 'what i care about'), h('ul', { class: 'reveal' }, S.values.map(v => h('li', {}, v))), h('h4', {}, 'where i’ve been')), h('div', { class: 'exp reveal' }, S.experience.flatMap(([r, o, w]) => [h('div', {}, r, ' ', h('span', { class: 'o' }, '· ' + o)), h('div', { class: 'w' }, w)])), h('p', { class: 'mono reveal', style: 'margin-top:30px;display:flex;gap:16px;flex-wrap:wrap' }, h('a', { href: 'mailto:' + S.person.email }, S.person.email), h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'linkedin ↗'), h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'résumé ↗')));
+  curP = null;
+  openSheet('', '', '', h('div', { class: 'hello reveal' }, h('i', { class: 'f1' }), h('i', { class: 'f2' }), h('i', { class: 'f3' }), h('i', { class: 'f4' }),
+    h('div', { class: 'hb' }, h('p', { class: 'where' }, 'a note from seattle'), h('h2', { class: 'hname' }, h('span', { class: 'ini' }, 'H'), 'arshita Shyale'), h('i', { class: 'fleuron', html: MARK }),
+      h('p', { class: 'p1' }, S.about[0]), S.about.slice(1).map(t => h('p', { class: 'p2' }, t)),
+      h('ul', { class: 'hvals' }, S.values.map(v => h('li', {}, v))),
+      h('div', { class: 'exp' }, S.experience.flatMap(([r, o, w]) => [h('div', {}, r, ' ', h('span', { class: 'o' }, '· ' + o)), h('div', { class: 'w' }, w)])),
+      h('p', { class: 'links' }, h('a', { href: 'mailto:' + S.person.email }, S.person.email), h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'linkedin ↗'), h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'résumé ↗')))));
 }
 $('#aboutBtn').onclick = openAbout;
 
-/* index: the recruiter's fast path */
-let sortKey = 'quad', sortDir = 1;
+/* list: andrew trousdale's index card, toggled like dmcg */
 const qOrder = { tr: 0, tl: 1, br: 2, bl: 3 };
-function renderIndex() {
-  const cols = [['title', 'title'], ['org', 'where'], ['year', 'year'], ['quad', 'quarter'], ['tags', 'tags']];
-  const rows = S.points.filter(p => !active || p.tags.includes(active)).sort((a, b) => { const v = k => k === 'quad' ? qOrder[a.quad] - qOrder[b.quad] : String(a[k]).localeCompare(String(b[k])); return v(sortKey) * sortDir; });
-  $('#index').replaceChildren(h('table', { class: 'itable' }, h('thead', {}, h('tr', {}, cols.map(([k, l]) => h('th', { class: k === sortKey ? 'sorted' : '', onclick: () => { sortDir = sortKey === k ? -sortDir : 1; sortKey = k; renderIndex(); } }, l + (k === sortKey ? (sortDir > 0 ? ' ↓' : ' ↑') : ''))))), h('tbody', {}, rows.map(p => h('tr', { class: 'row', tabindex: 0, onclick: e => open(p, e.currentTarget.getBoundingClientRect()), onkeydown: e => e.key === 'Enter' && open(p, e.currentTarget.getBoundingClientRect()) }, h('td', { class: 't' }, p.title), h('td', { class: 'm' }, p.org), h('td', { class: 'm' }, p.year), h('td', { class: 'm' }, S.quads[p.quad].name), h('td', { class: 'm' }, p.tags.join(', ')))))));
+const GCLS = { tr: 'sq', tl: 'sq o', br: 'tri', bl: 'ci' }, SEC = [['tr', 'shipped'], ['tl', 'data vault'], ['br', 'playground'], ['bl', 'archives']];
+function renderIndex() { const ix = $('#index'); if (!ix._built) buildIndex(ix); $$('.pt-row', ix).forEach(r => r.classList.toggle('mute', !!active && !r._p.tags.includes(active))); }
+function buildIndex(ix) {
+  ix._built = true;
+  const stage = h('div', { class: 'istage', 'aria-hidden': 'true' });
+  const show = p => { if (stage._p === p) return; stage._p = p; const c = plateFor(p); const f = c ? h('figure', { class: 'ifig' }, c, h('figcaption', {}, h('b', {}, p.title), '  ', p.line)) : null; stage.replaceChildren(...(f ? [f] : [])); f && requestAnimationFrame(() => requestAnimationFrame(() => f.classList.add('on'))); };
+  const acc = (key, label, g, rows, count, open) => { const sec = h('section', { class: 'iacc' + (open ? ' open' : '') }); const head = h('button', { class: 'ihead', 'aria-expanded': String(!!open), onclick: () => { const o = !sec.classList.contains('open'); sec.classList.toggle('open', o); head.setAttribute('aria-expanded', String(o)); } }, h('i', { class: 'g ' + g }), h('span', { class: 'il' }, label), count != null ? h('sup', {}, String(count)) : null, h('span', { class: 'plus', 'aria-hidden': 'true' }, '+')); sec.append(head, h('div', { class: 'icontent' }, h('div', {}, rows))); return sec; };
+  const card = h('div', { class: 'icard' },
+    h('div', { class: 'ihd' }, h('i', { class: 'fl', html: MARK }), h('span', {}, 'index')),
+    h('ol', { class: 'ibio' }, S.bio.map((t, n) => h('li', {}, h('span', { class: 'n' }, `[${String(n + 1).padStart(2, '0')}]`), h('span', { html: t })))),
+    SEC.map(([q, label], si) => { const pts = S.points.filter(p => p.quad === q); return acc(q, label, GCLS[q], pts.map((p, n) => { const r = h('button', { class: 'irow pt-row', style: '--i:' + n, onmouseenter: () => show(p), onfocus: () => show(p), onclick: e => { const im = $('.ifig.on img, .ifig.on .tiles', stage); open(p, (stage._p === p && im ? im : e.currentTarget).getBoundingClientRect()); } }, h('i', { class: 'g ' + GCLS[q] }), h('span', { class: 'rt' }, p.title), h('span', { class: 'rs' }, [p.org, p.year].filter(Boolean).join(' · '))); r._p = p; return r; }), pts.length, si < 1); }),
+    acc('exp', 'experience', 'dash', S.experience.map(([r, o, w], n) => h('div', { class: 'irow', style: '--i:' + n }, h('span', { class: 'rt' }, r), h('span', { class: 'rs' }, o + ' · ' + w)))),
+    acc('contact', 'contact', 'dash', [[S.person.email, 'mailto:' + S.person.email, 'email'], ['linkedin ↗', S.person.linkedin, 'linkedin.com/in/harshita-shyale'], ['résumé ↗', S.person.resume, 'pdf'], ['are.na ↗', S.person.arena, 'are.na/harshita-shyale'], ['letterboxd ↗', S.person.letterboxd, 'the first harshita there']].map(([t, u, s], n) => h('a', { class: 'irow', style: '--i:' + n, href: u, target: u.startsWith('mailto') ? null : '_blank', rel: 'noopener' }, h('span', { class: 'rt' }, t), h('span', { class: 'rs' }, s)))));
+  ix.replaceChildren(stage, card); show(S.points.find(p => p.quad === 'tr'));
 }
-function toggleIndex(on) { body.classList.toggle('show-index', on); $('#indexBtn').classList.toggle('on', on); $('#indexBtn').textContent = on ? 'map' : 'index'; plate.classList.remove('on'); pill.classList.remove('on'); }
-$('#indexBtn').onclick = () => toggleIndex(!body.classList.contains('show-index'));
+const views = $('#views'), vpill = $('.vpill', views);
+function placePill() { const b = $('button.on', views); if (!b) return; vpill.style.transform = `translateX(${b.offsetLeft}px)`; vpill.style.width = b.offsetWidth + 'px'; }
+function flyToList() {
+  if (RM || mobile()) return;
+  const ix = $('#index'), T = new Map();
+  $$('.pt-row', ix).forEach(r => { const sec = r.closest('.iacc'); T.set(r._p, $(sec.classList.contains('open') ? '.g' : '.ihead .g', sec.classList.contains('open') ? r : sec).getBoundingClientRect()); });
+  $$('.pt').forEach((e, n) => { const a2 = e.querySelector('.dot').getBoundingClientRect(), t = T.get(e._p); if (!t || !a2.width) return;
+    const c = h('i', { class: 'flydot', style: `left:${a2.left}px;top:${a2.top}px;width:${a2.width}px;height:${a2.height}px` }); body.append(c);
+    c.animate([{ transform: 'none', opacity: 1 }, { opacity: 1, offset: .85 }, { transform: `translate(${t.left + t.width / 2 - a2.left - a2.width / 2}px,${t.top + t.height / 2 - a2.top - a2.height / 2}px) scale(.7)`, opacity: 0 }], { duration: 780, delay: n * 24, easing: 'cubic-bezier(.77,0,.175,1)', fill: 'both' }).onfinish = () => c.remove(); });
+}
+function toggleIndex(on) {
+  if (on === body.classList.contains('show-index')) return;
+  $$('button', views).forEach(b => b.classList.toggle('on', (b.dataset.v === 'list') === on)); placePill();
+  plate.classList.remove('on'); pill.classList.remove('on');
+  if (on) { renderIndex(); body.classList.add('show-index'); flyToList(); }
+  else { body.classList.remove('show-index'); if (!RM) { body.classList.add('returning'); clearTimeout(toggleIndex._t); toggleIndex._t = setTimeout(() => body.classList.remove('returning'), 1500); } }
+}
+$$('button', views).forEach(b => b.onclick = () => toggleIndex(b.dataset.v === 'list'));
+requestAnimationFrame(placePill); document.fonts && document.fonts.ready.then(placePill);
 $('#home').onclick = e => { e.preventDefault(); toggleIndex(false); closeSheet(); setFilter(null); };
 
 /* boot */
