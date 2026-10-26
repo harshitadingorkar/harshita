@@ -226,6 +226,11 @@ function shortCase(c, point, kicker) {
 const caseHTML = id => DATA.cases && DATA.cases[id] ? h('div', { class: 'prose reveal', html: DATA.cases[id].html }) : null;
 
 function open(p, rect) {
+  if (p.kind === 'archive') {
+    body.classList.add('collection-leaving');
+    setTimeout(() => { location.href = 'collection.html'; }, 350);
+    return;
+  }
   if (sheetOpen) $$('video', sheet).forEach(v => v.pause());
   curP = p; fromR = rect || srcRect(p);
   const K = kick(p), line = h('p', { class: 's-line reveal' }, p.line);
@@ -236,7 +241,6 @@ function open(p, rect) {
     return;
   }
   if (p.kind === 'vault' || p.kind === 'shipped') return openSheet(p.quad, K, p.title, sc || line, sc ? null : metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), p.video ? h('p', { class: 'c-cap reveal' }, p.vcap) : null, diagram(p.id), sc ? null : p.kind === 'shipped' ? crops(p) : p.images ? h('div', { class: 's-imgs' }, p.images.slice(1).map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null);
-  if (p.kind === 'archive') return ready.then(() => openArena(K));
   if (p.kind === 'films') return ready.then(() => openFilms(K));
   if (p.kind === 'paper') return openSheet('bl', K, p.title, line, h('p', { class: 'reveal', style: 'margin-top:22px' }, h('a', { href: p.href, class: 'serif', style: 'font-size:22px;font-style:italic;border-bottom:1px solid currentColor' }, 'read it, like a book →')));
   if (p.kind === 'room' && p.room === 'theatre') return openSheet('br', K, p.title, line, h('div', { class: 'gallery' }, S.theatre.map(([f, ar, c]) => h('figure', { class: 'reveal', style: ar > 1.8 ? 'grid-column:1/-1' : '' }, h('img', { src: A(f), alt: c || 'A photograph from one of her plays', loading: 'lazy' }), c ? h('figcaption', {}, c) : null))));
@@ -269,196 +273,6 @@ function crops(p) {
   return h('div', {}, list.map(c => h('div', {}, h('div', { class: 'crop', style: `--z:${c.z};--ox-o:${c.o}`, onclick: e => e.currentTarget.classList.toggle('zoom') }, h('img', { src: A(c.f), alt: p.alt || '' }), c.a.map(([l, t, txt]) => h('span', { class: 'anno', style: `left:${l};top:${t}` }, h('b', {}, txt)))), h('div', { class: 'cropcap' }, h('span', {}, c.cap), h('span', {}, 'click to zoom out')))), h('div', { class: 's-imgs' }, extra));
 }
 
-/* collection */
-function openArena(K) {
-  const channels = DATA.arena ? DATA.arena.channels : [];
-  const fmt = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toLowerCase() : '';
-  const canvas = h('div', { class: 'collection-canvas', 'aria-label': 'A pannable canvas of eight image collections' });
-  const world = h('div', { class: 'collection-world', style: 'width:3200px;height:2200px' });
-  const ns = 'http://www.w3.org/2000/svg', threads = document.createElementNS(ns, 'svg');
-  const labels = h('div', { class: 'collection-labels' });
-  threads.setAttribute('class', 'collection-threads'); threads.setAttribute('viewBox', '0 0 3200 2200');
-  threads.setAttribute('width', '3200'); threads.setAttribute('height', '2200'); threads.setAttribute('aria-hidden', 'true');
-  world.append(threads, labels);
-
-  const positions = [[360, 390], [1120, 390], [2040, 390], [2820, 390], [360, 1630], [1120, 1630], [2040, 1630], [2820, 1630]];
-  let fitBounds = null;
-  const randomFor = seed => {
-    let n = 2166136261;
-    for (const ch of seed) n = Math.imul(n ^ ch.charCodeAt(0), 16777619);
-    return () => { n += 0x6D2B79F5; let t = n; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-  };
-  const filters = h('div', { class: 'collection-filters mono', role: 'group', 'aria-label': 'Filter collections' });
-  const filterButtons = new Map();
-  const focusChannel = (slug, animated = true) => {
-    world.dataset.focus = slug || '';
-    world.classList.toggle('has-focus', !!slug);
-    $$('.collection-cluster', world).forEach(cluster => cluster.classList.toggle('focused', cluster.dataset.channel === slug));
-    $$('.collection-thread', world).forEach(thread => thread.classList.toggle('focused', thread.dataset.channel === slug));
-    filterButtons.forEach((button, key) => button.classList.toggle('on', key === (slug || 'all')));
-    if (!slug) {
-      fitWorld(animated);
-    } else {
-      const cluster = world.querySelector(`.collection-cluster[data-channel="${slug}"]`);
-      if (!cluster) return;
-      const scale = world._scale || .48, rect = canvas.getBoundingClientRect();
-      world._tx = rect.width / 2 - Number(cluster.dataset.x) * scale;
-      world._ty = rect.height / 2 - Number(cluster.dataset.y) * scale;
-    }
-    applyTransform(animated);
-  };
-  const allButton = h('button', { class: 'on', onclick: () => focusChannel(null) }, 'all');
-  filters.append(allButton); filterButtons.set('all', allButton);
-
-  channels.forEach((channel, channelIndex) => {
-    const blocks = channel.blocks.filter(block => block.image);
-    const blockCount = channel.count || blocks.length;
-    const [x, y] = positions[channelIndex] || [400 + channelIndex % 4 * 760, 390 + Math.floor(channelIndex / 4) * 1240];
-    const radius = 112 + Math.sqrt(blockCount) * 22;
-    const cluster = h('div', { class: 'collection-cluster', 'data-channel': channel.slug, 'data-x': x, 'data-y': y, style: `left:${x}px;top:${y}px` });
-    cluster.append(h('div', { class: 'collection-orbit', style: `width:${radius * 2}px;height:${radius * 2}px;left:${-radius}px;top:${-radius}px` }));
-    const label = h('button', { class: 'collection-label', style: `left:${x}px;top:${y}px`, onclick: e => { e.stopPropagation(); focusChannel(channel.slug); } },
-      h('span', {}, channel.title), h('small', { class: 'mono' }, `${channel.count || channel.blocks.length} kept`));
-    labels.append(label);
-    const filter = h('button', { onclick: () => focusChannel(channel.slug) }, channel.title);
-    filters.append(filter); filterButtons.set(channel.slug, filter);
-
-    blocks.forEach((block, blockIndex) => {
-      const random = randomFor(`${channel.slug}:${block.id}`);
-      const angle = random() * Math.PI * 2, distance = radius * (.55 + random() * .52);
-      const width = Math.round(120 + random() * 60), offsetX = Math.cos(angle) * distance, offsetY = Math.sin(angle) * distance;
-      const tilt = (random() * 6 - 3).toFixed(2), cardX = x + offsetX, cardY = y + offsetY;
-      const image = block.image.local || block.image.display || block.image.thumb;
-      const date = block.connected_at || block.created_at;
-      const dimensions = block.image.width && block.image.height ? { width: block.image.width, height: block.image.height } : {};
-      const thread = document.createElementNS(ns, 'path');
-      thread.setAttribute('class', 'collection-thread'); thread.setAttribute('data-channel', channel.slug);
-      thread.setAttribute('d', `M${x} ${y} C${x + offsetX * .35} ${y + offsetY * .12},${x + offsetX * .72} ${y + offsetY * .88},${cardX} ${cardY}`);
-      threads.append(thread);
-
-      const card = h('a', {
-        class: 'collection-card',
-        href: block.block_url || channel.url,
-        target: '_blank',
-        rel: 'noopener',
-        title: `open “${block.title || channel.title}” in its original collection`,
-        style: `left:${offsetX}px;top:${offsetY}px;width:${width}px;--tilt:${tilt}deg;--delay:${channelIndex * 70 + Math.min(blockIndex * 5, 35)}ms`,
-      },
-        h('img', { src: image, alt: block.title || channel.title, loading: 'lazy', ...dimensions }),
-        h('span', { class: 'collection-caption mono' }, '◇ ' + channel.title),
-        h('span', { class: 'collection-tag mono' }, channel.title + (date ? ' · clipped ' + fmt(date) : '')));
-      card.addEventListener('mouseenter', () => thread.classList.add('active'));
-      card.addEventListener('mouseleave', () => thread.classList.remove('active'));
-      cluster.append(card);
-    });
-    world.append(cluster);
-  });
-
-  const controls = h('div', { class: 'collection-controls', role: 'group', 'aria-label': 'Canvas controls' });
-  const control = (label, title, action) => h('button', { type: 'button', 'aria-label': title, title, onclick: action }, label);
-  const zoomAt = (factor, x, y) => {
-    const rect = canvas.getBoundingClientRect(), px = x ?? rect.width / 2, py = y ?? rect.height / 2;
-    const oldScale = world._scale || .48, scale = Math.max(.35, Math.min(1.6, oldScale * factor));
-    world._tx = px - (px - (world._tx || 0)) * scale / oldScale;
-    world._ty = py - (py - (world._ty || 0)) * scale / oldScale;
-    world._scale = scale; applyTransform(false);
-  };
-  controls.append(
-    control('+', 'Zoom in', () => zoomAt(1.2)),
-    control('−', 'Zoom out', () => zoomAt(1 / 1.2)),
-    control('◎', 'Centre all collections', () => fitWorld(true)));
-  canvas.append(world, controls);
-
-  let pointerPoints = new Map(), panStart = null, pinchStart = null, moved = false, suppressClick = false;
-  let velocityX = 0, velocityY = 0, lastPointerTime = 0, inertiaFrame = 0;
-  const applyTransform = animated => {
-    world.style.transition = animated && !RM ? 'transform .9s cubic-bezier(.77,0,.175,1)' : 'none';
-    world.style.transform = `translate3d(${world._tx || 0}px,${world._ty || 0}px,0) scale(${world._scale || .48})`;
-  };
-  const fitWorld = animated => {
-    const rect = canvas.getBoundingClientRect();
-    if (!fitBounds) {
-      const measured = [...$$('.collection-card', world), ...$$('.collection-label', labels)].map(el => el.getBoundingClientRect());
-      const left = Math.min(...measured.map(r => r.left - rect.left)), top = Math.min(...measured.map(r => r.top - rect.top));
-      const right = Math.max(...measured.map(r => r.right - rect.left)), bottom = Math.max(...measured.map(r => r.bottom - rect.top));
-      fitBounds = { left, top, width: right - left, height: bottom - top };
-    }
-    const scale = Math.max(.35, Math.min(1.6, Math.min((rect.width - 96) / fitBounds.width, (rect.height - 96) / fitBounds.height)));
-    world._scale = scale;
-    world._tx = (rect.width - fitBounds.width * scale) / 2 - fitBounds.left * scale;
-    world._ty = (rect.height - fitBounds.height * scale) / 2 - fitBounds.top * scale;
-    applyTransform(false);
-  };
-
-  canvas.addEventListener('pointerdown', e => {
-    if (e.target.closest('.collection-controls,.collection-label')) return;
-    canvas.setPointerCapture(e.pointerId); pointerPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    cancelAnimationFrame(inertiaFrame); velocityX = velocityY = 0; moved = false;
-    if (pointerPoints.size === 1) {
-      panStart = { x: e.clientX, y: e.clientY, tx: world._tx || 0, ty: world._ty || 0, lastX: e.clientX, lastY: e.clientY };
-      lastPointerTime = performance.now();
-    } else if (pointerPoints.size === 2) {
-      const [a, b] = [...pointerPoints.values()], midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2;
-      const rect = canvas.getBoundingClientRect(), scale = world._scale || .48;
-      pinchStart = { distance: Math.hypot(b.x - a.x, b.y - a.y), scale, x: midX - rect.left, y: midY - rect.top, worldX: (midX - rect.left - (world._tx || 0)) / scale, worldY: (midY - rect.top - (world._ty || 0)) / scale };
-      panStart = null;
-    }
-  });
-  canvas.addEventListener('pointermove', e => {
-    if (!pointerPoints.has(e.pointerId)) return;
-    pointerPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointerPoints.size > 1 && pinchStart) {
-      const [a, b] = [...pointerPoints.values()], rect = canvas.getBoundingClientRect();
-      const midX = (a.x + b.x) / 2 - rect.left, midY = (a.y + b.y) / 2 - rect.top;
-      const scale = Math.max(.35, Math.min(1.6, pinchStart.scale * Math.hypot(b.x - a.x, b.y - a.y) / pinchStart.distance));
-      world._scale = scale; world._tx = midX - pinchStart.worldX * scale; world._ty = midY - pinchStart.worldY * scale;
-      moved = true; applyTransform(false); return;
-    }
-    if (!panStart) return;
-    const dx = e.clientX - panStart.lastX, dy = e.clientY - panStart.lastY, now = performance.now(), dt = Math.max(1, now - lastPointerTime);
-    if (Math.hypot(e.clientX - panStart.x, e.clientY - panStart.y) > 4) moved = true;
-    world._tx = (world._tx || 0) + dx; world._ty = (world._ty || 0) + dy;
-    velocityX = dx / dt * 16; velocityY = dy / dt * 16; panStart.lastX = e.clientX; panStart.lastY = e.clientY; lastPointerTime = now;
-    applyTransform(false);
-  });
-  const endPointer = e => {
-    pointerPoints.delete(e.pointerId);
-    if (pointerPoints.size === 1) {
-      const [remaining] = [...pointerPoints.entries()];
-      panStart = { x: remaining[1].x, y: remaining[1].y, lastX: remaining[1].x, lastY: remaining[1].y };
-      pinchStart = null;
-    } else if (!pointerPoints.size) {
-      pinchStart = panStart = null;
-      suppressClick = moved;
-      if (moved && !RM) {
-        const coast = () => {
-          world._tx += velocityX; world._ty += velocityY; velocityX *= .92; velocityY *= .92; applyTransform(false);
-          if (Math.abs(velocityX) + Math.abs(velocityY) > .25) inertiaFrame = requestAnimationFrame(coast);
-        };
-        inertiaFrame = requestAnimationFrame(coast);
-      }
-    }
-  };
-  canvas.addEventListener('pointerup', endPointer); canvas.addEventListener('pointercancel', endPointer);
-  canvas.addEventListener('wheel', e => {
-    e.preventDefault(); zoomAt(Math.exp(-e.deltaY * .001), e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
-  }, { passive: false });
-  canvas.addEventListener('click', e => {
-    if (suppressClick) {
-      if (e.target.closest('.collection-card')) { e.preventDefault(); e.stopPropagation(); }
-      suppressClick = false; return;
-    }
-    if (!e.target.closest('.collection-card,.collection-label,.collection-controls')) focusChannel(null);
-  });
-  openSheet('bl', K, '',
-    h('p', { class: 'collection-copy serif reveal' }, 'An index of curated imagery, references, and design artifacts, kept in eight collections. All rights remain with the original creators.'),
-    filters, canvas,
-    h('p', { class: 'collection-credit mono' }, h('a', { href: S.person.arena, target: '_blank', rel: 'noopener' }, 'kept on are.na ↗')));
-  $('.body', sheet).classList.add('wide', 'collection-body');
-  const fitWhenReady = () => requestAnimationFrame(() => fitWorld(false));
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitWhenReady);
-  else fitWhenReady();
-}
 function openFilms(K) {
   const f = DATA.films || []; const stars = r => r ? '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '') : '';
   openSheet('bl', K, 'Films', h('p', { class: 's-line reveal' }, 'she got letterboxd.com/harshita — the very first Harshita there. this is what she’s been watching.'), h('div', { class: 'films' }, f.slice(0, 36).map(x => h('a', { class: 'film reveal', href: x.link, target: '_blank', rel: 'noopener' }, h('img', { src: x.local || x.poster, alt: `${x.title} poster`, loading: 'lazy' }), h('div', { class: 't' }, x.title, ' ', h('span', { class: 'dim' }, x.year || '')), h('div', { class: 'r' }, stars(+x.rating) || (x.watched ? 'watched ' + x.watched.slice(5).replace('-', '/') : ''))))));
