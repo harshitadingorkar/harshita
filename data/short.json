@@ -43,7 +43,7 @@
     ]
    }
   ],
-  "learned": "Even small changes, like a few extra steps when booking, can change how safe care feels.",
+  "learned": "Safety is built from small moments: a choice at booking, a dimmer, a chair below eye level. Giving back a little control is what care feels like.",
   "closing": {
    "img": "assets/cases/safe/37.jpg",
    "cap": "Team FourGood, beaming after the final presentation."
@@ -77,7 +77,7 @@
     ]
    }
   ],
-  "learned": "Complex data mustn’t be dumbed down for usability. This was her first design job after software engineering, and the project where she decided to become a designer."
+  "learned": "Experts don’t need complex data made simpler. They need it made legible. This was my first design project after engineering, and the one that made me a designer."
  },
  "github": {
   "facts": "GitHub × University of Washington · Jan–Mar 2024 · product designer & researcher · 3 designers, 1 senior researcher, 1 PM",
@@ -135,7 +135,7 @@
     ]
    }
   ],
-  "learned": "“Accessible” isn’t always accessible. It means understanding how people actually work, not just following guidelines. The study shaped GitHub’s roadmap for the feature.",
+  "learned": "“Accessible” on paper isn’t accessible in practice. You have to watch how people actually work: two monitors, long threads, colour blindness. The study shaped GitHub’s roadmap for the feature.",
   "closing": {
    "img": "assets/cases/github/21.jpg",
    "cap": "How a few seconds saved per comment ripple out across GitHub."

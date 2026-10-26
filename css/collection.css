@@ -35,7 +35,7 @@ button{border:0;background:none}
 .back-link{font:13px/1 var(--sans);text-decoration:none}
 .back-link:hover{text-decoration:underline;text-underline-offset:4px}
 .side-mark{width:24px;height:24px;color:var(--ox);animation:flower-spin 72s linear infinite}
-.side-mark svg{display:block;width:100%;height:100%}
+.side-mark img{display:block;width:100%;height:100%;object-fit:contain}
 @keyframes flower-spin{to{transform:rotate(360deg)}}
 .side-section{padding:28px 0;border-bottom:1px solid var(--hair)}
 .side-section h2{margin:0 0 14px;color:var(--ink2);font:500 11px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase}
@@ -110,3 +110,19 @@ body.is-ready .wall{animation:wall-in .65s ease both}
 .lightbox-image-wrap{top:46%}
 .lightbox-image-wrap img{max-height:64vh}
 .lightbox-caption{bottom:28px;text-shadow:none}
+.side-mark{display:block;width:18px;height:18px;animation-duration:120s}
+.side-mark:after{display:none}
+.sidebar-toggle{position:fixed;z-index:25;top:50%;right:400px;width:22px;height:46px;border:1px solid var(--hair);border-right:0;border-radius:7px 0 0 7px;background:var(--paper);color:var(--ink2);font:20px/1 var(--sans);transform:translateY(-50%);transition:right .45s cubic-bezier(.22,1,.36,1),color .2s;cursor:pointer}
+.sidebar-toggle:hover{color:var(--ox)}
+.collection-page.sidebar-collapsed .sidebar{transform:translateX(100%)}
+.collection-page.sidebar-collapsed .wall{right:0}
+.collection-page.sidebar-collapsed .sidebar-toggle{right:0}
+.wall{transition:inset .45s cubic-bezier(.22,1,.36,1),filter .35s ease,opacity .35s ease}
+.turnaround-art{background-size:200% 300%;background-position:0 0;background-repeat:no-repeat}
+.turnaround-large{width:100%;height:100%;background-size:200% 300%;background-repeat:no-repeat}
+.clay-meditation p{margin:0 0 12px;font:400 19px/1.45 var(--serif)}
+.clay-meditation>a{font:11px var(--mono);color:var(--ox)}
+.clay-meditation[hidden]{display:none}
+@media(max-width:760px){.sidebar-toggle{display:none}.collection-page.sidebar-collapsed .sidebar{transform:translateY(calc(100% - 64px))}}
+@media(prefers-reduced-motion:reduce){.sidebar-toggle,.wall{transition-duration:.01ms!important}}
+@media(prefers-reduced-motion:reduce){.side-mark{animation:none!important}}
