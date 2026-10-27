@@ -297,7 +297,7 @@ function crops(p) {
 
 function openFilms(K) {
   const f = DATA.films || []; const stars = r => r ? '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '') : '';
-  openSheet('bl', K, 'Films', h('p', { class: 's-line reveal' }, 'she got letterboxd.com/harshita — the very first Harshita there. this is what she’s been watching.'), h('div', { class: 'films' }, f.slice(0, 36).map(x => h('a', { class: 'film reveal', href: x.link, target: '_blank', rel: 'noopener' }, h('img', { src: x.local || x.poster, alt: `${x.title} poster`, loading: 'lazy' }), h('div', { class: 't' }, x.title, ' ', h('span', { class: 'dim' }, x.year || '')), h('div', { class: 'r' }, stars(+x.rating) || (x.watched ? 'watched ' + x.watched.slice(5).replace('-', '/') : ''))))));
+  openSheet('bl', K, 'Films', h('p', { class: 's-line reveal' }, 'I got letterboxd.com/harshita, the very first Harshita there. this is what I’ve been watching.'), h('div', { class: 'films' }, f.slice(0, 36).map(x => h('a', { class: 'film reveal', href: x.link, target: '_blank', rel: 'noopener' }, h('img', { src: x.local || x.poster, alt: `${x.title} poster`, loading: 'lazy' }), h('div', { class: 't' }, x.title, ' ', h('span', { class: 'dim' }, x.year || '')), h('div', { class: 'r' }, stars(+x.rating) || (x.watched ? 'watched ' + x.watched.slice(5).replace('-', '/') : ''))))));
 }
 function openClay(p, K, line) {
   const cs = h('div', { class: 'contact-sheet', 'aria-label': 'Drag across to turn the bowl' }, h('img', { src: A(p.images[0]), alt: p.alt }));
@@ -602,11 +602,19 @@ if (sessionStorage.getItem('seen') || RM) { intro.remove(); arrive(0); }
 else {
   sessionStorage.setItem('seen', 1); body.classList.add('introing');
   const p = $('p', intro), words = p.textContent.trim().split(/\s+/);
-  p.replaceChildren(...words.map((word, i) => h('span', { class: 'intro-word', style: `--word-delay:${i * 70}ms` }, word + (i < words.length - 1 ? ' ' : ''))));
+  // The line arrives whole, then everything but her name dissolves, and the name settles into the corner.
+  const spans = words.map((word, i) => h('span', { class: 'intro-word' + (word === 'Harshita' ? ' keep' : ''), style: `--word-delay:${i * 70}ms` }, word));
+  p.replaceChildren(...spans.flatMap((s, i) => i < spans.length - 1 ? [s, ' '] : [s]));
   intro.replaceChildren(h('div', { class: 'intro-inner' }, h('span', { class: 'intro-mark', html: MARK }), p));
   introActive = true; document.addEventListener('click', skipIntro, true); document.addEventListener('keydown', skipIntro, true);
-  const flightStart = 1100, flightDuration = 900;
-  arrive(650);
+  const name = spans.find(s => s.classList.contains('keep')), others = spans.filter(s => s !== name);
+  const dissolveAt = 1150, flightStart = 1900, flightDuration = 1000;
+  arrive(1500);
+  introTimers.push(setTimeout(() => {
+    // farthest from the name goes first, like breath leaving a window
+    const at = spans.indexOf(name);
+    others.forEach(s => { s.style.setProperty('--fade-delay', (spans.length - Math.abs(spans.indexOf(s) - at)) * 90 + 'ms'); s.classList.add('dissolve'); });
+  }, dissolveAt));
   introTimers.push(setTimeout(() => {
     const flip = (element, target, scaleFromHeight = false) => {
       const from = element.getBoundingClientRect(), to = target.getBoundingClientRect();
@@ -618,7 +626,8 @@ else {
       element.style.transition = `transform ${flightDuration}ms var(--e-dm)`;
       element.style.transform = `translate(${to.left - from.left}px,${to.top - from.top}px) scale(${scale})`;
     };
-    flip(p, $('#home'), true);
+    Object.assign(name.style, { animation: 'none', opacity: 1, filter: 'none' });
+    flip(name, $('#home'), true);
     flip($('.intro-mark', intro), $('.mark'), false);
     intro.classList.add('done');
   }, flightStart));
