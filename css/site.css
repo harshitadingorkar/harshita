@@ -817,3 +817,18 @@ body.mark-gone .mark{opacity:0;transition:opacity .2s}
 .name{font:italic 400 24px/1.1 var(--voice);letter-spacing:-.01em}
 .tagline{margin-top:6px;max-width:none}
 @media (max-width:760px){.name{font-size:21px}.tagline{max-width:30ch}}
+
+/* The legend reads like a map's key: stacked, nothing else beside it. */
+#filters{display:none}
+.type-legend{flex-direction:column;align-items:flex-start;gap:5px}
+.type-legend .type-glyph{width:12px;text-align:center}
+
+/* Sir Wobblefoot: the triangle becomes a tiny linocut of the bowl on hover. */
+.dotwrap{position:relative;display:grid;place-items:center;flex:none}
+.pot{position:absolute;left:50%;top:50%;width:36px;height:36px;color:var(--ox);pointer-events:none;opacity:0;transform:translate(-50%,-60%) scale(.35) rotate(-8deg);transform-origin:50% 80%;transition:opacity .18s ease,transform .5s var(--e-dm)}
+.pot .carve{stroke:var(--ground)}
+.pot .carve-fleck{fill:var(--ground)}
+.pt[data-kind=clay] .dot{transition:transform .3s var(--e-dm),opacity .16s ease,background-color .16s}
+.pt[data-kind=clay]:hover .dot,.pt[data-kind=clay]:focus-visible .dot{opacity:0;transform:scale(.4)}
+.pt[data-kind=clay]:hover .pot,.pt[data-kind=clay]:focus-visible .pot{opacity:1;transform:translate(-50%,-60%) scale(1) rotate(0)}
+@media (prefers-reduced-motion:reduce){.pot{transition:opacity .01s}}

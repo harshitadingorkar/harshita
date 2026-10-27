@@ -33,12 +33,26 @@ const fwrap = $('#filters'), legend = $('#type-legend'); let active = null;
 const count = k => S.points.filter(p => p.tags.includes(k)).length;
 const types = [['work','●'],['collections','◎'],['making','▲'],['writing','■']];
 types.filter(([type]) => S.points.some(p => p.type === type)).forEach(([type, glyph]) => legend.append(h('button', { class:'legend-item', 'data-type':type, onmouseenter:()=>preview('type:'+type), onmouseleave:()=>preview(active), onfocus:()=>preview('type:'+type), onblur:()=>preview(active), onclick:()=>setFilter(active==='type:'+type?null:'type:'+type), 'aria-label':'Filter '+type }, h('i',{class:'type-glyph '+type},glyph), ' '+type)));
-S.filters.filter(([k]) => count(k) > 0).forEach(([k, label]) => fwrap.append(h('button', { 'data-k': k, onmouseenter: () => preview(k), onmouseleave: () => preview(active), onfocus: () => preview(k), onblur: () => preview(active), onclick: () => setFilter(active === k ? null : k) }, label, h('sup', {}, String(count(k))))));
-fwrap.append(h('button', { class: 'clear', onclick: () => setFilter(null) }, 'show everything'));
 function matches(p,k) { return k ? k.startsWith('type:') ? p.type===k.slice(5) : p.tags.includes(k) : true; }
 function preview(k) { $$('.pt').forEach(e => { const on = matches(e._p,k); e.classList.toggle('match', !!k && on); e.classList.toggle('mute', !!k && !on); }); legend.classList.toggle('has-active',!!k&&k.startsWith('type:')); }
 function setFilter(k) { active = k; fwrap.classList.toggle('has-active', !!k); $$('button[data-k]', fwrap).forEach(b => b.classList.toggle('on', b.dataset.k === k)); $$('[data-type]',legend).forEach(b=>b.classList.toggle('on',k==='type:'+b.dataset.type)); preview(k); renderIndex(); }
 
+/* Sir Wobblefoot, printed small: a linocut of the bowl on its two feet. Ink is the block; the carved lines are paper. */
+const POT = `<svg class="pot" viewBox="0 0 40 40" aria-hidden="true">
+<path class="ink" d="M5.2 34.6 12.8 34.3M15.4 34.5 34.8 34.8" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+<path class="ink" fill="currentColor" d="M6.5 10.4C7 8.9 12 8.1 20 8.3 28.1 8.1 33.3 8.9 33.6 10.7 33.9 12.1 32.9 13.1 32.4 14.6 31.7 21.1 28 26.6 21.4 27.6L18.5 27.7C12 26.8 8.2 21.4 7.4 14.5 6.8 13 6.1 11.9 6.5 10.4Z"/>
+<path class="ink" fill="currentColor" d="M12.4 25C12 28 11.3 30.1 9.1 31.3 8.3 31.8 8.6 32.7 9.6 32.7L15.7 32.6C16.5 32.6 16.7 31.8 16.2 31 15.6 29.5 15.8 27.6 16.3 26.3ZM23.7 26.3C24.2 27.8 24.3 29.7 23.8 31 23.4 31.8 23.6 32.7 24.5 32.7L30.5 32.6C31.4 32.6 31.6 31.7 30.8 31.2 28.7 30 28 28 27.6 25Z"/>
+<g class="carve" fill="none" stroke-linecap="round">
+<path d="M9.2 10.7C13.4 12.3 26.8 12.4 31 10.6" stroke-width="1.3"/>
+<path d="M8.9 14C9.3 17.2 10.5 20.1 12.3 22.4" stroke-width="1.5"/>
+<path d="M13.6 15.6C14.1 19 15.4 22.2 17.2 24.4" stroke-width=".9"/>
+<path d="M18.4 16.2 18.9 21.6" stroke-width=".7"/>
+<path d="M26.8 15.5C26.3 18.9 25 21.6 23.1 23.5" stroke-width=".9"/>
+<path d="M30.4 15.2C30 17 29.3 18.6 28.4 20" stroke-width=".7"/>
+<path d="M10.7 32.7 11 31.4M12.6 32.7 12.8 31.6M25.7 32.7 25.9 31.6M27.6 32.7 27.8 31.5" stroke-width=".55"/>
+</g>
+<g class="carve-fleck"><circle cx="22.6" cy="18.4" r=".45"/><circle cx="16" cy="13.8" r=".35"/><circle cx="28.4" cy="13.6" r=".4"/><circle cx="20.6" cy="24.9" r=".35"/><circle cx="11.8" cy="12.9" r=".3"/></g>
+</svg>`;
 /* ---------- plane ---------- */
 const MARK = window.portfolioMark.markup();
 function buildPlane() {
@@ -53,7 +67,7 @@ function buildPlane() {
   }
   const mark = h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) });
   plane.append(mark);
-  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
+  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, p.kind === 'clay' ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(POT)) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
   layout(); preview(active);
 }
 function layout() {
@@ -70,7 +84,7 @@ function layout() {
 }
 function buildMobile() {
   plane.append(h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) }));
-  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-id': p.id }, h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
+  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-id': p.id }, p.kind === 'clay' ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(POT)) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
   preview(active);
 }
 
