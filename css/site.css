@@ -832,3 +832,14 @@ body.mark-gone .mark{opacity:0;transition:opacity .2s}
 .pt[data-kind=clay]:hover .dot,.pt[data-kind=clay]:focus-visible .dot{opacity:0;transform:scale(.4)}
 .pt[data-kind=clay]:hover .pot,.pt[data-kind=clay]:focus-visible .pot{opacity:1;transform:translate(-50%,-60%) scale(1) rotate(0)}
 @media (prefers-reduced-motion:reduce){.pot{transition:opacity .01s}}
+
+/* Work beads are solid: no highlight. The collections ring holds its centre dot. */
+.pt[data-type=work] .dot::before{content:none}
+.pt[data-type=collections] .dot{position:relative}
+.legend-item .type-glyph.collections{position:relative}
+
+/* Films: the ring becomes a linocut reel on hover, like Sir Wobblefoot's pot. */
+.pt[data-kind=films] .dot{transition:transform .3s var(--e-dm),opacity .16s ease,box-shadow .16s}
+.pt[data-kind=films]:hover .dot,.pt[data-kind=films]:focus-visible .dot{opacity:0;transform:scale(.4)}
+.pt[data-kind=films]:hover .pot,.pt[data-kind=films]:focus-visible .pot{opacity:1;transform:translate(-50%,-60%) scale(1) rotate(0)}
+.pt[data-kind=films] .pot{transform:translate(-50%,-60%) scale(.35) rotate(40deg)}

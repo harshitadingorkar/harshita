@@ -53,6 +53,24 @@ const POT = `<svg class="pot" viewBox="0 0 40 40" aria-hidden="true">
 </g>
 <g class="carve-fleck"><circle cx="22.6" cy="18.4" r=".45"/><circle cx="16" cy="13.8" r=".35"/><circle cx="28.4" cy="13.6" r=".4"/><circle cx="20.6" cy="24.9" r=".35"/><circle cx="11.8" cy="12.9" r=".3"/></g>
 </svg>`;
+/* Films, printed small: a reel with its strip running out onto the ground. */
+const REEL = `<svg class="pot" viewBox="0 0 40 40" aria-hidden="true">
+<path class="ink" d="M4.8 34.6 21.5 34.3M24 34.5 38.4 34.7" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+<path class="ink" fill="currentColor" d="M24.3 19.4C27.9 22.8 31 27.4 32.3 33.6L37.8 33.6C36.2 26.4 32.3 20.9 27.9 17Z"/>
+<path class="ink" fill="currentColor" d="M16.9 4.9C23.2 4.6 28.3 9.6 28.2 15.9 28.1 22.2 23.1 27.1 16.8 27 10.6 26.9 5.7 21.9 5.8 15.8 5.9 9.7 10.8 5.1 16.9 4.9Z"/>
+<g class="carve-fleck">
+<circle cx="17" cy="9.9" r="2.6"/><circle cx="22.7" cy="14.1" r="2.5"/><circle cx="20.5" cy="20.9" r="2.6"/><circle cx="13.3" cy="20.8" r="2.5"/><circle cx="11.2" cy="14" r="2.6"/>
+<circle cx="17" cy="15.9" r="1.2"/>
+</g>
+<g class="carve" fill="none" stroke-linecap="round">
+<path d="M8.4 12.2C9.4 9.6 11.6 7.7 14.2 7" stroke-width=".8"/>
+<path d="M25.6 19.4C24.4 21.9 22.4 23.7 19.9 24.6" stroke-width=".8"/>
+<path d="M25.4 20.6C28.5 23.9 30.9 28 32.9 33.3" stroke-width=".9" stroke-dasharray=".9 1.5"/>
+<path d="M27.2 18.7C30.7 22 33.6 27 36.5 33.3" stroke-width=".9" stroke-dasharray=".9 1.5"/>
+</g>
+<g class="carve-fleck"><circle cx="9.5" cy="18.3" r=".35"/><circle cx="24.6" cy="9.6" r=".4"/><circle cx="31.4" cy="29.2" r=".3"/></g>
+</svg>`;
+const HOVER_ART = { clay: () => POT, films: () => REEL };
 /* ---------- plane ---------- */
 const MARK = window.portfolioMark.markup();
 function buildPlane() {
@@ -67,7 +85,7 @@ function buildPlane() {
   }
   const mark = h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) });
   plane.append(mark);
-  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, p.kind === 'clay' ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(POT)) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
+  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
   layout(); preview(active);
 }
 function layout() {
@@ -84,7 +102,7 @@ function layout() {
 }
 function buildMobile() {
   plane.append(h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) }));
-  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-id': p.id }, p.kind === 'clay' ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(POT)) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
+  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-id': p.id }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
   preview(active);
 }
 
