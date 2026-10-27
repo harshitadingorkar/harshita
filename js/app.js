@@ -108,6 +108,14 @@ addEventListener('pointermove', e => {
   const q = (wonder > .5 ? 'b' : 't') + (make > .5 ? 'r' : 'l');
   if (q !== quad) { quad = q; body.dataset.quad = q; body.dataset.half = wonder > .5 ? 'wonder' : 'work'; $$('#minimap button').forEach(b => b.classList.toggle('here', b.dataset.q === q)); }
 }, { passive: true });
+/* ---------- lamplight: the map is shapes until your hand comes near; names surface around it ---------- */
+const lamp = matchMedia('(hover:hover) and (pointer:fine)').matches;
+if (lamp) {
+  body.classList.add('lamp'); let lampRaf = 0;
+  const light = () => { lampRaf = 0; const pts = $$('#plane .pt'), near = pts.map(e => { const b = (e.querySelector('.dot') || e).getBoundingClientRect(); return Math.max(0, Math.min(1, 1 - (Math.hypot(b.left + b.width / 2 - mx, b.top + b.height / 2 - my) - 50) / 130)); }); pts.forEach((e, i) => e.style.setProperty('--near', near[i].toFixed(2))); };
+  addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && !lampRaf) lampRaf = requestAnimationFrame(light); }, { passive: true });
+  document.documentElement.addEventListener('pointerleave', () => $$('#plane .pt').forEach(e => e.style.setProperty('--near', 0)));
+}
 const mm = $('#minimap'); ['tl', 'tr', 'bl', 'br'].forEach(q => mm.append(h('button', { 'data-q': q, 'aria-label': S.quads[q].key + ': ' + S.quads[q].name, title: S.quads[q].name, onclick: () => { setFilter(null); const pts = S.points.filter(p => p.quad === q); $$('.pt').forEach(e => { const on = e._p.quad === q; e.classList.toggle('match', on); e.classList.toggle('mute', !on); }); clearTimeout(mm._t); mm._t = setTimeout(() => preview(active), 1600); } })));
 
 /* grain: still in work, vibrating in wonder */

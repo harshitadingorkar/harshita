@@ -977,3 +977,13 @@ html.has-cursor :is(input,textarea,select,[contenteditable],[contenteditable] *)
 .name{font:italic 400 26px/1 var(--voice);letter-spacing:-.005em}
 @media (max-width:760px){.name{font-size:22px}}
 #plane .qlabel{display:none}
+
+/* ---------- Round 18: lamplight ----------
+   The map is only its shapes: beads, hoops, triangles, the flower. Names surface around the hand
+   as it moves, brightest nearest, like reading a chart by lamplight. Hovering a word in the key
+   lights every name of that kind, so the key is also how you read the map. Touch keeps its labels. */
+@media (min-width:761px){
+body.lamp:not(.show-index):not(.index-entering):not(.index-leaving):not(.index-labels-in) #plane .pt .lbl{opacity:var(--near,0);transition:opacity .35s ease,color .16s}
+body.lamp:not(.show-index):not(.index-entering):not(.index-leaving):not(.index-labels-in) #plane .pt:is(:hover,:focus-visible,.match) .lbl{opacity:1;transition:opacity .16s ease,color .16s}
+}
+@media (prefers-reduced-motion:reduce){body.lamp #plane .pt .lbl{transition:none}}
