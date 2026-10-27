@@ -9,6 +9,9 @@ body = re.search(r'<body[^>]*>(.*?)</body>', src, re.S).group(1)
 head = re.sub(r'<meta charset[^>]*>\s*|<meta name="viewport"[^>]*>\s*', '', head)
 head = re.sub(r'<title>.*?</title>', '<title>what Harshita keeps &amp; makes</title>', head, flags=re.S)
 page = head.strip() + '\n' + body.strip() + '\n'
+# Artifact-only extras (kept out of git and off the live site), e.g. the design panel.
+if os.path.exists('.artifact/edit-panel.js'):
+    page += '<script src="edit-panel.js"></script>\n'
 os.makedirs('.artifact', exist_ok=True)
 open('.artifact/page.html', 'w', encoding='utf-8').write(page)
 
