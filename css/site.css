@@ -967,3 +967,20 @@ html.has-cursor :is(input,textarea,select,[contenteditable],[contenteditable] *)
   .corner.br#dock{display:block;position:fixed;right:12px;bottom:12px;padding:8px 12px;background:var(--ground);border-radius:999px;box-shadow:0 0 0 1px var(--hair),0 8px 22px -14px rgba(0,0,0,.35);z-index:46}
   #dock .navlinks{gap:14px}
 }
+
+/* ---------- Round 16 ----------
+   The key loses its box. It's set as one line along the bottom edge, like the key printed in an
+   atlas margin, on the same baseline and in the same voice as about · contact on the right, so
+   the two bottom corners read as one quiet rule of type. Hovering a word still lights its points. */
+.corner.bl.browse{bottom:var(--pad)}
+.type-legend{flex-direction:row;align-items:center;gap:16px;padding:0;font:12.5px/1 var(--sans);color:var(--ink2);background:none;box-shadow:none;border-radius:0}
+:root[data-theme=dark] .type-legend{background:none}
+.type-legend::before{font:italic 400 15px/1 var(--voice);color:var(--ink);margin:0 -4px 0 0}
+.type-legend button,.type-legend .legend-note{gap:6px;color:var(--ink2)}
+.type-legend .legend-note{padding:0 0 0 16px;margin:0;border:0;border-left:1px solid var(--hair2);align-self:auto}
+.type-legend button:hover,.type-legend button.on{color:var(--ink)}
+.type-legend button:hover .type-glyph,.type-legend button.on .type-glyph{color:var(--ink)}
+.type-legend .type-glyph{width:11px;font-size:11px}
+.type-glyph.shipped{width:11px;height:11px}
+.type-glyph.shipped::before,.type-glyph.shipped::after{left:1.5px;top:1.5px;width:8px;height:8px}
+.type-glyph.shipped::after{left:.5px;top:.5px}
