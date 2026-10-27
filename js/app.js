@@ -138,6 +138,21 @@ function plateFor(p) {
   if (p.img) return h('img', { src: A(p.img), alt: '' });
   return null;
 }
+// While a picture shows, the axes stop at its edges instead of running across it.
+function axesAround(box) {
+  $$('.axis').forEach(a => {
+    if (!box) { a.style.maskImage = a.style.webkitMaskImage = ''; return; }
+    const r = a.getBoundingClientRect(), hz = a.classList.contains('h');
+    const s = hz ? r.left : r.top, b0 = (hz ? box.left : box.top) - s - 14, b1 = (hz ? box.right : box.bottom) - s + 14;
+    a.style.maskImage = a.style.webkitMaskImage = `linear-gradient(${hz ? 90 : 180}deg,#000 ${b0}px,transparent ${b0}px,transparent ${b1}px,#000 ${b1}px)`;
+  });
+}
+new MutationObserver(() => {
+  if (!plate.classList.contains('on')) return axesAround(null);
+  const c = plate.firstElementChild; if (!c) return;
+  const imgs = [...plate.querySelectorAll('img')].map(i => i.decode?.().catch(() => {}));
+  Promise.all(imgs).then(() => { if (plate.classList.contains('on')) { const r = c.getBoundingClientRect(); axesAround(r.width ? r : null); } });
+}).observe(plate, { attributes: true, attributeFilter: ['class'] });
 function bindPoint(e) {
   const p = e._p;
   let turnTimer;
