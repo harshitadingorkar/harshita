@@ -868,31 +868,16 @@ body:has(#plate.on) .mark,body:has(#plate.on) .qlabel{opacity:0;transition:opaci
 @media (max-width:760px){.mark{width:40px;height:40px;margin:0 0 22px}.intro-mark{width:44px;height:44px}}
 
 /* ---------- The cursor (js/cursor.js) ----------
-   A drop of ink and a trailing ring. Over a point the ring becomes that point's shape; each
-   shape springs in from a smaller, turned version of itself on --ctl, so the change feels drawn. */
+   One shape: a small ink dot that sits exactly under the hand. It grows a little over anything
+   you can click, and that's all it does. */
 html.has-cursor,html.has-cursor *{cursor:none!important}
 html.has-cursor :is(input,textarea,select,[contenteditable],[contenteditable] *){cursor:auto!important}
-#cursor{position:fixed;inset:0;z-index:10000;pointer-events:none;color:var(--ink);--c-ox:var(--ox);transition:opacity .2s ease}
+#cursor{position:fixed;left:0;top:0;z-index:10000;pointer-events:none;color:var(--ink);will-change:transform;transition:opacity .2s ease}
 #cursor.off,#cursor.gone,#cursor[data-shape=none]{opacity:0}
-#cursor.paper{color:#211D18;--c-ox:#6B2A2F}
-#cursor .c-ring{position:absolute;left:-24px;top:-24px;width:48px;height:48px;overflow:visible;will-change:transform}
-#cursor .c-dot{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:currentColor;will-change:transform;transition:opacity .16s ease,scale .3s var(--ctl)}
-#cursor .c-s{fill:none;stroke:currentColor;stroke-width:1.2;stroke-linejoin:round;vector-effect:non-scaling-stroke;transform-box:view-box;transform-origin:50% 50%;opacity:0;scale:.45;rotate:-50deg;transition:opacity .18s ease,scale .42s var(--ctl),rotate .5s var(--ctl),fill .2s ease}
-#cursor .c-plain{rotate:0deg;opacity:.55}
-#cursor[data-shape=ring] .c-plain{opacity:.55;scale:1}
-#cursor[data-shape=link] .c-plain{opacity:.9;scale:.62;fill:color-mix(in srgb,currentColor 12%,transparent)}
-#cursor[data-shape=link] .c-dot{scale:.5}
-#cursor:not([data-shape=ring]):not([data-shape=link]) .c-plain{opacity:0;scale:1.6}
-#cursor[data-shape=bead] .c-bead{opacity:1;scale:1;rotate:0deg;stroke:var(--c-ox);stroke-width:1.5;fill:color-mix(in srgb,var(--c-ox) 16%,transparent)}
-#cursor[data-shape=hoop] .c-hoop{opacity:1;scale:1;rotate:0deg;stroke-width:1.5}
-#cursor[data-shape=tri] .c-tri{opacity:1;scale:1;rotate:0deg;stroke-width:1.5}
-#cursor[data-shape=flower] .c-flower{opacity:.9;scale:1.35;rotate:0deg;animation:cursorTurn 9s linear infinite}
-#cursor[data-shape=oval] .c-oval{opacity:.8;scale:1;rotate:0deg;stroke-dasharray:3 3}
-#cursor:is([data-shape=bead],[data-shape=hoop],[data-shape=tri],[data-shape=flower]) .c-dot{opacity:0;scale:.2}
-#cursor.down .c-ring .c-s{scale:.78}
-#cursor.down .c-dot{scale:1.5}
-@keyframes cursorTurn{to{rotate:360deg}}
-@media (prefers-reduced-motion:reduce){#cursor .c-s{transition:opacity .12s ease}#cursor[data-shape=flower] .c-flower{animation:none}}
+#cursor.paper{color:#211D18}
+#cursor i{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:currentColor;transition:scale .22s var(--ctl)}
+#cursor[data-shape=link] i{scale:1.75}
+#cursor.down i{scale:.75}
 
 /* ---------- Round 14 ----------
    The key is set like a map's legend: boxed, titled, readable, and the first thing that tells
@@ -916,7 +901,6 @@ html.has-cursor :is(input,textarea,select,[contenteditable],[contenteditable] *)
 .pt[data-type=work][data-pulse=true] .dot{box-shadow:0 0 7px 1px color-mix(in srgb,var(--ox) 38%,transparent)}
 .pt[data-type=work][data-pulse=true] .dot::after{border-width:1.2px}
 @keyframes bead-breathe{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.1);opacity:0}}
-#cursor.ink{--c-ox:currentColor}
 @media (prefers-reduced-motion:reduce){.type-glyph.shipped::after{animation:none}}
 /* the card: her name in Mea Culpa, the chrysanthemum printed above it */
 #hello .cc-name{font:400 66px/1 'Mea Culpa',cursive;letter-spacing:0;margin-top:-4px}
