@@ -662,3 +662,41 @@ body.show-index .qlabel.q-tr,body.index-entering .qlabel.q-tr{opacity:0}
   .pt[data-id=wobblefoot].wobbling .dot,.pt[data-id=wobblefoot].wobbling .lbl{animation:none!important}
   .c-name,.c-one-line,.iacc .icontent,.irow,.ifig{transition-duration:.01ms!important}
 }
+
+/* ── The note at the origin (ported from the prototype): a long-star card, its own layer ── */
+#hello{position:fixed;inset:0;z-index:120;display:grid;place-items:center;overflow:auto;padding:24px 16px}
+#hello[hidden]{display:none}
+#hello .h-veil{position:fixed;inset:0;background:color-mix(in srgb,var(--ground) 62%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity .45s var(--e-out)}
+#hello.on .h-veil{opacity:1}
+body.hello-open #plane,body.hello-open .corner{filter:blur(2px);transition:filter .45s var(--e-out)}
+#hello .h-card{position:relative;width:min(480px,calc(100vw - 32px));text-align:center}
+#hello .h-card>i{position:absolute;display:block}
+#hello .f1{background:var(--ink)}#hello .f2{background:var(--paper)}
+#hello .f3{background:color-mix(in srgb,var(--ink) 40%,transparent)}#hello .f4{background:var(--paper)}
+#hello .hb{position:relative}
+#hello .cameo{display:block;width:84px;height:106px;margin:0 auto 12px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 1px var(--ink),0 0 0 5px var(--paper),0 0 0 6px color-mix(in srgb,var(--ink) 40%,transparent)}
+#hello .cameo img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+#hello .where{font:11.5px var(--sans);color:var(--ink3);margin:0}
+#hello .hname{margin:10px 0 0;font:400 38px/1.1 var(--voice);letter-spacing:-.005em;white-space:nowrap}
+#hello .ini{font-family:'Mea Culpa',cursive;font-size:1.34em;line-height:0}
+#hello .fleuron{display:block;width:20px;height:20px;margin:12px auto 0;color:var(--ox)}
+#hello .fleuron svg{display:block;width:100%;height:100%}
+#hello .p1{margin:14px 0 0;font:italic 400 21px/1.35 var(--voice);text-wrap:balance}
+#hello .p2{margin:12px 0 0;font:300 16px/1.5 var(--voice);color:var(--ink2);text-wrap:pretty}
+#hello .facts{margin:16px 0 0;font:11.5px/1.6 var(--sans);color:var(--ink3)}
+#hello .links{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin:12px 0 0;font-size:12.5px}
+#hello .links a,#hello .links button,#hello .mail a{color:var(--ink2);transition:color .16s}
+#hello .links a:hover,#hello .links button:hover,#hello .mail a:hover,#hello .h-x:hover{color:var(--accent)}
+#hello .mail{margin:6px 0 0;font-size:12px}
+#hello .h-x{margin-top:14px;font-size:12px;color:var(--ink3)}
+#hello .h-in{opacity:0;transform:translateY(8px);filter:blur(4px)}
+#hello.on .h-in{animation:hIn .7s var(--e-dm) calc(.26s + var(--i,0) * .06s) both}
+@keyframes hIn{to{opacity:1;transform:none;filter:none}}
+@media (max-width:760px){#hello .hname{font-size:30px}}
+@media (prefers-reduced-motion:reduce){#hello .h-in{opacity:1;transform:none;filter:none;animation:none}}
+
+/* ── Hover: the picture sits under the map, so the dots and their words stay readable (Ainsley's rule) ── */
+#plate{z-index:9}
+body:has(#plate.on) .pt .dot{box-shadow:0 0 0 2px var(--ground)}
+body:has(#plate.on) .pt:not(:hover):not(:focus-visible) .lbl{opacity:.0;transition:opacity .16s ease}
+body:has(#plate.on) .mark,body:has(#plate.on) .qlabel{opacity:0;transition:opacity .16s ease}

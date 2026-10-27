@@ -46,9 +46,6 @@ window.SITE = {
       line: 'patterns in the ordinary, and how we move through everyday spaces.', img: 'odds-03.jpg' },
     { id: 'films', type: 'collections', title: 'Films', org: 'letterboxd/harshita', year: '', meta: 'the first harshita on letterboxd', quad: 'bl', x: -.84, y: -.84, tags: ['films', 'archive'], kind: 'films',
       line: 'everything she’s watched lately, rated honestly.' },
-    { id: 'paper', type: 'writing', title: 'Props, people & “problems”', org: 'a paper', year: '2024', meta: 'a paper · 2024', quad: 'bl', x: -.70, y: -.62, tags: ['writing', 'theatre', 'research'], kind: 'paper', href: 'paper.html',
-      line: 'How props, people and “problems” made unexpected theatre, a paper.', img: 'paper.jpg',
-      alt: 'A collage from the paper: prop diagrams, sketches and rehearsal photographs.' },
     { id: 'theatre', type: 'making', title: 'Theatre', org: 'acted · wrote · directed', year: '', meta: 'acted · wrote · directed', quad: 'br', x: .42, y: -.50, tags: ['theatre'], kind: 'room', room: 'theatre',
       line: 'plays she acted in, wrote and directed — national-level wins and sold-out shows.', img: 'theatre-1.jpg' },
     { id: 'wobblefoot', type: 'making', title: 'Sir Wobblefoot', org: 'ceramics', year: '', meta: 'ceramics', quad: 'br', x: .74, y: -.78, tags: ['clay'], kind: 'clay',
@@ -57,7 +54,7 @@ window.SITE = {
     { id: 'playground', type: 'making', title: 'The playground', org: 'this website', year: '2026', meta: 'interaction studies', quad: 'br', x: .20, y: -.86, tags: ['product'], kind: 'toy',
       line: 'the site itself, opened up: drag it, tune it, break it a little.' },
   ],
-  theatre: [['theatre-1.jpg', 1.5, 'Searching for a Lullaby'], ['theatre-2.jpg', 1.5, 'You’re all Mime'], ['theatre-3.jpg', 2.2, 'National level win'], ['theatre-4.jpg', 1.5, ''], ['theatre-5.jpg', 1, ''], ['theatre-6.jpg', 1.89, 'from the paper']],
+  theatre: [['theatre-1.jpg', 1.5, 'Searching for a Lullaby'], ['theatre-2.jpg', 1.5, 'You’re all Mime'], ['theatre-3.jpg', 2.2, 'National level win'], ['theatre-4.jpg', 1.5, ''], ['theatre-5.jpg', 1, '']],
   odds: Array.from({ length: 13 }, (_, i) => 'odds-' + String(i + 1).padStart(2, '0') + '.jpg'),
   experience: [
     ['Salesloft', 'product designer', '2025–now'],
@@ -65,8 +62,8 @@ window.SITE = {
     ['Hewlett Packard Enterprise', 'engineer → UX designer', '2021–23'],
   ],
   about: [
-    'Product designer at Salesloft, in Seattle. I care about making beautiful things that help people.',
-    'Engineer turned designer. Computer Science and Theatre, then an M.S. in Human Centered Design & Engineering at UW.',
+    'I care about making beautiful things that help people.',
+    'A product designer and researcher in Seattle, at Salesloft. I came to design through computer science and theatre — first building machine learning systems, now shaping how people meet them.',
   ],
   bio: [
     '<b>Product designer</b> at <b>Salesloft</b>, designing how sellers work with AI.',

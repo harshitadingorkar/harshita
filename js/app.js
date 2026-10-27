@@ -32,8 +32,8 @@ if (editorShortcut) { updateEditorShortcut(); editorShortcut.addEventListener('c
 const fwrap = $('#filters'), legend = $('#type-legend'); let active = null;
 const count = k => S.points.filter(p => p.tags.includes(k)).length;
 const types = [['work','●'],['collections','◎'],['making','▲'],['writing','■']];
-types.forEach(([type, glyph]) => legend.append(h('button', { class:'legend-item', 'data-type':type, onmouseenter:()=>preview('type:'+type), onmouseleave:()=>preview(active), onfocus:()=>preview('type:'+type), onblur:()=>preview(active), onclick:()=>setFilter(active==='type:'+type?null:'type:'+type), 'aria-label':'Filter '+type }, h('i',{class:'type-glyph '+type},glyph), ' '+type)));
-S.filters.forEach(([k, label]) => fwrap.append(h('button', { 'data-k': k, onmouseenter: () => preview(k), onmouseleave: () => preview(active), onfocus: () => preview(k), onblur: () => preview(active), onclick: () => setFilter(active === k ? null : k) }, label, h('sup', {}, String(count(k))))));
+types.filter(([type]) => S.points.some(p => p.type === type)).forEach(([type, glyph]) => legend.append(h('button', { class:'legend-item', 'data-type':type, onmouseenter:()=>preview('type:'+type), onmouseleave:()=>preview(active), onfocus:()=>preview('type:'+type), onblur:()=>preview(active), onclick:()=>setFilter(active==='type:'+type?null:'type:'+type), 'aria-label':'Filter '+type }, h('i',{class:'type-glyph '+type},glyph), ' '+type)));
+S.filters.filter(([k]) => count(k) > 0).forEach(([k, label]) => fwrap.append(h('button', { 'data-k': k, onmouseenter: () => preview(k), onmouseleave: () => preview(active), onfocus: () => preview(k), onblur: () => preview(active), onclick: () => setFilter(active === k ? null : k) }, label, h('sup', {}, String(count(k))))));
 fwrap.append(h('button', { class: 'clear', onclick: () => setFilter(null) }, 'show everything'));
 function matches(p,k) { return k ? k.startsWith('type:') ? p.type===k.slice(5) : p.tags.includes(k) : true; }
 function preview(k) { $$('.pt').forEach(e => { const on = matches(e._p,k); e.classList.toggle('match', !!k && on); e.classList.toggle('mute', !!k && !on); }); legend.classList.toggle('has-active',!!k&&k.startsWith('type:')); }
@@ -51,7 +51,7 @@ function buildPlane() {
     if(q==='tr'&&!sessionStorage.getItem('work-dot-hovered')) label.append(h('span',{class:'start-here'},'start with the work →'));
     plane.append(label);
   }
-  const mark = h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: () => openAbout() });
+  const mark = h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) });
   plane.append(mark);
   S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
   layout(); preview(active);
@@ -69,7 +69,7 @@ function layout() {
   for (let y = cy % step; y < H; y += step) t.append(h('i', { style: `top:${y}px;left:${cx - 3}px;height:1px;width:7px` }));
 }
 function buildMobile() {
-  plane.append(h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: () => openAbout() }));
+  plane.append(h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) }));
   for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-id': p.id }, h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
   preview(active);
 }
@@ -129,8 +129,8 @@ function heroFor(p) {
 function dockFor(cur) {
   const cap=h('span',{class:'c-name'},''),sub=h('span',{class:'c-one-line'},'');
   const show=q=>{cap.classList.add('switching');sub.classList.add('switching');setTimeout(()=>{cap.textContent=q?`${q.org} — ${q.title}`:'';sub.textContent=q?.line||'';cap.classList.remove('switching');sub.classList.remove('switching');},160);};
-  show(cur);
-  const items = S.points.filter(thumbSrc).sort((x, y) => (x.type==='work'?0:1)-(y.type==='work'?0:1) || qOrder[x.quad] - qOrder[y.quad]).map((q, i) => h('button', { class: q === cur ? 'on' : '', style: '--i:' + i, 'aria-label': q.title, onmouseenter: () => show(q), onmouseleave: () => show(cur), onclick: e => { const r = e.currentTarget.getBoundingClientRect(); ready.then(() => open(q, r)); } }, h('img', { src: thumbSrc(q), alt: '' })));
+  show(null);
+  const items = S.points.filter(thumbSrc).sort((x, y) => (x.type==='work'?0:1)-(y.type==='work'?0:1) || qOrder[x.quad] - qOrder[y.quad]).map((q, i) => h('button', { class: q === cur ? 'on' : '', style: '--i:' + i, 'aria-label': q.title, onmouseenter: () => show(q), onmouseleave: () => show(null), onclick: e => { const r = e.currentTarget.getBoundingClientRect(); ready.then(() => open(q, r)); } }, h('img', { src: thumbSrc(q), alt: '' })));
   return [h('div', { class: 'c-dock', role: 'navigation', 'aria-label': 'Everything else' }, items), h('div',{class:'c-caption'},cap,sub)];
 }
 function grow(card, from) {
@@ -326,34 +326,72 @@ function drag(el, bounds) {
   el.addEventListener('pointerup', () => { el.style.boxShadow = ''; const b = bounds.getBoundingClientRect(); const step = () => { vx *= .92; vy *= .92; let x = el.offsetLeft + vx, y = el.offsetTop + vy; const mxx = b.width - el.offsetWidth, myy = b.height - el.offsetHeight; if (x < 0 || x > mxx) { vx *= -.6; x = Math.max(0, Math.min(mxx, x)); } if (y < 0 || y > myy) { vy *= -.6; y = Math.max(0, Math.min(myy, y)); } el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `rotate(${vx * .4}deg)`; if (Math.abs(vx) + Math.abs(vy) > .2) raf = requestAnimationFrame(step); else el.style.transform = ''; }; raf = requestAnimationFrame(step); });
 }
 
-/* about */
-function openAbout() {
-  curP = null;
-  const name = S.person.name || 'Harshita Shyale';
-  openSheet('', '', '', h('div', { class: 'hello reveal' },
-    h('i', { class: 'f1' }), h('i', { class: 'f2' }), h('i', { class: 'f3' }), h('i', { class: 'f4' }),
-    h('div', { class: 'hb' },
-      h('p', { class: 'where' }, 'a note from seattle'),
-      h('h2', { class: 'hname', 'data-about-field': 'name' }, h('span', { class: 'ini' }, name.charAt(0)), name.slice(1)),
-      h('i', { class: 'fleuron', html: MARK }),
-      h('p', { class: 'p1 about-line', 'data-about-field': 'line' }, S.about[0]),
-      S.about.slice(1).map(text => h('p', { class: 'p2 about-small', 'data-about-field': 'small' }, text)),
-      h('ul', { class: 'hvals' }, S.values.map(value => h('li', {}, value))),
-      h('div', { class: 'exp' }, S.experience.flatMap(([role, org, years]) => [
-        h('div', {}, role, ' ', h('span', { class: 'o' }, '· ' + org)),
-        h('div', { class: 'w' }, years)
-      ])),
-      h('p', { class: 'links' },
-        h('a', { href: 'mailto:' + S.person.email }, S.person.email),
-        h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'linkedin ↗'),
+/* about — the note at the origin: a long-star card that grows out of the mark */
+const SHAPE = { p: 40, q: 24 };
+const star = (p, q) => `polygon(${q}px ${p}px,50% 0,calc(100% - ${q}px) ${p}px,100% 50%,calc(100% - ${q}px) calc(100% - ${p}px),50% 100%,${q}px calc(100% - ${p}px),0 50%)`;
+let helloOpen = false, helloFrom = null;
+const helloRoot = h('div', { id: 'hello', hidden: true });
+document.body.append(helloRoot);
+function openAbout(fromEl) {
+  if (helloOpen) return;
+  if (sheetOpen) closeSheet();
+  helloOpen = true;
+  const name = S.person.name || 'Harshita Shyale', sp = name.indexOf(' ');
+  const first = sp > 0 ? name.slice(0, sp) : name, last = sp > 0 ? name.slice(sp + 1) : '';
+  const room = id => S.points.find(p => p.id === id);
+  const go = id => () => { const p = room(id); closeAbout(true); if (p) setTimeout(() => open(p, null), 260); };
+  const frames = [0, 1.5, 8, 9.5].map((inset, k) => h('i', { class: 'f' + (k + 1), style: `inset:${inset}px;clip-path:${star(Math.max(0, SHAPE.p - inset * .9), Math.max(0, SHAPE.q - inset * .6))}` }));
+  const exp = S.experience || [];
+  const card = h('div', { class: 'h-card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'hname' }, frames,
+    h('div', { class: 'hb', style: `padding:${SHAPE.p + 28}px ${SHAPE.q + 34}px ${SHAPE.p + 16}px` },
+      h('span', { class: 'cameo h-in', style: '--i:0' }, h('img', { src: A('note-cameo.jpg'), alt: 'Harshita, smiling, holding a bunch of yellow flowers.' })),
+      h('p', { class: 'where h-in', style: '--i:1' }, '(0, 0) — the origin'),
+      h('h2', { class: 'hname h-in', id: 'hname', style: '--i:1', 'data-about-field': 'name', 'aria-label': name },
+        h('span', { class: 'ini' }, first.charAt(0)), first.slice(1), last ? ' ' : '', last ? h('span', { class: 'ini' }, last.charAt(0)) : null, last.slice(1)),
+      h('i', { class: 'fleuron h-in', style: '--i:2', html: MARK }),
+      h('p', { class: 'p1 about-line h-in', style: '--i:3', 'data-about-field': 'line' }, S.about[0]),
+      S.about.slice(1).map((text, k) => h('p', { class: 'p2 about-small h-in', style: '--i:' + (4 + k), 'data-about-field': 'small' }, text)),
+      exp.length ? h('p', { class: 'facts h-in', style: '--i:6' }, `now ${exp[0][0]} · before ${exp.slice(1).map(e => e[0].replace('Hewlett Packard Enterprise', 'HPE')).join(', ')} · M.S. HCDE, UW`) : null,
+      h('p', { class: 'links h-in', style: '--i:7' },
+        room('theatre') ? h('button', { type: 'button', onclick: go('theatre') }, 'theatre') : null,
+        room('odds') ? h('button', { type: 'button', onclick: go('odds') }, 'odds & ends') : null,
         h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'résumé ↗'),
-        h('a', { href: 'https://www.instagram.com/ashlime_soda/', target: '_blank', rel: 'noopener' }, 'instagram ↗')))));
+        h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'linkedin ↗'),
+        h('a', { href: 'https://www.instagram.com/ashlime_soda/', target: '_blank', rel: 'noopener' }, 'instagram ↗')),
+      h('p', { class: 'mail h-in', style: '--i:8' }, h('a', { href: 'mailto:' + S.person.email }, S.person.email)),
+      h('button', { type: 'button', class: 'h-x h-in', style: '--i:8', onclick: () => closeAbout() }, '(close)')));
+  helloRoot.replaceChildren(h('div', { class: 'h-veil', onclick: () => closeAbout() }), card);
+  helloRoot.hidden = false; void helloRoot.offsetWidth; helloRoot.classList.add('on');
+  body.classList.add('hello-open');
+  // Grow out of whatever was clicked (the mark, or the about button) and settle with a little overshoot.
+  helloFrom = fromEl && fromEl.getBoundingClientRect ? fromEl.getBoundingClientRect() : null;
+  const b = card.getBoundingClientRect(), f = helloFrom;
+  if (!RM) card.animate(f && f.width ? [
+    { transform: `translate(${f.left + f.width / 2 - (b.left + b.width / 2)}px,${f.top + f.height / 2 - (b.top + b.height / 2)}px) scale(.08) rotate(-8deg)`, opacity: 0, filter: 'blur(6px)' },
+    { opacity: 1, offset: .35 },
+    { transform: 'none', opacity: 1, filter: 'blur(0)' }
+  ] : [{ transform: 'scale(.95)', opacity: 0, filter: 'blur(6px)' }, { transform: 'none', opacity: 1, filter: 'blur(0)' }], { duration: 780, easing: 'cubic-bezier(.34,1.18,.64,1)' });
+  setTimeout(() => $('.h-x', card)?.focus({ preventScroll: true }), 80);
 }
-$('#aboutBtn').onclick = openAbout;
+function closeAbout(quick) {
+  if (!helloOpen) return;
+  helloOpen = false;
+  const card = $('.h-card', helloRoot), f = helloFrom;
+  helloRoot.classList.remove('on'); body.classList.remove('hello-open');
+  const done = () => { helloRoot.hidden = true; helloRoot.replaceChildren(); };
+  if (RM || !card) return done();
+  const b = card.getBoundingClientRect();
+  card.animate([{ transform: 'none', opacity: 1 }, f && f.width && !quick
+    ? { transform: `translate(${f.left + f.width / 2 - (b.left + b.width / 2)}px,${f.top + f.height / 2 - (b.top + b.height / 2)}px) scale(.08) rotate(6deg)`, opacity: 0, filter: 'blur(4px)' }
+    : { transform: 'scale(.97)', opacity: 0, filter: 'blur(4px)' }], { duration: quick ? 220 : 460, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = done;
+  $('.mark')?.focus({ preventScroll: true });
+}
+addEventListener('keydown', e => { if (e.key === 'Escape' && helloOpen) { e.stopImmediatePropagation(); closeAbout(); } }, true);
+$('#aboutBtn').onclick = e => openAbout(e.currentTarget);
 
 /* list: andrew trousdale's index card, toggled like dmcg */
 const qOrder = { tr: 0, tl: 1, br: 2, bl: 3 };
-const SEC = [['work','work (start here)'],['collections','collections'],['making','making'],['writing','writing']];
+const SEC = [['work','work (start here)'],['collections','collections'],['making','making'],['writing','writing']].filter(([type]) => S.points.some(p => p.type === type));
 const typeGlyph = type => h('i',{class:'g type-shape '+type,'data-type':type,'aria-hidden':'true'});
 function renderIndex() { const ix = $('#index'); if (!ix._built) buildIndex(ix); $$('.pt-row', ix).forEach(r => r.classList.toggle('mute', !!active && !matches(r._p,active))); }
 function buildIndex(ix) {
