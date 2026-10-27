@@ -708,12 +708,16 @@ else {
     };
     Object.assign(name.style, { animation: 'none', opacity: 1, filter: 'none' });
     flip(name, $('#home'), true);
-    flip($('.intro-mark', intro), $('.mark'), false);
+    // the flower drifts to the origin, shrinking as it lands and turning a sixth of a turn, so its six petals settle exactly where they began
+    const m = $('.intro-mark', intro), f = m.getBoundingClientRect(), g = $('.mark').getBoundingClientRect();
+    m.style.transformOrigin = '50% 50%'; m.style.transition = 'none'; m.style.transform = 'none'; m.getBoundingClientRect();
+    m.style.transition = `transform ${flightDuration + 200}ms cubic-bezier(.45,0,.15,1)`;
+    m.style.transform = `translate(${g.left + g.width / 2 - f.left - f.width / 2}px,${g.top + g.height / 2 - f.top - f.height / 2}px) scale(${g.width / f.width}) rotate(60deg)`;
     intro.classList.add('done');
   }, flightStart));
   introTimers.push(setTimeout(() => {
     introActive = false; unlistenIntro(); body.classList.remove('introing'); intro.remove();
-  }, flightStart + flightDuration));
+  }, flightStart + flightDuration + 200));
 }
 ready.then(() => {});
 })();

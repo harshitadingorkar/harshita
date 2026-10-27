@@ -878,3 +878,8 @@ body.mark-gone .mark{opacity:0;transition:opacity .2s}
 .views .hop{display:inline-block}
 .views .vpill{transform-origin:50% 50%}
 @media (prefers-reduced-motion:reduce){.tb-core,.tb-bite,.tb-ray,.theme-btn,.views button{transition:none}}
+
+/* A smaller flower at the origin; the intro's larger one shrinks into it as it lands. */
+.mark{width:46px;height:46px;margin:-23px 0 0 -23px}
+.intro-mark{width:54px;height:54px}
+@media (max-width:760px){.mark{width:40px;height:40px;margin:0 0 22px}.intro-mark{width:44px;height:44px}}
