@@ -15,7 +15,8 @@ window.PORTFOLIO_DATA = DATA;
 window.PORTFOLIO_READY = ready;
 
 /* ---------- chrome ---------- */
-$('#tagline').textContent = S.person.line;
+// the tagline, with Salesloft as a link
+{ const t = S.person.line, k = t.indexOf('Salesloft'); $('#tagline').replaceChildren(...(k < 0 ? [t] : [t.slice(0, k), h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), t.slice(k + 9)])); }
 $('#mailLink').href = 'mailto:' + S.person.email;
 const time = tz => new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz }).toLowerCase();
 const weatherKey = 'seattle-weather', weatherCache = (() => { try { const x = JSON.parse(sessionStorage.getItem(weatherKey)); return x && Date.now() - x.at < 1800000 ? x : null; } catch { return null; } })();
@@ -33,6 +34,7 @@ const fwrap = $('#filters'), legend = $('#type-legend'); let active = null;
 const count = k => S.points.filter(p => p.tags.includes(k)).length;
 const types = [['work','●'],['collections','◎'],['making','▲'],['writing','■']];
 types.filter(([type]) => S.points.some(p => p.type === type)).forEach(([type, glyph]) => legend.append(h('button', { class:'legend-item', 'data-type':type, onmouseenter:()=>preview('type:'+type), onmouseleave:()=>preview(active), onfocus:()=>preview('type:'+type), onblur:()=>preview(active), onclick:()=>setFilter(active==='type:'+type?null:'type:'+type), 'aria-label':'Filter '+type }, h('i',{class:'type-glyph '+type},glyph), ' '+type)));
+legend.append(h('span', { class: 'legend-note' }, h('i', { class: 'type-glyph shipped', 'aria-hidden': 'true' }), ' shipped'));
 function matches(p,k) { return k ? k.startsWith('type:') ? p.type===k.slice(5) : p.tags.includes(k) : true; }
 function preview(k) { $$('.pt').forEach(e => { const on = matches(e._p,k); e.classList.toggle('match', !!k && on); e.classList.toggle('mute', !!k && !on); }); legend.classList.toggle('has-active',!!k&&k.startsWith('type:')); }
 function setFilter(k) { active = k; fwrap.classList.toggle('has-active', !!k); $$('button[data-k]', fwrap).forEach(b => b.classList.toggle('on', b.dataset.k === k)); $$('[data-type]',legend).forEach(b=>b.classList.toggle('on',k==='type:'+b.dataset.type)); preview(k); renderIndex(); }
@@ -373,8 +375,8 @@ function drag(el, bounds) {
   el.addEventListener('pointerup', () => { el.style.boxShadow = ''; const b = bounds.getBoundingClientRect(); const step = () => { vx *= .92; vy *= .92; let x = el.offsetLeft + vx, y = el.offsetTop + vy; const mxx = b.width - el.offsetWidth, myy = b.height - el.offsetHeight; if (x < 0 || x > mxx) { vx *= -.6; x = Math.max(0, Math.min(mxx, x)); } if (y < 0 || y > myy) { vy *= -.6; y = Math.max(0, Math.min(myy, y)); } el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `rotate(${vx * .4}deg)`; if (Math.abs(vx) + Math.abs(vy) > .2) raf = requestAnimationFrame(step); else el.style.transform = ''; }; raf = requestAnimationFrame(step); });
 }
 
-/* about — a calling card. Plain and printed: the name in one serif, the flower in oxblood a hair
-   off register, on cream stock with a deckled edge. It leans toward your hand, lifts off its
+/* about — a calling card. Plain and printed: the name in Mea Culpa, the chrysanthemum in ink with
+   an oxblood impression a hair off register, on cream stock with a deckled edge. It leans toward your hand, lifts off its
    shadow when you pick it up, and turns over when you drag it sideways or tap it. */
 let helloOpen = false, ccTimers = [], ccRaf = 0;
 const helloRoot = h('div', { id: 'hello', hidden: true });
@@ -471,6 +473,7 @@ function openAbout() {
   // Pick it up and drag sideways to turn it; let go past the edge (or flick) and it goes over.
   const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
   card.addEventListener('pointerdown', e => {
+    card.dataset.touched = '1';
     if (e.button || e.target.closest('a,button')) return;
     card.setPointerCapture(e.pointerId);
     st.drag = { x: e.clientX, a: st.a, moved: false, v: 0, lx: e.clientX, lt: performance.now(), w: card.offsetWidth };
@@ -521,6 +524,8 @@ function openAbout() {
   body.classList.add('hello-open');
   render();
   wrap.classList.add('arrive');
+  // the point of the card is the note on its back, so it turns over on its own after a second
+  later(1000, () => { if (helloOpen && !card.dataset.touched && facing() === 'front') flip(); });
   setTimeout(() => turn.focus({ preventScroll: true }), 80);
 }
 function closeAbout(quick) {

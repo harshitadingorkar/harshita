@@ -893,3 +893,37 @@ html.has-cursor :is(input,textarea,select,[contenteditable],[contenteditable] *)
 #cursor.down .c-dot{scale:1.5}
 @keyframes cursorTurn{to{rotate:360deg}}
 @media (prefers-reduced-motion:reduce){#cursor .c-s{transition:opacity .12s ease}#cursor[data-shape=flower] .c-flower{animation:none}}
+
+/* ---------- Round 14 ----------
+   The key is set like a map's legend: boxed, titled, readable, and the first thing that tells
+   you what the shapes mean. Oxblood now means one thing: shipped work, which also breathes. */
+.tagline a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--ink3);transition:color .16s,text-decoration-color .16s}
+.tagline a:hover{color:var(--ox);text-decoration-color:currentColor}
+.type-legend{gap:8px;padding:11px 15px 12px 13px;font:13px/1 var(--sans);background:color-mix(in srgb,var(--ground) 82%,#fff);box-shadow:0 0 0 1px var(--hair),0 10px 24px -18px rgba(0,0,0,.3);border-radius:3px}
+.type-legend::before{content:'key';font:italic 400 16px/1 var(--voice);color:var(--ink);margin:0 0 3px}
+.type-legend button,.type-legend .legend-note{display:flex;align-items:center;gap:9px;color:var(--ink)}
+.type-legend .legend-note{color:var(--ink2);padding-top:7px;margin-top:1px;border-top:1px solid var(--hair2);align-self:stretch}
+.type-legend button:hover,.type-legend button.on{color:var(--ox)}
+.type-legend .type-glyph{width:13px;font-size:13px;text-align:center;color:var(--ink)}
+.type-legend button:hover .type-glyph,.type-legend button.on .type-glyph{color:var(--ox)}
+.type-glyph.shipped{position:relative;width:13px;height:13px}
+.type-glyph.shipped::before,.type-glyph.shipped::after{content:'';position:absolute;left:1.5px;top:1.5px;width:10px;height:10px;border-radius:50%;background:var(--ox)}
+.type-glyph.shipped::after{background:none;border:1px solid var(--ox);left:.5px;top:.5px;animation:bead-breathe 2.8s ease-out infinite}
+:root[data-theme=dark] .type-legend{background:color-mix(in srgb,var(--ground) 92%,#fff)}
+/* work that isn't shipped is ink; shipped work is oxblood, with a soft glow and a breath */
+.pt[data-type=work]:not([data-pulse=true]) .dot,.pt.match[data-type=work]:not([data-pulse=true]) .dot{background:var(--ink)}
+.pt[data-type=work]:not([data-pulse=true]):hover .dot,.pt[data-type=work]:not([data-pulse=true]):focus-visible .dot{background:var(--ox)}
+.pt[data-type=work][data-pulse=true] .dot{box-shadow:0 0 7px 1px color-mix(in srgb,var(--ox) 38%,transparent)}
+.pt[data-type=work][data-pulse=true] .dot::after{border-width:1.2px}
+@keyframes bead-breathe{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.1);opacity:0}}
+#cursor.ink{--c-ox:currentColor}
+@media (prefers-reduced-motion:reduce){.type-glyph.shipped::after{animation:none}}
+/* the card: her name in Mea Culpa, the chrysanthemum printed above it */
+#hello .cc-name{font:400 66px/1 'Mea Culpa',cursive;letter-spacing:0;margin-top:-4px}
+#hello .cc-role{margin-top:12px}
+#hello .cc-flower{width:62px;height:62px;margin-bottom:10px;transform:rotate(-3deg)}
+#hello .cc-flower i{background:var(--cc-ink);
+  -webkit-mask:url(../assets/mark-chry.svg) center/contain no-repeat,var(--cc-speckle) 0 0/120px 120px;-webkit-mask-composite:source-in;
+  mask:url(../assets/mark-chry.svg) center/contain no-repeat,var(--cc-speckle) 0 0/120px 120px;mask-composite:intersect}
+#hello .cc-flower i.ghost{background:var(--cc-ox);opacity:.42;transform:translate(1.8px,1.2px) rotate(1.5deg)}
+@media (max-width:640px){#hello .cc-name{font-size:46px;max-width:none}#hello .cc-flower{width:58px;height:58px}}

@@ -19,7 +19,7 @@
   const SHAPES = { work: 'bead', collections: 'hoop', making: 'tri' };
   const read = el => {
     const pt = el.closest('.pt');
-    if (pt) return { shape: SHAPES[pt.dataset.type] || 'hoop', el: pt.querySelector('.dot') || pt };
+    if (pt) return { shape: SHAPES[pt.dataset.type] || 'hoop', el: pt.querySelector('.dot') || pt, ink: pt.dataset.pulse !== 'true' };
     const mark = el.closest('.mark');
     if (mark) return { shape: 'flower', el: mark.querySelector('svg') || mark };
     if (el.closest('#hello .cc, .chip, .contact-sheet')) return { shape: 'oval', paper: !!el.closest('#hello .cc') };
@@ -30,6 +30,7 @@
   const set = s => {
     if (root.dataset.shape !== s.shape) root.dataset.shape = s.shape;
     root.classList.toggle('paper', !!s.paper);
+    root.classList.toggle('ink', !!s.ink);
     target = s.el || null;
   };
   const tick = () => {
