@@ -927,3 +927,43 @@ html.has-cursor :is(input,textarea,select,[contenteditable],[contenteditable] *)
   mask:url(../assets/mark-chry.svg) center/contain no-repeat,var(--cc-speckle) 0 0/120px 120px;mask-composite:intersect}
 #hello .cc-flower i.ghost{background:var(--cc-ox);opacity:.42;transform:translate(1.8px,1.2px) rotate(1.5deg)}
 @media (max-width:640px){#hello .cc-name{font-size:46px;max-width:none}#hello .cc-flower{width:58px;height:58px}}
+
+/* ---------- Round 15: restraint ----------
+   The top is left to the map: her name at the left, map / list at the right, nothing else.
+   About, contact, sound and lights live quietly in the bottom-right corner, where the clock was. */
+.tagline{display:none}
+#dock{right:var(--pad);left:auto;bottom:var(--pad);top:auto}
+#dock .navlinks{align-items:center;gap:16px;font-size:12.5px;color:var(--ink2)}
+#dock .navlinks a,#dock .navlinks button:not(.theme-btn):not(.sound-btn){color:var(--ink2);transition:color .16s ease}
+#dock .navlinks a:hover,#dock .navlinks button:hover{color:var(--ink)}
+#dock .editor-shortcut[hidden]{display:none}
+/* sound: a speaker whose waves draw outward when it's on, and fold away when it's off */
+.sound-btn{position:relative;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;color:var(--ink2);transition:color .2s ease,transform .18s var(--quick),background-color .18s var(--quick)}
+.navlinks .sound-btn::after{display:none}
+.sound-btn:hover{color:var(--ink);background:var(--hair2)}
+.sound-btn:active{transform:scale(.88)}
+.sound-btn[aria-pressed=true]{color:var(--ink)}
+.sound-btn svg{width:16px;height:16px;overflow:visible}
+.sb-cone{transform-box:fill-box;transform-origin:100% 50%}
+.sb-wave{stroke-dasharray:1;stroke-dashoffset:1;opacity:0;transition:stroke-dashoffset .28s var(--quick) calc((2 - var(--i)) * 40ms),opacity .2s ease calc((2 - var(--i)) * 40ms)}
+.sb-hush{stroke-dasharray:1;stroke-dashoffset:0;opacity:.75;transition:stroke-dashoffset .26s var(--quick) .12s,opacity .2s ease .12s}
+.sound-btn[aria-pressed=true] .sb-wave{stroke-dashoffset:0;opacity:1;transition-delay:calc(var(--i) * 70ms + 60ms)}
+.sound-btn[aria-pressed=true] .sb-hush{stroke-dashoffset:1;opacity:0;transition-delay:0s}
+.sound-btn.ping .sb-cone{animation:sb-thump .42s var(--ctl)}
+.sound-btn::before{content:'';position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:1px solid currentColor;opacity:0;pointer-events:none}
+.sound-btn.ping[aria-pressed=true]::before{animation:sb-ring .9s cubic-bezier(.2,.8,.2,1) .2s}
+.sound-btn.ping[aria-pressed=false]::before{animation:sb-ring-in .5s cubic-bezier(.4,0,.2,1)}
+@keyframes sb-thump{30%{transform:scale(.8,.9)}62%{transform:scale(1.14)}}
+@keyframes sb-ring{0%{opacity:.5;transform:scale(.6)}100%{opacity:0;transform:scale(2.2)}}
+@keyframes sb-ring-in{0%{opacity:0;transform:scale(1.8)}60%{opacity:.35}100%{opacity:0;transform:scale(.5)}}
+@media (prefers-reduced-motion:reduce){.sb-wave,.sb-hush{transition:none}.sound-btn.ping .sb-cone,.sound-btn.ping::before{animation:none!important}}
+/* the axes end in small open arrowheads, the same ink and weight as the lines */
+.axis::before,.axis::after{content:'';position:absolute;width:9px;height:9px;border:solid var(--ink);border-width:2.5px 2.5px 0 0;box-sizing:border-box}
+.axis.h::after{right:-1px;top:50%;transform:translateY(-50%) rotate(45deg)}
+.axis.h::before{left:-1px;top:50%;transform:translateY(-50%) rotate(-135deg)}
+.axis.v::before{top:-1px;left:50%;transform:translateX(-50%) rotate(-45deg)}
+.axis.v::after{bottom:-1px;left:50%;transform:translateX(-50%) rotate(135deg)}
+@media (max-width:760px){
+  .corner.br#dock{display:block;position:fixed;right:12px;bottom:12px;padding:8px 12px;background:var(--ground);border-radius:999px;box-shadow:0 0 0 1px var(--hair),0 8px 22px -14px rgba(0,0,0,.35);z-index:46}
+  #dock .navlinks{gap:14px}
+}

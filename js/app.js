@@ -15,16 +15,7 @@ window.PORTFOLIO_DATA = DATA;
 window.PORTFOLIO_READY = ready;
 
 /* ---------- chrome ---------- */
-// the tagline, with Salesloft as a link
-{ const t = S.person.line, k = t.indexOf('Salesloft'); $('#tagline').replaceChildren(...(k < 0 ? [t] : [t.slice(0, k), h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), t.slice(k + 9)])); }
 $('#mailLink').href = 'mailto:' + S.person.email;
-const time = tz => new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz }).toLowerCase();
-const weatherKey = 'seattle-weather', weatherCache = (() => { try { const x = JSON.parse(sessionStorage.getItem(weatherKey)); return x && Date.now() - x.at < 1800000 ? x : null; } catch { return null; } })();
-const wx = { 0:'clear',1:'mostly clear',2:'partly cloudy',3:'overcast',45:'fog',48:'fog',51:'drizzle',53:'drizzle',55:'drizzle',56:'drizzle',57:'drizzle',61:'rain',63:'rain',65:'rain',66:'rain',67:'rain',71:'snow',73:'snow',75:'snow',77:'snow',80:'showers',81:'showers',82:'showers',85:'snow',86:'snow',95:'thunder',96:'thunder',99:'thunder' };
-let weather = weatherCache && weatherCache.weather;
-const clock = () => { const condition = weather ? `, ${weather.temp}° ${weather.text}` : ''; $('#clock-time').innerHTML = `seattle <b>${time('America/Los_Angeles')}${condition}</b> · you, <b>${time()}</b>`; };
-clock(); setInterval(clock, 15000);
-if (!weatherCache) fetch('https://api.open-meteo.com/v1/forecast?latitude=47.61&longitude=-122.33&current=temperature_2m,weather_code&temperature_unit=fahrenheit').then(r => r.ok ? r.json() : Promise.reject()).then(d => { const c = d.current; weather = { temp: Math.round(c.temperature_2m), text: wx[c.weather_code] || 'overcast' }; sessionStorage.setItem(weatherKey, JSON.stringify({ at: Date.now(), weather })); clock(); }).catch(() => {});
 const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
 if (editorShortcut) { updateEditorShortcut(); editorShortcut.addEventListener('click', () => window.enterPortfolioEdit?.()); window.addEventListener('site-editor-enabled', updateEditorShortcut); }
@@ -104,7 +95,7 @@ function layout() {
 }
 function buildMobile() {
   plane.append(h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) }));
-  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-id': p.id }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
+  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
   preview(active);
 }
 
@@ -543,8 +534,10 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && helloOpen) { e.stop
 $('#aboutBtn').onclick = e => openAbout(e.currentTarget);
 const soundBtn = $('#soundBtn');
 if (soundBtn) {
-  const show = () => { const v = window.portfolioSound?.on(); soundBtn.textContent = v ? '(sound on)' : '(sound off)'; soundBtn.setAttribute('aria-pressed', String(!!v)); };
-  show(); soundBtn.onclick = () => { window.portfolioSound?.set(!window.portfolioSound.on()); show(); };
+  const show = () => { const v = !!window.portfolioSound?.on(); soundBtn.setAttribute('aria-pressed', String(v)); soundBtn.setAttribute('aria-label', v ? 'Sound on' : 'Sound off'); };
+  // turning it on: the cone gives a thump, the waves draw out one by one, and a ring carries on past them
+  show(); soundBtn.onclick = () => { window.portfolioSound?.set(!window.portfolioSound.on()); show(); soundBtn.classList.remove('ping'); void soundBtn.offsetWidth; soundBtn.classList.add('ping'); };
+  soundBtn.addEventListener('animationend', e => { if (e.animationName === 'sb-ring') soundBtn.classList.remove('ping'); });
 }
 
 /* list: andrew trousdale's index card, toggled like dmcg */
