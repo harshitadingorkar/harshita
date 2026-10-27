@@ -110,7 +110,7 @@ function bindPoint(e) {
   const p = e._p;
   let turnTimer;
   const stopHint=()=>{if(p.type==='work'&&!sessionStorage.getItem('work-dot-hovered')){sessionStorage.setItem('work-dot-hovered','1');$('.start-here')?.remove();body.classList.add('work-pulse-stopped');}};
-  e.addEventListener('mouseenter', () => { if (sheetOpen) return; if(p.id==='wobblefoot')e.classList.add('wobbling'); stopHint(); const c = plateFor(p); plate.replaceChildren(...(c ? [c] : [])); if(p.id==='wobblefoot'&&!RM){let n=0;turnTimer=setInterval(()=>{if(c)c.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);} requestAnimationFrame(() => plate.classList.toggle('on', !!c && !sheetOpen)); pill.innerHTML = `${p.title}<span class="k">${p.org}</span>`; pill.classList.add('on'); });
+  e.addEventListener('mouseenter', () => { if (sheetOpen) return; window.portfolioSound?.pluck(p.x, p.y); if(p.id==='wobblefoot')e.classList.add('wobbling'); stopHint(); const c = plateFor(p); plate.replaceChildren(...(c ? [c] : [])); if(p.id==='wobblefoot'&&!RM){let n=0;turnTimer=setInterval(()=>{if(c)c.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);} requestAnimationFrame(() => plate.classList.toggle('on', !!c && !sheetOpen)); pill.innerHTML = `${p.title}<span class="k">${p.org}</span>`; pill.classList.add('on'); });
   e.addEventListener('mouseleave', () => {clearInterval(turnTimer);e.classList.remove('wobbling');plate.classList.remove('on'); pill.classList.remove('on'); });
   e.addEventListener('click', () => { stopHint(); const r = srcRect(p); ready.then(() => open(p, r)); });
 }
@@ -333,7 +333,7 @@ const helloRoot = h('div', { id: 'hello', hidden: true });
 document.body.append(helloRoot);
 const later = (ms, fn) => ccTimers.push(setTimeout(fn, RM ? 0 : ms));
 const svgEl = markup => { const t = document.createElement('div'); t.innerHTML = markup; return t.firstElementChild; };
-const flower = () => svgEl('<svg viewBox="0 0 100 100" class="ink chrysanthemum" aria-hidden="true"><image href="' + A('mark-chry.svg') + '" width="100" height="100"/></svg>');
+const flower = () => svgEl(window.portfolioMark.markup());
 // Fine double rule with a small curl in each corner, pressed into the paper like the rest of the card.
 const border = () => svgEl('<svg class="cc-border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="2.2" y="3.6" width="95.6" height="92.8" rx=".6" vector-effect="non-scaling-stroke"/><rect x="3.4" y="5.6" width="93.2" height="88.8" rx=".4" vector-effect="non-scaling-stroke" class="thin"/></svg>');
 const curl = cls => svgEl('<svg class="cc-curl ' + cls + '" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 36 C4 18 12 6 26 5 C34 4.5 37 10 33 14 C29 18 23 14 26 10 C28 7.5 31 9 30.5 11"/></svg>');
@@ -357,8 +357,8 @@ function openAbout(fromEl) {
       h('span', { class: 'cameo' }, h('img', { src: A('note-cameo.jpg'), alt: 'Harshita, smiling, holding a bunch of yellow flowers.' })),
       h('div', { class: 'cc-words' },
         h('p', { class: 'cc-line', 'data-about-field': 'line' }, S.about[0]),
-        S.about.slice(1).map(text => h('p', { class: 'cc-bio', 'data-about-field': 'small' }, text)),
-        exp.length ? h('p', { class: 'cc-facts' }, `now ${exp[0][0]} · before ${exp.slice(1).map(e => e[0].replace('Hewlett Packard Enterprise', 'HPE')).join(', ')} · M.S. HCDE, UW`) : null,
+        S.about.slice(1).map(text => { const k = text.indexOf('Salesloft'); return h('p', { class: 'cc-bio', 'data-about-field': 'small' }, ...(k < 0 ? [text] : [text.slice(0, k), h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), text.slice(k + 9)])); }),
+        h('dl', { class: 'cc-facts' }, h('dt', {}, 'now'), h('dd', {}, h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), ', designing'), h('dt', {}, 'before'), h('dd', {}, 'HPE, an engineer turned designer'), h('dt', {}, 'at UW'), h('dd', {}, 'a guided study with GitHub, a capstone with Sony')),
         h('p', { class: 'cc-links' },
           room('theatre') ? h('button', { type: 'button', onclick: go('theatre') }, 'theatre') : null,
           room('odds') ? h('button', { type: 'button', onclick: go('odds') }, 'odds & ends') : null,
@@ -368,13 +368,27 @@ function openAbout(fromEl) {
         h('p', { class: 'cc-mail' }, h('a', { href: 'mailto:' + S.person.email }, S.person.email)))));
   const card = h('div', { class: 'cc' }, front, back);
   const turn = h('button', { type: 'button', class: 'cc-turn' }, '(turn it over)');
-  const flip = to => { const f = to ?? !card.classList.contains('flipped'); card.classList.toggle('flipped', f); turn.textContent = f ? '(the front)' : '(turn it over)'; };
+  let flipped = false, flipping = null;
+  const flip = to => {
+    const f = to ?? !flipped; if (f === flipped) return; flipped = f;
+    turn.textContent = f ? '(the front)' : '(turn it over)';
+    window.portfolioSound?.flick();
+    const a = f ? 0 : 180, b = f ? 180 : 360, s = f ? 1 : -1;
+    flipping?.cancel();
+    flipping = card.animate(RM ? [{ transform: `rotateY(${b}deg)` }] : [
+      { transform: `rotateY(${a}deg) translateY(0) rotateZ(0) scale(1)` },
+      { transform: `rotateY(${a + 70 * s}deg) translateY(-18px) rotateZ(${-2.5 * s}deg) scale(1.06)`, offset: .38 },
+      { transform: `rotateY(${b + 9 * s}deg) translateY(-6px) rotateZ(${1 * s}deg) scale(1.02)`, offset: .78 },
+      { transform: `rotateY(${b}deg) translateY(0) rotateZ(0) scale(1)` }
+    ], { duration: RM ? 1 : 1150, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'forwards' });
+  };
   turn.onclick = () => flip();
   card.addEventListener('click', e => { if (!e.target.closest('a,button')) flip(); });
   const wrap = h('div', { class: 'cc-wrap', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Harshita’s calling card' }, card,
     h('div', { class: 'cc-controls' }, turn, h('button', { type: 'button', class: 'cc-x', onclick: () => closeAbout() }, '(close)')));
   helloRoot.replaceChildren(h('div', { class: 'h-veil', onclick: () => closeAbout() }), wrap);
   helloRoot.hidden = false; void helloRoot.offsetWidth; helloRoot.classList.add('on');
+  window.portfolioSound?.chime();
   body.classList.add('hello-open');
 
   // 1 · the card is handed over
@@ -387,15 +401,18 @@ function openAbout(fromEl) {
       const fr = src.getBoundingClientRect(), fly = src.cloneNode(true);
       fly.classList.add('cc-flyer'); Object.assign(fly.style, { left: fr.left + 'px', top: fr.top + 'px', width: fr.width + 'px', height: fr.height + 'px' });
       document.body.append(fly); body.classList.add('mark-gone');
-      fly.animate([{ left: fr.left + 'px', top: fr.top + 'px', width: fr.width + 'px', height: fr.height + 'px', transform: 'rotate(0)' },
-                   { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px', transform: 'rotate(140deg)' }],
-        { duration: 900, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' });
+      const mx = (fr.left + to.left) / 2, my = Math.min(fr.top, to.top) - 70, mw = (fr.width + to.width) / 2 * 1.25;
+      fly.animate([
+        { left: fr.left + 'px', top: fr.top + 'px', width: fr.width + 'px', height: fr.height + 'px', transform: 'rotate(0deg)' },
+        { left: mx - mw / 4 + 'px', top: my + 'px', width: mw + 'px', height: mw + 'px', transform: 'rotate(24deg)', offset: .5 },
+        { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px', transform: 'rotate(36deg)' }
+      ], { duration: 1150, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' });
       // Don't wait on the animation's finish event (a background tab can hold it back) — keep time instead.
-      later(920, () => { press(); fly.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-out', fill: 'forwards' }); later(460, () => fly.remove()); });
+      later(1170, () => { press(); fly.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-out', fill: 'forwards' }); later(460, () => fly.remove()); });
     } else { crest.classList.add('bloom'); later(500, press); }
   });
   let pressed = false;
-  const press = () => { if (pressed) return; pressed = true; crest.classList.add('pressed'); card.animate([{ transform: 'scale(1)' }, { transform: 'scale(.988)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'ease-out' }); later(260, name); };
+  const press = () => { if (pressed) return; pressed = true; crest.classList.add('pressed'); window.portfolioSound?.tap(); card.animate([{ transform: 'scale(1)' }, { transform: 'scale(.988)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'ease-out' }); later(260, name); };
   // 3 · Shyale throws her line and pulls Harshita in
   const name = () => {
     const box = front.querySelector('.cc-name').getBoundingClientRect();
@@ -406,8 +423,8 @@ function openAbout(fromEl) {
     // From past the end of "Shyale", back through the tail of her S, down and under both lines,
     // then up to catch the H — the line that pulls Harshita toward her.
     const d = `M${C2.r + 12} ${base - 6} C${C2.r - 14} ${base + 12} ${Sx.l + Sx.w * .9} ${base + 10} ${p0[0]} ${p0[1]}`
-      + ` C${p0[0] - 30} ${p0[1] + 34} ${H.l + 30} ${base + 30} ${X(H.l - 4)} ${base + 12}`
-      + ` C${X(H.l - 28)} ${base} ${X(H.l - 26)} ${H.t + H.h * .36} ${H.l + H.w * .18} ${H.t + H.h * .42}`;
+      + ` C${p0[0] - 30} ${p0[1] + 34} ${H.l + 34} ${base + 26} ${X(H.l + 4)} ${base + 14}`
+      + ` C${X(H.l - 12)} ${base + 8} ${X(H.l - 16)} ${H.t + H.h * .6} ${H.l + H.w * .2} ${H.t + H.h * .44}`;
     swash.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
     const path = swash.firstChild; path.setAttribute('d', d); path.setAttribute('pathLength', '1');
     front.classList.add('named');
@@ -430,6 +447,11 @@ function closeAbout(quick) {
 }
 addEventListener('keydown', e => { if (e.key === 'Escape' && helloOpen) { e.stopImmediatePropagation(); closeAbout(); } }, true);
 $('#aboutBtn').onclick = e => openAbout(e.currentTarget);
+const soundBtn = $('#soundBtn');
+if (soundBtn) {
+  const show = () => { const v = window.portfolioSound?.on(); soundBtn.textContent = v ? '(sound on)' : '(sound off)'; soundBtn.setAttribute('aria-pressed', String(!!v)); };
+  show(); soundBtn.onclick = () => { window.portfolioSound?.set(!window.portfolioSound.on()); show(); };
+}
 
 /* list: andrew trousdale's index card, toggled like dmcg */
 const qOrder = { tr: 0, tl: 1, br: 2, bl: 3 };

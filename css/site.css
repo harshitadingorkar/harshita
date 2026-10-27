@@ -777,3 +777,35 @@ body.mark-gone .mark{opacity:0;transition:opacity .2s}
   #hello .cc-wrap.arrive{animation:none}#hello .cc{transition:none}
   #hello .cc-ini,#hello .cc-caps,#hello .cc-l1,#hello .cc-swash path,#hello .cc-foot{transition:none}
 }
+
+/* ── Calling card, round 2: printed, not pressed ──
+   The flower and the rules are printed in ink like the cup on an old card; the name keeps
+   the voice the site already speaks in (Averia, with Mea Culpa's H and S). */
+#hello .cc{transition:none}
+#hello .cc-border{stroke:var(--ink);opacity:.5;filter:none;stroke-width:1}
+#hello .cc-border .thin{stroke-width:.5}
+#hello .cc-curl{stroke:var(--ink);opacity:.55;filter:none;stroke-width:1.1}
+#hello .cc-crest{width:22%;right:12%}
+#hello .cc-crest svg{color:var(--ink);filter:none;transition:opacity .45s ease}
+#hello .cc-crest .mark-ink{animation:none}
+#hello .cc-caps{font:400 34px/1 var(--voice);letter-spacing:.06em}
+#hello .named .cc-caps{letter-spacing:.01em}
+#hello .cc-ini{font-size:84px}
+#hello .cc-foot{font:400 11px/1 var(--voice);text-transform:uppercase;letter-spacing:.34em}
+#hello .cc-foot .cc-what{font-size:13px;letter-spacing:.38em}
+#hello .cc-bio a,#hello .cc-facts a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--ink3)}
+#hello .cc-bio a:hover,#hello .cc-facts a:hover{color:var(--accent)}
+#hello .cc-facts{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:12px 0 0;font:11.5px/1.45 var(--sans);color:var(--ink2)}
+#hello .cc-facts dt{color:var(--ink3)}
+#hello .cc-facts dd{margin:0}
+@media (max-width:640px){#hello .cc-caps{font-size:26px}#hello .cc-ini{font-size:64px}#hello .cc-crest{width:38%}#hello .cc-facts{text-align:left}}
+/* the quiet mark: a slow turn on the map, a bloom on the way in */
+.mark-ink{display:block;width:100%;height:100%;overflow:visible;animation:inkTurn 120s linear infinite;transition:transform .5s var(--e-dm)}
+.mark:hover .mark-ink,.mark:focus-visible .mark-ink{transform:scale(1.08)}
+.intro-mark .mark-ink{animation:inkBloom 1.1s var(--e-out) both,inkTurn 120s linear 1.1s infinite}
+@keyframes inkTurn{to{rotate:360deg}}
+@keyframes inkBloom{from{opacity:0;transform:scale(.3) rotate(-50deg)}}
+.cc-flyer .mark-ink{animation:none}
+.sound-btn{color:var(--ink2)}
+.sound-btn[aria-pressed=true]{color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.mark-ink{animation:none!important}}
