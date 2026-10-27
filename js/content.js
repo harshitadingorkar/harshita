@@ -51,8 +51,6 @@ window.SITE = {
     { id: 'wobblefoot', type: 'making', title: 'Sir Wobblefoot', org: 'ceramics', year: '', meta: 'ceramics', quad: 'br', x: .74, y: -.78, tags: ['clay'], kind: 'clay',
       line: 'A small bowl in an oxblood glaze, standing on two feet, toes and all.', img: 'wobblefoot.jpg', sheet: 'wobblefoot-sheet.jpg', images: ['wobblefoot.jpg', 'wobblefoot-01.jpg', 'wobblefoot-02.jpg'],
       alt: 'Sir Wobblefoot: a small hand-built bowl in a deep oxblood glaze, standing on two sculpted feet with toes.' },
-    { id: 'playground', type: 'making', title: 'The playground', org: 'this website', year: '2026', meta: 'interaction studies', quad: 'br', x: .20, y: -.86, tags: ['product'], kind: 'toy',
-      line: 'the site itself, opened up: drag it, tune it, break it a little.' },
   ],
   theatre: [['theatre-1.jpg', 1.5, 'Searching for a Lullaby'], ['theatre-2.jpg', 1.5, 'You’re all Mime'], ['theatre-3.jpg', 2.2, 'National level win'], ['theatre-4.jpg', 1.5, ''], ['theatre-5.jpg', 1, '']],
   odds: Array.from({ length: 13 }, (_, i) => 'odds-' + String(i + 1).padStart(2, '0') + '.jpg'),
