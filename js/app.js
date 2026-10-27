@@ -326,64 +326,106 @@ function drag(el, bounds) {
   el.addEventListener('pointerup', () => { el.style.boxShadow = ''; const b = bounds.getBoundingClientRect(); const step = () => { vx *= .92; vy *= .92; let x = el.offsetLeft + vx, y = el.offsetTop + vy; const mxx = b.width - el.offsetWidth, myy = b.height - el.offsetHeight; if (x < 0 || x > mxx) { vx *= -.6; x = Math.max(0, Math.min(mxx, x)); } if (y < 0 || y > myy) { vy *= -.6; y = Math.max(0, Math.min(myy, y)); } el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `rotate(${vx * .4}deg)`; if (Math.abs(vx) + Math.abs(vy) > .2) raf = requestAnimationFrame(step); else el.style.transform = ''; }; raf = requestAnimationFrame(step); });
 }
 
-/* about — the note at the origin: a long-star card that grows out of the mark */
-const SHAPE = { p: 40, q: 24 };
-const star = (p, q) => `polygon(${q}px ${p}px,50% 0,calc(100% - ${q}px) ${p}px,100% 50%,calc(100% - ${q}px) calc(100% - ${p}px),50% 100%,${q}px calc(100% - ${p}px),0 50%)`;
-let helloOpen = false, helloFrom = null;
+/* about — a calling card. The flower flies from the map and is pressed into the paper; Shyale
+   throws a line that pulls Harshita toward her; the card settles, then turns over to the note. */
+let helloOpen = false, ccTimers = [];
 const helloRoot = h('div', { id: 'hello', hidden: true });
 document.body.append(helloRoot);
+const later = (ms, fn) => ccTimers.push(setTimeout(fn, RM ? 0 : ms));
+const svgEl = markup => { const t = document.createElement('div'); t.innerHTML = markup; return t.firstElementChild; };
+const flower = () => svgEl('<svg viewBox="0 0 100 100" class="ink chrysanthemum" aria-hidden="true"><image href="' + A('mark-chry.svg') + '" width="100" height="100"/></svg>');
+// Fine double rule with a small curl in each corner, pressed into the paper like the rest of the card.
+const border = () => svgEl('<svg class="cc-border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="2.2" y="3.6" width="95.6" height="92.8" rx=".6" vector-effect="non-scaling-stroke"/><rect x="3.4" y="5.6" width="93.2" height="88.8" rx=".4" vector-effect="non-scaling-stroke" class="thin"/></svg>');
+const curl = cls => svgEl('<svg class="cc-curl ' + cls + '" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 36 C4 18 12 6 26 5 C34 4.5 37 10 33 14 C29 18 23 14 26 10 C28 7.5 31 9 30.5 11"/></svg>');
 function openAbout(fromEl) {
   if (helloOpen) return;
   if (sheetOpen) closeSheet();
-  helloOpen = true;
-  const name = S.person.name || 'Harshita Shyale', sp = name.indexOf(' ');
-  const first = sp > 0 ? name.slice(0, sp) : name, last = sp > 0 ? name.slice(sp + 1) : '';
+  helloOpen = true; ccTimers.forEach(clearTimeout); ccTimers = [];
   const room = id => S.points.find(p => p.id === id);
   const go = id => () => { const p = room(id); closeAbout(true); if (p) setTimeout(() => open(p, null), 260); };
-  const frames = [0, 1.5, 8, 9.5].map((inset, k) => h('i', { class: 'f' + (k + 1), style: `inset:${inset}px;clip-path:${star(Math.max(0, SHAPE.p - inset * .9), Math.max(0, SHAPE.q - inset * .6))}` }));
+  const crest = h('div', { class: 'cc-crest' }, flower());
+  const swash = svgEl('<svg class="cc-swash" aria-hidden="true"><path pathLength="1"/></svg>');
+  const l1 = h('div', { class: 'cc-l1' }, h('span', { class: 'cc-ini' }, 'H'), h('span', { class: 'cc-caps' }, 'arshita'));
+  const l2 = h('div', { class: 'cc-l2' }, h('span', { class: 'cc-ini' }, 'S'), h('span', { class: 'cc-caps' }, 'hyale'));
+  const front = h('div', { class: 'cc-face cc-front' }, border(), curl('tl'), curl('tr'), curl('bl'), curl('br'),
+    h('div', { class: 'cc-name', 'aria-label': 'Harshita Shyale' }, swash, l1, l2),
+    crest,
+    h('p', { class: 'cc-foot' }, h('span', { class: 'cc-city' }, 'Seattle'), h('span', { class: 'cc-what' }, 'Designer'), h('span', { class: 'cc-state' }, 'Washington')));
   const exp = S.experience || [];
-  const card = h('div', { class: 'h-card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'hname' }, frames,
-    h('div', { class: 'hb', style: `padding:${SHAPE.p + 28}px ${SHAPE.q + 34}px ${SHAPE.p + 16}px` },
-      h('span', { class: 'cameo h-in', style: '--i:0' }, h('img', { src: A('note-cameo.jpg'), alt: 'Harshita, smiling, holding a bunch of yellow flowers.' })),
-      h('p', { class: 'where h-in', style: '--i:1' }, '(0, 0) — the origin'),
-      h('h2', { class: 'hname h-in', id: 'hname', style: '--i:1', 'data-about-field': 'name', 'aria-label': name },
-        h('span', { class: 'ini' }, first.charAt(0)), first.slice(1), last ? ' ' : '', last ? h('span', { class: 'ini' }, last.charAt(0)) : null, last.slice(1)),
-      h('i', { class: 'fleuron h-in', style: '--i:2', html: MARK }),
-      h('p', { class: 'p1 about-line h-in', style: '--i:3', 'data-about-field': 'line' }, S.about[0]),
-      S.about.slice(1).map((text, k) => h('p', { class: 'p2 about-small h-in', style: '--i:' + (4 + k), 'data-about-field': 'small' }, text)),
-      exp.length ? h('p', { class: 'facts h-in', style: '--i:6' }, `now ${exp[0][0]} · before ${exp.slice(1).map(e => e[0].replace('Hewlett Packard Enterprise', 'HPE')).join(', ')} · M.S. HCDE, UW`) : null,
-      h('p', { class: 'links h-in', style: '--i:7' },
-        room('theatre') ? h('button', { type: 'button', onclick: go('theatre') }, 'theatre') : null,
-        room('odds') ? h('button', { type: 'button', onclick: go('odds') }, 'odds & ends') : null,
-        h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'résumé ↗'),
-        h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'linkedin ↗'),
-        h('a', { href: 'https://www.instagram.com/ashlime_soda/', target: '_blank', rel: 'noopener' }, 'instagram ↗')),
-      h('p', { class: 'mail h-in', style: '--i:8' }, h('a', { href: 'mailto:' + S.person.email }, S.person.email)),
-      h('button', { type: 'button', class: 'h-x h-in', style: '--i:8', onclick: () => closeAbout() }, '(close)')));
-  helloRoot.replaceChildren(h('div', { class: 'h-veil', onclick: () => closeAbout() }), card);
+  const back = h('div', { class: 'cc-face cc-back' }, border(), curl('tl'), curl('tr'), curl('bl'), curl('br'),
+    h('div', { class: 'cc-back-in' },
+      h('span', { class: 'cameo' }, h('img', { src: A('note-cameo.jpg'), alt: 'Harshita, smiling, holding a bunch of yellow flowers.' })),
+      h('div', { class: 'cc-words' },
+        h('p', { class: 'cc-line', 'data-about-field': 'line' }, S.about[0]),
+        S.about.slice(1).map(text => h('p', { class: 'cc-bio', 'data-about-field': 'small' }, text)),
+        exp.length ? h('p', { class: 'cc-facts' }, `now ${exp[0][0]} · before ${exp.slice(1).map(e => e[0].replace('Hewlett Packard Enterprise', 'HPE')).join(', ')} · M.S. HCDE, UW`) : null,
+        h('p', { class: 'cc-links' },
+          room('theatre') ? h('button', { type: 'button', onclick: go('theatre') }, 'theatre') : null,
+          room('odds') ? h('button', { type: 'button', onclick: go('odds') }, 'odds & ends') : null,
+          h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'résumé ↗'),
+          h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'linkedin ↗'),
+          h('a', { href: 'https://www.instagram.com/ashlime_soda/', target: '_blank', rel: 'noopener' }, 'instagram ↗')),
+        h('p', { class: 'cc-mail' }, h('a', { href: 'mailto:' + S.person.email }, S.person.email)))));
+  const card = h('div', { class: 'cc' }, front, back);
+  const turn = h('button', { type: 'button', class: 'cc-turn' }, '(turn it over)');
+  const flip = to => { const f = to ?? !card.classList.contains('flipped'); card.classList.toggle('flipped', f); turn.textContent = f ? '(the front)' : '(turn it over)'; };
+  turn.onclick = () => flip();
+  card.addEventListener('click', e => { if (!e.target.closest('a,button')) flip(); });
+  const wrap = h('div', { class: 'cc-wrap', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Harshita’s calling card' }, card,
+    h('div', { class: 'cc-controls' }, turn, h('button', { type: 'button', class: 'cc-x', onclick: () => closeAbout() }, '(close)')));
+  helloRoot.replaceChildren(h('div', { class: 'h-veil', onclick: () => closeAbout() }), wrap);
   helloRoot.hidden = false; void helloRoot.offsetWidth; helloRoot.classList.add('on');
   body.classList.add('hello-open');
-  // Grow out of whatever was clicked (the mark, or the about button) and settle with a little overshoot.
-  helloFrom = fromEl && fromEl.getBoundingClientRect ? fromEl.getBoundingClientRect() : null;
-  const b = card.getBoundingClientRect(), f = helloFrom;
-  if (!RM) card.animate(f && f.width ? [
-    { transform: `translate(${f.left + f.width / 2 - (b.left + b.width / 2)}px,${f.top + f.height / 2 - (b.top + b.height / 2)}px) scale(.08) rotate(-8deg)`, opacity: 0, filter: 'blur(6px)' },
-    { opacity: 1, offset: .35 },
-    { transform: 'none', opacity: 1, filter: 'blur(0)' }
-  ] : [{ transform: 'scale(.95)', opacity: 0, filter: 'blur(6px)' }, { transform: 'none', opacity: 1, filter: 'blur(0)' }], { duration: 780, easing: 'cubic-bezier(.34,1.18,.64,1)' });
-  setTimeout(() => $('.h-x', card)?.focus({ preventScroll: true }), 80);
+
+  // 1 · the card is handed over
+  wrap.classList.add('arrive');
+  // 2 · the flower leaves the map and is pressed into the paper
+  const src = fromEl && fromEl.classList && fromEl.classList.contains('mark') ? fromEl.querySelector('svg') : null;
+  later(320, () => {
+    const to = crest.getBoundingClientRect();
+    if (src && !RM) {
+      const fr = src.getBoundingClientRect(), fly = src.cloneNode(true);
+      fly.classList.add('cc-flyer'); Object.assign(fly.style, { left: fr.left + 'px', top: fr.top + 'px', width: fr.width + 'px', height: fr.height + 'px' });
+      document.body.append(fly); body.classList.add('mark-gone');
+      fly.animate([{ left: fr.left + 'px', top: fr.top + 'px', width: fr.width + 'px', height: fr.height + 'px', transform: 'rotate(0)' },
+                   { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px', transform: 'rotate(140deg)' }],
+        { duration: 900, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' });
+      // Don't wait on the animation's finish event (a background tab can hold it back) — keep time instead.
+      later(920, () => { press(); fly.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-out', fill: 'forwards' }); later(460, () => fly.remove()); });
+    } else { crest.classList.add('bloom'); later(500, press); }
+  });
+  let pressed = false;
+  const press = () => { if (pressed) return; pressed = true; crest.classList.add('pressed'); card.animate([{ transform: 'scale(1)' }, { transform: 'scale(.988)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'ease-out' }); later(260, name); };
+  // 3 · Shyale throws her line and pulls Harshita in
+  const name = () => {
+    const box = front.querySelector('.cc-name').getBoundingClientRect();
+    const r = el => { const b = el.getBoundingClientRect(); return { l: b.left - box.left, t: b.top - box.top, w: b.width, h: b.height, r: b.right - box.left, b: b.bottom - box.top }; };
+    const H = r(l1.firstChild), Sx = r(l2.firstChild), C2 = r(l2.lastChild), base = C2.b + 4;
+    const p0 = [Sx.l + Sx.w * .38, Sx.b - Sx.h * .14];
+    const fb = front.getBoundingClientRect(), X = x => Math.max(fb.left - box.left + fb.width * .075, x); // stay inside the border
+    // From past the end of "Shyale", back through the tail of her S, down and under both lines,
+    // then up to catch the H — the line that pulls Harshita toward her.
+    const d = `M${C2.r + 12} ${base - 6} C${C2.r - 14} ${base + 12} ${Sx.l + Sx.w * .9} ${base + 10} ${p0[0]} ${p0[1]}`
+      + ` C${p0[0] - 30} ${p0[1] + 34} ${H.l + 30} ${base + 30} ${X(H.l - 4)} ${base + 12}`
+      + ` C${X(H.l - 28)} ${base} ${X(H.l - 26)} ${H.t + H.h * .36} ${H.l + H.w * .18} ${H.t + H.h * .42}`;
+    swash.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    const path = swash.firstChild; path.setAttribute('d', d); path.setAttribute('pathLength', '1');
+    front.classList.add('named');
+    later(1500, () => front.classList.add('settled'));
+    if (!RM) later(3300, () => { if (helloOpen && !card.dataset.touched) flip(true); });
+  };
+  card.addEventListener('pointerdown', () => { card.dataset.touched = '1'; });
+  setTimeout(() => turn.focus({ preventScroll: true }), 80);
 }
 function closeAbout(quick) {
   if (!helloOpen) return;
-  helloOpen = false;
-  const card = $('.h-card', helloRoot), f = helloFrom;
+  helloOpen = false; ccTimers.forEach(clearTimeout); ccTimers = [];
+  const wrap = $('.cc-wrap', helloRoot);
   helloRoot.classList.remove('on'); body.classList.remove('hello-open');
-  const done = () => { helloRoot.hidden = true; helloRoot.replaceChildren(); };
-  if (RM || !card) return done();
-  const b = card.getBoundingClientRect();
-  card.animate([{ transform: 'none', opacity: 1 }, f && f.width && !quick
-    ? { transform: `translate(${f.left + f.width / 2 - (b.left + b.width / 2)}px,${f.top + f.height / 2 - (b.top + b.height / 2)}px) scale(.08) rotate(6deg)`, opacity: 0, filter: 'blur(4px)' }
-    : { transform: 'scale(.97)', opacity: 0, filter: 'blur(4px)' }], { duration: quick ? 220 : 460, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = done;
+  document.querySelectorAll('.cc-flyer').forEach(f => f.remove());
+  const done = () => { helloRoot.hidden = true; helloRoot.replaceChildren(); body.classList.remove('mark-gone'); };
+  if (RM || !wrap) return done();
+  wrap.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(24px) rotate(2deg) scale(.97)', opacity: 0 }], { duration: quick ? 220 : 420, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = done;
   $('.mark')?.focus({ preventScroll: true });
 }
 addEventListener('keydown', e => { if (e.key === 'Escape' && helloOpen) { e.stopImmediatePropagation(); closeAbout(); } }, true);

@@ -61,7 +61,7 @@ window.SITE = {
   ],
   about: [
     'I care about making beautiful things that help people.',
-    'A product designer and researcher in Seattle, at Salesloft. I came to design through computer science and theatre — first building machine learning systems, now shaping how people meet them.',
+    'A designer and researcher in Seattle, at Salesloft. I came to design through computer science and theatre — first building machine learning systems, now shaping how people meet them.',
   ],
   bio: [
     '<b>Product designer</b> at <b>Salesloft</b>, designing how sellers work with AI.',
