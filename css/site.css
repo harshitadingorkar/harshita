@@ -968,3 +968,12 @@ html.has-cursor :is(input,textarea,select,[contenteditable],[contenteditable] *)
 .type-glyph.shipped{width:11px;height:11px}
 .type-glyph.shipped::before,.type-glyph.shipped::after{left:1.5px;top:1.5px;width:8px;height:8px}
 .type-glyph.shipped::after{left:.5px;top:.5px}
+
+/* ---------- Round 17 ----------
+   One serif. Averia's soft, averaged letterforms made the name read hand-done rather than
+   considered; Instrument Serif is the calm one, already loaded. Mea Culpa stays on the card only.
+   The quadrant names leave the map: the axes already say it, and "shipped" sat there pinned. */
+:root{--voice:'Instrument Serif',Georgia,serif}
+.name{font:italic 400 26px/1 var(--voice);letter-spacing:-.005em}
+@media (max-width:760px){.name{font-size:22px}}
+#plane .qlabel{display:none}
