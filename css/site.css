@@ -987,3 +987,21 @@ body.lamp:not(.show-index):not(.index-entering):not(.index-leaving):not(.index-l
 body.lamp:not(.show-index):not(.index-entering):not(.index-leaving):not(.index-labels-in) #plane .pt:is(:hover,:focus-visible,.match) .lbl{opacity:1;transition:opacity .16s ease,color .16s}
 }
 @media (prefers-reduced-motion:reduce){body.lamp #plane .pt .lbl{transition:none}}
+
+/* ---------- Round 19: a case told by its film ----------
+   The beats read like a film's chapter list: timecode in mono, the line in the film's own words.
+   Click one to play from there; the beat on screen is lit as the film runs. */
+.film-k{margin:0 0 12px;font:italic 400 18px/1.2 var(--voice);color:var(--ink)}
+.beats{list-style:none;margin:0;padding:0;display:grid}
+.beats button{display:grid;grid-template-columns:44px 1fr;align-items:baseline;gap:12px;width:100%;padding:7px 0;text-align:left;color:var(--ink3);border-top:1px solid var(--hair2);transition:color .16s ease}
+.beats li:last-child button{border-bottom:1px solid var(--hair2)}
+.beats .bt{font:11px/1 var(--mono);letter-spacing:.02em}
+.beats .bw{font:15px/1.35 var(--sans)}
+.beats button:hover,.beats button.on{color:var(--ink)}
+.beats button.on .bt{color:var(--ox)}
+.beats + .c-cap{margin:10px 0 0;font-size:14px}
+.film-body{margin-top:44px}
+#sheet .film-body p{font:16px/1.6 var(--sans);color:var(--ink);max-width:600px}
+.nda{margin:36px 0 0;max-width:600px;font:italic 400 19px/1.4 var(--voice);color:var(--ink2)}
+.nda a{color:var(--ink);font:13px var(--mono);font-style:normal;white-space:nowrap;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--ink3)}
+.nda a:hover{color:var(--ox);text-decoration-color:currentColor}

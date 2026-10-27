@@ -27,8 +27,15 @@ window.SITE = {
   ],
   points: [
     { id: 'influence', type: 'work', role: 'product designer', title: 'Influence Graph', org: 'Salesloft', year: '2025', meta: 'Salesloft · 2025', quad: 'tr', x: .76, y: .26, tags: ['product', 'ai', 'research'], kind: 'vault',
-      line: 'Who really holds sway in a deal, read from the calls and emails sellers already have.',
-      img: 'cases/salesloft/deal-map.jpg', video: 'cases/salesloft/deal-map.mp4', vcap: 'the deal map, in motion: who turned resistant, who no one has met yet, and the person who can win them over.' },
+      line: 'A map of the people inside a deal, read from the calls and emails a seller already has.',
+      img: 'cases/salesloft/deal-map.jpg', video: 'cases/salesloft/deal-map.mp4', vcap: 'the deal map, in motion: who turned resistant, who no one has met yet, and the person who can win them over.',
+      body: [
+        'Influence Graph is a map of who moves a deal: who decides, who sways them, and how each of them feels this week. Salesloft already hears every call and email, so the map draws itself from those, not from a seller’s memory or the spreadsheet open beside it.',
+        'I designed it from the first sketch. I sat with sellers who were drawing these maps by hand, tried shapes that didn’t hold, and landed on two views: a list for the morning, and a map for when a deal turns political. Whatever the system decides about a person, it says why, and you can drag them somewhere else.',
+      ],
+      beats: [[1, 'While you were away, your deal moved.'], [3, 'Salesloft read every email and call.'], [6, 'Your CRO and CFO turned resistant.'], [8, 'And a new exec no one has met.'], [11, 'Win Dana through Petra.'], [13, 'Brief Petra before Sep 18.'], [18, 'See who moves the deal.']],
+      beatsNote: 'The names and dates are made up. The shape of the problem isn’t.',
+      nda: 'The rest is under NDA: the research, the versions that didn’t make it, what sellers said when they first saw it. Ask me and I’ll walk you through it.' },
     { id: 'sony', type: 'work', role: 'capstone', title: 'Sony', org: 'Sony', year: '2025', meta: 'Sony · capstone · 2025', sub: 'after the purchase', hint: 'what Sony owes you after you buy: Sonia, an AI that asks first', quad: 'tl', x: -.82, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
       line: 'What does Sony owe you after you buy? A capstone about a smarter, more sustainable life after the purchase.', img: 'sony.jpg', images: ['sony.jpg'],
       alt: 'A phone on a dark field glowing violet: Sonia, an AI assistant, asks before it uses your data.' },

@@ -310,6 +310,7 @@ function open(p, rect) {
     $('.body', sheet).classList.add('wide');
     return;
   }
+  if (p.beats) return openFilm(p, K);
   if (p.kind === 'vault' || p.kind === 'shipped') return openSheet(p.quad, K, p.title, sc || line, sc ? null : metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), p.video ? h('p', { class: 'c-cap reveal' }, p.vcap) : null, diagram(p.id), sc ? null : p.kind === 'shipped' ? crops(p) : p.images ? h('div', { class: 's-imgs' }, p.images.slice(1).map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null);
   if (p.kind === 'films') return ready.then(() => openFilms(K));
   if (p.kind === 'paper') return openSheet('bl', K, p.title, line, h('p', { class: 'reveal', style: 'margin-top:22px' }, h('a', { href: p.href, class: 'serif', style: 'font-size:22px;font-style:italic;border-bottom:1px solid currentColor' }, 'read it, like a book →')));
@@ -317,6 +318,22 @@ function open(p, rect) {
   if (p.kind === 'room') return openSheet('bl', K, p.title, line, h('p', { class: 'credit' }, 'visual notes, kept since college.'), h('div', { class: 'masonry' }, S.odds.map(f => h('div', { class: 'blk reveal' }, h('img', { src: A(f), alt: 'A visual note', loading: 'lazy' })))));
   if (p.kind === 'clay') return openClay(p, K, line);
   if (p.kind === 'toy') return openPlayground(K, line);
+}
+
+/* a case told by its film: the beats are chapters; clicking one plays from there, and the one
+   on screen is lit as it plays. Then a short account, and the rest offered in person. */
+function openFilm(p, K) {
+  const t = s => `0:${String(s).padStart(2, '0')}`;
+  const beats = h('ol', { class: 'beats reveal', 'aria-label': 'The film, beat by beat' }, p.beats.map(([s, w]) => h('li', {}, h('button', { type: 'button', 'data-t': s }, h('span', { class: 'bt' }, t(s)), h('span', { class: 'bw' }, w)))));
+  const mail = h('a', { href: `mailto:${S.person.email}?subject=${encodeURIComponent(p.title)}` }, S.person.email);
+  openSheet(p.quad, K, p.title,
+    h('p', { class: 'film-k reveal' }, 'the film, in seven beats'), beats, h('p', { class: 'c-cap reveal' }, p.beatsNote),
+    h('div', { class: 'prose film-body reveal' }, p.body.map(x => h('p', {}, x))),
+    h('p', { class: 'nda reveal' }, p.nda, ' ', mail));
+  const v = $('.c-hero video', sheet), bs = $$('.beats button', sheet);
+  if (!v) return;
+  bs.forEach(b => b.onclick = () => { v.currentTime = +b.dataset.t; v.play?.().catch(() => {}); });
+  v.addEventListener('timeupdate', () => { let on = -1; bs.forEach((b, i) => { if (v.currentTime >= +b.dataset.t - .15) on = i; }); bs.forEach((b, i) => b.classList.toggle('on', i === on)); });
 }
 
 /* vault diagrams — razor-thin, drawn in */
