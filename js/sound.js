@@ -36,6 +36,16 @@
     const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.09, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .22);
     s.connect(bp); bp.connect(g); g.connect(out); s.start(t);
   }
+  // A shorter, lower breath: paper set down on a table, or a rubber stamp meeting it.
+  function pat(freq = 900, peak = .07, len = .07) {
+    if (!ctx || !out) return;
+    const t = ctx.currentTime, n = Math.ceil(ctx.sampleRate * len), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+    const s = ctx.createBufferSource(); s.buffer = buf;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 1.1;
+    const g = ctx.createGain(); g.gain.value = peak;
+    s.connect(bp); bp.connect(g); g.connect(out); s.start(t);
+  }
   const ready = () => ctx && ctx.state === 'running' && on();
   window.portfolioSound = {
     on, wake,
@@ -44,6 +54,8 @@
     chime() { if (!on()) return; wake(); tone(SCALE[3], -.2, .05); tone(SCALE[5], .2, .04, .12); },
     tap() { if (ready()) tone(SCALE[0] / 2, 0, .06, 0, .5); },
     flick() { if (ready()) flick(); },
+    pat() { if (ready()) pat(); },
+    stamp() { if (!ready()) return; pat(520, .12, .09); tone(SCALE[0] / 2, 0, .04, 0, .35); },
     // two soft notes: up when the map opens out, down when it folds into a list
     steps(up) { if (!ready()) return; const [a, b] = up ? [SCALE[2], SCALE[5]] : [SCALE[5], SCALE[2]]; tone(a, -.15, .035, 0, .7); tone(b, .15, .03, .09, .9); },
     dusk(dark) { if (!ready()) return; tone(dark ? SCALE[0] : SCALE[7], 0, .035, 0, 1.6); tone(dark ? SCALE[2] / 2 : SCALE[9], 0, .02, .14, 1.8); },

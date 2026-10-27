@@ -373,33 +373,43 @@ function drag(el, bounds) {
   el.addEventListener('pointerup', () => { el.style.boxShadow = ''; const b = bounds.getBoundingClientRect(); const step = () => { vx *= .92; vy *= .92; let x = el.offsetLeft + vx, y = el.offsetTop + vy; const mxx = b.width - el.offsetWidth, myy = b.height - el.offsetHeight; if (x < 0 || x > mxx) { vx *= -.6; x = Math.max(0, Math.min(mxx, x)); } if (y < 0 || y > myy) { vy *= -.6; y = Math.max(0, Math.min(myy, y)); } el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `rotate(${vx * .4}deg)`; if (Math.abs(vx) + Math.abs(vy) > .2) raf = requestAnimationFrame(step); else el.style.transform = ''; }; raf = requestAnimationFrame(step); });
 }
 
-/* about — a calling card. The flower flies from the map and is pressed into the paper; Shyale
-   throws a line that pulls Harshita toward her; the card settles, then turns over to the note. */
-let helloOpen = false, ccTimers = [];
+/* about — a calling card. Plain and printed: the name in one serif, the flower in oxblood a hair
+   off register, on cream stock with a deckled edge. It leans toward your hand, lifts off its
+   shadow when you pick it up, and turns over when you drag it sideways or tap it. */
+let helloOpen = false, ccTimers = [], ccRaf = 0;
 const helloRoot = h('div', { id: 'hello', hidden: true });
 document.body.append(helloRoot);
 const later = (ms, fn) => ccTimers.push(setTimeout(fn, RM ? 0 : ms));
 const svgEl = markup => { const t = document.createElement('div'); t.innerHTML = markup; return t.firstElementChild; };
-const flower = () => svgEl(window.portfolioMark.markup());
-// Fine double rule with a small curl in each corner, pressed into the paper like the rest of the card.
-const border = () => svgEl('<svg class="cc-border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="2.2" y="3.6" width="95.6" height="92.8" rx=".6" vector-effect="non-scaling-stroke"/><rect x="3.4" y="5.6" width="93.2" height="88.8" rx=".4" vector-effect="non-scaling-stroke" class="thin"/></svg>');
-const curl = cls => svgEl('<svg class="cc-curl ' + cls + '" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 36 C4 18 12 6 26 5 C34 4.5 37 10 33 14 C29 18 23 14 26 10 C28 7.5 31 9 30.5 11"/></svg>');
-function openAbout(fromEl) {
+const SITE_URL = 'https://harshitadingorkar.github.io/harshita/';
+// The card as a contact: her name, work, links and the cameo, ready for Contacts.
+async function vcard() {
+  const P = S.person, esc = s => s.replace(/[\\,;]/g, m => '\\' + m);
+  const lines = ['BEGIN:VCARD', 'VERSION:3.0', 'N:Shyale;Harshita;;;', 'FN:' + P.name, 'TITLE:Designer', 'ORG:Salesloft',
+    'EMAIL;TYPE=INTERNET:' + P.email, 'URL:' + SITE_URL, 'URL:' + P.linkedin, 'ADR;TYPE=WORK:;;;Seattle;WA;;USA', 'NOTE:' + esc(P.line)];
+  try {
+    const b = await (await fetch(A('card-photo.jpg'))).arrayBuffer();
+    let s = ''; new Uint8Array(b).forEach(c => { s += String.fromCharCode(c); });
+    lines.push('PHOTO;ENCODING=b;TYPE=JPEG:' + btoa(s));
+  } catch {}
+  lines.push('END:VCARD');
+  // Lines over 75 characters fold onto the next with a leading space.
+  return lines.map(l => l.match(/.{1,74}/g).join('\r\n ')).join('\r\n') + '\r\n';
+}
+function openAbout() {
   if (helloOpen) return;
   if (sheetOpen) closeSheet();
   helloOpen = true; ccTimers.forEach(clearTimeout); ccTimers = [];
   const room = id => S.points.find(p => p.id === id);
   const go = id => () => { const p = room(id); closeAbout(true); if (p) setTimeout(() => open(p, null), 260); };
-  const crest = h('div', { class: 'cc-crest' }, flower());
-  const swash = svgEl('<svg class="cc-swash" aria-hidden="true"><path pathLength="1"/></svg>');
-  const l1 = h('div', { class: 'cc-l1' }, h('span', { class: 'cc-ini' }, 'H'), h('span', { class: 'cc-caps' }, 'arshita'));
-  const l2 = h('div', { class: 'cc-l2' }, h('span', { class: 'cc-ini' }, 'S'), h('span', { class: 'cc-caps' }, 'hyale'));
-  const front = h('div', { class: 'cc-face cc-front' }, border(), curl('tl'), curl('tr'), curl('bl'), curl('br'),
-    h('div', { class: 'cc-name', 'aria-label': 'Harshita Shyale' }, swash, l1, l2),
-    crest,
-    h('p', { class: 'cc-foot' }, h('span', { class: 'cc-city' }, 'Seattle'), h('span', { class: 'cc-what' }, 'Designer'), h('span', { class: 'cc-state' }, 'Washington')));
-  const exp = S.experience || [];
-  const back = h('div', { class: 'cc-face cc-back' }, border(), curl('tl'), curl('tr'), curl('bl'), curl('br'),
+  const ink = (cls, text) => h('p', { class: 'cc-ink ' + cls }, text);
+  const front = h('div', { class: 'cc-face cc-front' },
+    h('div', { class: 'cc-flower', 'aria-hidden': 'true' }, h('i', { class: 'ghost' }), h('i')),
+    h('h2', { class: 'cc-ink cc-name' }, S.person.name),
+    ink('cc-role', 'Designer'),
+    ink('cc-corner l', S.person.email),
+    ink('cc-corner r', 'Seattle, Washington'));
+  const back = h('div', { class: 'cc-face cc-back' },
     h('div', { class: 'cc-back-in' },
       h('span', { class: 'cameo' }, h('img', { src: A('note-cameo.jpg'), alt: 'Harshita, smiling, holding a bunch of yellow flowers.' })),
       h('div', { class: 'cc-words' },
@@ -414,80 +424,112 @@ function openAbout(fromEl) {
           h('a', { href: 'https://www.instagram.com/ashlime_soda/', target: '_blank', rel: 'noopener' }, 'instagram ↗')),
         h('p', { class: 'cc-mail' }, h('a', { href: 'mailto:' + S.person.email }, S.person.email)))));
   const card = h('div', { class: 'cc' }, front, back);
+  const near = h('i', { class: 'cc-shadow near', 'aria-hidden': 'true' }), far = h('i', { class: 'cc-shadow far', 'aria-hidden': 'true' });
+  const hold = h('div', { class: 'cc-hold' }, far, near, card);
   const turn = h('button', { type: 'button', class: 'cc-turn' }, '(turn it over)');
-  let flipped = false, flipping = null;
-  const flip = to => {
-    const f = to ?? !flipped; if (f === flipped) return; flipped = f;
-    turn.textContent = f ? '(the front)' : '(turn it over)';
-    window.portfolioSound?.flick();
-    const a = f ? 0 : 180, b = f ? 180 : 360, s = f ? 1 : -1;
-    flipping?.cancel();
-    flipping = card.animate(RM ? [{ transform: `rotateY(${b}deg)` }] : [
-      { transform: `rotateY(${a}deg) translateY(0) rotateZ(0) scale(1)` },
-      { transform: `rotateY(${a + 70 * s}deg) translateY(-18px) rotateZ(${-2.5 * s}deg) scale(1.06)`, offset: .38 },
-      { transform: `rotateY(${b + 9 * s}deg) translateY(-6px) rotateZ(${1 * s}deg) scale(1.02)`, offset: .78 },
-      { transform: `rotateY(${b}deg) translateY(0) rotateZ(0) scale(1)` }
-    ], { duration: RM ? 1 : 1150, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'forwards' });
+  const keep = h('button', { type: 'button', class: 'cc-keep' }, '(tuck it into your pocket)');
+
+  // One spring turns the card, another lifts it off the table; the lean follows the pointer.
+  const st = { a: 0, va: 0, to: 0, goal: 0, l: 0, vl: 0, lt: 0, tx: 0, ty: 0, ttx: 0, tty: 0, landed: true, drag: null, t: 0 };
+  const facing = () => Math.abs(Math.round(st.goal / 180)) % 2 ? 'back' : 'front';
+  const render = () => {
+    const ang = st.a + st.ty, c = Math.abs(Math.cos(ang * Math.PI / 180)), l = Math.max(0, st.l), z = Math.sign(st.to - st.a) || 0;
+    card.style.transform = `translateY(${-18 * l}px) rotateX(${st.tx}deg) rotateY(${ang}deg) rotateZ(${-1.8 * z * l}deg) scale(${1 + .05 * l})`;
+    card.style.setProperty('--dim', ((1 - c) * .3).toFixed(3));
+    card.style.setProperty('--sx', (50 - st.ty * 6 + ((st.a % 360) + 360) % 360 / 3.6) + '%');
+    const sx = Math.max(.04, c) * (1 - .06 * l);
+    near.style.transform = `translate(${-st.ty * .8}px, ${3 + st.tx * -.6}px) scaleX(${sx})`;
+    near.style.opacity = (1 - Math.min(1, l * 1.6)) * .9;
+    far.style.transform = `translate(${-st.ty * 1.6 + 6 * l}px, ${14 + 30 * l - st.tx}px) scale(${sx * (1 + .04 * l)}, ${1 - .08 * l})`;
+    far.style.opacity = .5 - .18 * l;
   };
-  turn.onclick = () => flip();
-  card.addEventListener('click', e => { if (!e.target.closest('a,button')) flip(); });
-  const wrap = h('div', { class: 'cc-wrap', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Harshita’s calling card' }, card,
-    h('div', { class: 'cc-controls' }, turn, h('button', { type: 'button', class: 'cc-x', onclick: () => closeAbout() }, '(close)')));
+  const tick = now => {
+    const steps = Math.min(4, Math.max(1, Math.round((now - (st.t || now - 16.7)) / 16.7))); st.t = now;
+    for (let i = 0; i < steps; i++) {
+      if (!st.drag) { st.va = (st.va + (st.to - st.a) * .018) * .82; st.a += st.va; }
+      if (!st.drag && Math.abs(st.goal - st.a) < 30) st.lt = 0; // nearly over: set it down
+      st.vl = (st.vl + (st.lt - st.l) * .09) * .74; st.l += st.vl;
+      st.tx += (st.ttx - st.tx) * .14; st.ty += (st.tty - st.ty) * .14;
+    }
+    render();
+    if (!st.landed && !st.drag && Math.abs(st.to - st.a) < 2 && Math.abs(st.va) < .5 && st.l < .05) { st.landed = true; window.portfolioSound?.pat(); }
+    const moving = st.drag || Math.abs(st.to - st.a) > .05 || Math.abs(st.va) > .02 || Math.abs(st.l) > .002 || Math.abs(st.lt - st.l) > .002 || Math.abs(st.ttx - st.tx) > .02 || Math.abs(st.tty - st.ty) > .02;
+    ccRaf = moving ? requestAnimationFrame(tick) : 0;
+    if (!moving) st.t = 0;
+  };
+  const wake = () => { if (!ccRaf) ccRaf = requestAnimationFrame(tick); };
+  const turned = () => { const b = facing() === 'back'; turn.textContent = b ? '(the front)' : '(turn it over)'; card.classList.toggle('flipped', b); };
+  const flip = () => {
+    st.goal += facing() === 'front' ? 180 : -180; turned();
+    if (RM) { st.a = st.to = st.goal; render(); return; }
+    // lift first, then turn: the card leaves the table a beat before it goes over
+    st.lt = 1; st.landed = false; window.portfolioSound?.flick(); wake();
+    later(70, () => { st.to = st.goal; wake(); });
+  };
+  turn.onclick = flip;
+
+  // Pick it up and drag sideways to turn it; let go past the edge (or flick) and it goes over.
+  const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  card.addEventListener('pointerdown', e => {
+    if (e.button || e.target.closest('a,button')) return;
+    card.setPointerCapture(e.pointerId);
+    st.drag = { x: e.clientX, a: st.a, moved: false, v: 0, lx: e.clientX, lt: performance.now(), w: card.offsetWidth };
+    if (!RM) { st.lt = .45; wake(); }
+  });
+  card.addEventListener('pointermove', e => {
+    const d = st.drag; if (!d || !card.hasPointerCapture(e.pointerId)) return;
+    const dx = e.clientX - d.x; if (Math.abs(dx) > 5) d.moved = true;
+    if (!d.moved || RM) return;
+    const now = performance.now(); d.v = (e.clientX - d.lx) / Math.max(8, now - d.lt) * 16.7; d.lx = e.clientX; d.lt = now;
+    st.a = d.a + Math.max(-200, Math.min(200, dx / d.w * 190)); st.va = 0; wake();
+  });
+  const drop = e => {
+    const d = st.drag; if (!d) return; st.drag = null;
+    if (e.type === 'pointercancel') { st.lt = 0; wake(); return; }
+    if (!d.moved) { flip(); return; }
+    const vdeg = Math.max(-14, Math.min(14, d.v / d.w * 190)), base = Math.round(d.a / 180) * 180, delta = st.a + vdeg * 9 - base;
+    const to = Math.abs(delta) > 70 ? base + Math.sign(delta) * 180 : base;
+    if (to !== st.goal) { window.portfolioSound?.flick(); }
+    st.goal = st.to = to; turned();
+    st.va = vdeg; st.lt = to === base ? 0 : .8; st.landed = false; wake();
+  };
+  card.addEventListener('pointerup', drop); card.addEventListener('pointercancel', drop);
+  if (fine && !RM) {
+    hold.addEventListener('pointermove', e => { if (st.drag) return; const r = hold.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * 2 - 1, y = (e.clientY - r.top) / r.height * 2 - 1; st.ttx = -y * 5; st.tty = x * 6; wake(); });
+    hold.addEventListener('pointerleave', () => { st.ttx = st.tty = 0; wake(); });
+  }
+
+  // Keep it: a stamp lands on the side you're looking at, and the card is handed over as a contact.
+  keep.onclick = async () => {
+    const face = facing() === 'back' ? back : front;
+    face.querySelector('.cc-stamp')?.remove();
+    const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const stamp = svgEl(`<svg class="cc-stamp" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="cc-arc-${face === back ? 'b' : 'f'}" d="M50 50 m-36 0 a36 36 0 1 1 72 0 a36 36 0 1 1 -72 0"/></defs><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="28" class="thin"/><text><textPath href="#cc-arc-${face === back ? 'b' : 'f'}" textLength="222">in your pocket · kept with care ·</textPath></text><text x="50" y="47" class="d">kept</text><text x="50" y="60" class="s">${date}</text></svg>`);
+    face.append(stamp);
+    later(RM ? 0 : 230, () => { window.portfolioSound?.stamp(); hold.animate([{ transform: 'scale(1)' }, { transform: 'scale(.982)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' }); });
+    keep.textContent = '(in your pocket)';
+    const url = URL.createObjectURL(new Blob([await vcard()], { type: 'text/vcard' }));
+    const a = h('a', { href: url, download: 'Harshita Shyale.vcf', hidden: true });
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  };
+
+  const wrap = h('div', { class: 'cc-wrap', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Harshita’s calling card' }, hold,
+    h('div', { class: 'cc-controls' }, turn, keep, h('button', { type: 'button', class: 'cc-x', onclick: () => closeAbout() }, '(close)')));
   helloRoot.replaceChildren(h('div', { class: 'h-veil', onclick: () => closeAbout() }), wrap);
   helloRoot.hidden = false; void helloRoot.offsetWidth; helloRoot.classList.add('on');
   window.portfolioSound?.chime();
   body.classList.add('hello-open');
-
-  // 1 · the card is handed over
+  render();
   wrap.classList.add('arrive');
-  // 2 · the flower leaves the map and is pressed into the paper
-  const src = fromEl && fromEl.classList && fromEl.classList.contains('mark') ? fromEl.querySelector('svg') : null;
-  later(320, () => {
-    const to = crest.getBoundingClientRect();
-    if (src && !RM) {
-      const fr = src.getBoundingClientRect(), fly = src.cloneNode(true);
-      fly.classList.add('cc-flyer'); Object.assign(fly.style, { left: fr.left + 'px', top: fr.top + 'px', width: fr.width + 'px', height: fr.height + 'px' });
-      document.body.append(fly); body.classList.add('mark-gone');
-      const mx = (fr.left + to.left) / 2, my = Math.min(fr.top, to.top) - 70, mw = (fr.width + to.width) / 2 * 1.25;
-      fly.animate([
-        { left: fr.left + 'px', top: fr.top + 'px', width: fr.width + 'px', height: fr.height + 'px', transform: 'rotate(0deg)' },
-        { left: mx - mw / 4 + 'px', top: my + 'px', width: mw + 'px', height: mw + 'px', transform: 'rotate(24deg)', offset: .5 },
-        { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px', transform: 'rotate(36deg)' }
-      ], { duration: 1150, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' });
-      // Don't wait on the animation's finish event (a background tab can hold it back) — keep time instead.
-      later(1170, () => { press(); fly.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-out', fill: 'forwards' }); later(460, () => fly.remove()); });
-    } else { crest.classList.add('bloom'); later(500, press); }
-  });
-  let pressed = false;
-  const press = () => { if (pressed) return; pressed = true; crest.classList.add('pressed'); window.portfolioSound?.tap(); card.animate([{ transform: 'scale(1)' }, { transform: 'scale(.988)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'ease-out' }); later(260, name); };
-  // 3 · Shyale throws her line and pulls Harshita in
-  const name = () => {
-    const box = front.querySelector('.cc-name').getBoundingClientRect();
-    const r = el => { const b = el.getBoundingClientRect(); return { l: b.left - box.left, t: b.top - box.top, w: b.width, h: b.height, r: b.right - box.left, b: b.bottom - box.top }; };
-    const H = r(l1.firstChild), Sx = r(l2.firstChild), C2 = r(l2.lastChild), base = C2.b + 4;
-    const p0 = [Sx.l + Sx.w * .38, Sx.b - Sx.h * .14];
-    const fb = front.getBoundingClientRect(), X = x => Math.max(fb.left - box.left + fb.width * .075, x); // stay inside the border
-    // From past the end of "Shyale", back through the tail of her S, down and under both lines,
-    // then up to catch the H — the line that pulls Harshita toward her.
-    const d = `M${C2.r + 12} ${base - 6} C${C2.r - 14} ${base + 12} ${Sx.l + Sx.w * .9} ${base + 10} ${p0[0]} ${p0[1]}`
-      + ` C${p0[0] - 30} ${p0[1] + 34} ${H.l + 34} ${base + 26} ${X(H.l + 4)} ${base + 14}`
-      + ` C${X(H.l - 12)} ${base + 8} ${X(H.l - 16)} ${H.t + H.h * .6} ${H.l + H.w * .2} ${H.t + H.h * .44}`;
-    swash.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
-    const path = swash.firstChild; path.setAttribute('d', d); path.setAttribute('pathLength', '1');
-    front.classList.add('named');
-    later(1500, () => front.classList.add('settled'));
-    if (!RM) later(3300, () => { if (helloOpen && !card.dataset.touched) flip(true); });
-  };
-  card.addEventListener('pointerdown', () => { card.dataset.touched = '1'; });
   setTimeout(() => turn.focus({ preventScroll: true }), 80);
 }
 function closeAbout(quick) {
   if (!helloOpen) return;
   helloOpen = false; ccTimers.forEach(clearTimeout); ccTimers = [];
+  cancelAnimationFrame(ccRaf); ccRaf = 0;
   const wrap = $('.cc-wrap', helloRoot);
   helloRoot.classList.remove('on'); body.classList.remove('hello-open');
-  document.querySelectorAll('.cc-flyer').forEach(f => f.remove());
-  const done = () => { helloRoot.hidden = true; helloRoot.replaceChildren(); body.classList.remove('mark-gone'); };
+  const done = () => { helloRoot.hidden = true; helloRoot.replaceChildren(); };
   if (RM || !wrap) return done();
   wrap.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(24px) rotate(2deg) scale(.97)', opacity: 0 }], { duration: quick ? 220 : 420, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = done;
   $('.mark')?.focus({ preventScroll: true });

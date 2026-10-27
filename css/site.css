@@ -702,110 +702,94 @@ body:has(#plate.on) .pt:not(:hover):not(:focus-visible) .lbl{opacity:.0;transiti
 body:has(#plate.on) .mark,body:has(#plate.on) .qlabel{opacity:0;transition:opacity .16s ease}
 
 /* ── The calling card (about) ─────────────────────────────────────────────
-   Heavy cotton stock: warm, toothy, with long fibres. Everything on it is either
-   engraved (ink) or pressed (the paper's own colour, lifted by light and shadow). */
-#hello{--cc-stock:#F6F2E8;--cc-press:#ECE5D6;
-  --cc-grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  0 0 0 .11 0'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>");
+   A plain card, done well. Cream cotton stock with long fibres and a deckled edge; the name set
+   in one serif and printed in one ink, with the ink's speckle left in; the flower in oxblood,
+   a hair off register. No pressed ornaments. The card sits on its own shadow, which spreads
+   and softens when it's lifted. */
+#hello{--cc-stock:#F4EFE3;--cc-ink:#211D18;--cc-ox:#6B2A2F;
+  --cc-grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  0 0 0 .1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>");
   --cc-fibre:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.006 .55' numOctaves='2' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .16 -.03'/></filter><rect width='100%25' height='100%25' filter='url(%23f)'/></svg>");
-  --cc-lift:drop-shadow(-.7px -.7px .2px rgba(255,255,255,.95)) drop-shadow(.9px 1.2px .6px rgba(74,58,40,.36))}
-#hello .cc-wrap{position:relative;width:min(600px,92vw);perspective:1700px;display:grid;gap:16px;justify-items:center}
-#hello .cc-wrap.arrive{animation:ccIn .85s cubic-bezier(.22,1,.36,1) both}
-@keyframes ccIn{from{opacity:0;transform:translateY(54px) rotate(-5deg) scale(.95)}}
-#hello .cc{position:relative;width:100%;aspect-ratio:1.75;transform-style:preserve-3d;transition:transform 1.1s cubic-bezier(.65,0,.35,1);cursor:pointer}
-#hello .cc.flipped{transform:rotateY(180deg)}
-#hello .cc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:2.5px;overflow:hidden;color:var(--ink);
-  background:var(--cc-grain),var(--cc-fibre),radial-gradient(130% 100% at 28% 18%,#FCF9F2 0%,var(--cc-stock) 55%,#EFE9DB 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 0 0 1px rgba(74,58,40,.07),0 1px 1px rgba(40,30,20,.08),0 3px 6px -2px rgba(40,30,20,.1),0 34px 64px -30px rgba(40,30,20,.5)}
+  /* where the ink didn't quite take */
+  --cc-speckle:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4.2 0 0 0 3.85'/></filter><rect width='100%25' height='100%25' filter='url(%23s)'/></svg>");
+  /* torn, fibrous edges, as handmade paper comes off the mould */
+  --cc-deckle:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 400' preserveAspectRatio='none'><filter id='d' x='-3%25' y='-3%25' width='106%25' height='106%25'><feTurbulence type='fractalNoise' baseFrequency='.045' numOctaves='4' seed='9'/><feDisplacementMap in='SourceGraphic' scale='9' xChannelSelector='R' yChannelSelector='G'/><feGaussianBlur stdDeviation='.55'/></filter><rect x='6' y='6' width='688' height='388' rx='2' fill='white' filter='url(%23d)'/></svg>");
+  --cc-deckle-tall:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 600' preserveAspectRatio='none'><filter id='d' x='-3%25' y='-3%25' width='106%25' height='106%25'><feTurbulence type='fractalNoise' baseFrequency='.045' numOctaves='4' seed='9'/><feDisplacementMap in='SourceGraphic' scale='8' xChannelSelector='R' yChannelSelector='G'/><feGaussianBlur stdDeviation='.5'/></filter><rect x='6' y='6' width='348' height='588' rx='2' fill='white' filter='url(%23d)'/></svg>")}
+#hello .cc-wrap{position:relative;width:min(560px,92vw);display:grid;gap:22px;justify-items:center}
+#hello .cc-wrap.arrive{animation:ccIn .8s cubic-bezier(.22,1,.36,1) both}
+@keyframes ccIn{from{opacity:0;transform:translateY(46px) rotate(-4deg) scale(.96)}}
+#hello .cc-hold{position:relative;width:100%;aspect-ratio:1.75;perspective:1400px;touch-action:pan-y}
+#hello .cc{position:absolute;inset:0;transform-style:preserve-3d;cursor:grab;will-change:transform;-webkit-user-select:none;user-select:none}
+#hello .cc:active{cursor:grabbing}
+#hello .cc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;color:var(--cc-ink);
+  background:var(--cc-grain),var(--cc-fibre),radial-gradient(140% 110% at 30% 20%,#FAF7EF 0%,var(--cc-stock) 60%,#ECE5D5 100%);
+  -webkit-mask:var(--cc-deckle) 0 0/100% 100% no-repeat;mask:var(--cc-deckle) 0 0/100% 100% no-repeat}
+/* light on the paper: it greys as the card turns edge-on, and a soft sheen slides across */
+#hello .cc-face::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.34) 50%,transparent 65%) var(--sx,50%) 0/260% 100% no-repeat;background-color:rgb(48 36 24 / var(--dim,0))}
 #hello .cc-back{transform:rotateY(180deg)}
-/* pressed ornaments */
-#hello .cc-border{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:var(--cc-press);stroke-width:1.4;filter:var(--cc-lift)}
-#hello .cc-border .thin{stroke-width:.7}
-#hello .cc-curl{position:absolute;width:30px;height:30px;fill:none;stroke:var(--cc-press);stroke-width:1.3;stroke-linecap:round;filter:var(--cc-lift)}
-#hello .cc-curl.tl{left:4.4%;top:7.4%;transform:scale(1,-1) rotate(0)}
-#hello .cc-curl.tr{right:4.4%;top:7.4%;transform:scale(-1,-1)}
-#hello .cc-curl.bl{left:4.4%;bottom:7.4%}
-#hello .cc-curl.br{right:4.4%;bottom:7.4%;transform:scale(-1,1)}
-/* the crest: the flower, pressed in */
-#hello .cc-crest{position:absolute;right:9%;top:46%;width:31%;aspect-ratio:1;transform:translateY(-50%)}
-#hello .cc-crest svg{display:block;width:100%;height:100%;color:var(--cc-press);opacity:0;filter:var(--cc-lift);transition:opacity .55s ease}
-#hello .cc .chrysanthemum,#hello .cc .chrysanthemum .pe,#hello .cc .chrysanthemum .pc{animation:none!important;opacity:1;transform:none}
-#hello .cc-crest.pressed svg{opacity:1}
-#hello .cc-crest.bloom svg{opacity:1;animation:ccBloom .7s cubic-bezier(.34,1.3,.64,1) both}
-@keyframes ccBloom{from{opacity:0;transform:scale(.2) rotate(-60deg)}}
-.cc-flyer{position:fixed;z-index:200;pointer-events:none;color:var(--ink);overflow:visible}
-body.mark-gone .mark{opacity:0;transition:opacity .2s}
-/* the name: Shyale throws a line that pulls Harshita in */
-#hello .cc-name{position:absolute;left:9.5%;top:20%;width:56%;height:52%}
-#hello .cc-l1,#hello .cc-l2{position:relative;display:flex;align-items:baseline;white-space:nowrap;line-height:1}
-#hello .cc-l2{margin:6px 0 0 24%}
-#hello .cc-ini{font:400 80px/.8 'Mea Culpa',cursive;margin-right:-2px;opacity:0;transition:opacity .5s ease}
-#hello .cc-caps{font:400 31px/1 'IM Fell English SC',Georgia,serif;letter-spacing:.42em;opacity:0;transition:letter-spacing 1.1s cubic-bezier(.22,1,.36,1),opacity .8s ease}
-#hello .cc-l1{transform:translateX(-30px);transition:transform 1.25s cubic-bezier(.34,1.18,.64,1) .3s}
-#hello .cc-swash{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-#hello .cc-swash path{fill:none;stroke:var(--ink);stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.3s cubic-bezier(.45,0,.25,1) .05s}
-#hello .named .cc-ini{opacity:1}
-#hello .named .cc-caps{opacity:1;letter-spacing:.13em}
-#hello .named .cc-l1{transform:none}
-#hello .named .cc-swash path{stroke-dashoffset:0}
-/* the foot: where, and what */
-#hello .cc-foot{position:absolute;left:10%;right:10%;bottom:13.5%;display:flex;justify-content:space-between;align-items:baseline;margin:0;font:400 12.5px/1 'IM Fell English SC',Georgia,serif;letter-spacing:.3em;text-transform:lowercase;color:var(--ink2);opacity:0;transform:translateY(4px);transition:opacity .7s ease,transform .7s var(--e-dm)}
-#hello .cc-foot .cc-what{font-size:15px;color:var(--ink);letter-spacing:.34em}
-#hello .settled .cc-foot{opacity:1;transform:none}
+#hello .cc-shadow{position:absolute;inset:0;border-radius:3px;pointer-events:none;transform-origin:50% 50%}
+#hello .cc-shadow.near{inset:1.5% .8% -.4%;background:rgba(40,28,16,.32);filter:blur(3px)}
+#hello .cc-shadow.far{inset:6% 4% -4%;background:rgba(40,28,16,.5);filter:blur(26px)}
+/* print: one ink, the speckle where it didn't take */
+#hello .cc-ink{-webkit-mask:var(--cc-speckle) 0 0/180px 180px;mask:var(--cc-speckle) 0 0/180px 180px}
+#hello .cc-front{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-bottom:4%}
+#hello .cc-flower{position:relative;width:30px;height:30px;margin-bottom:18px;transform:translate(1.5px,-1px) rotate(4deg)}
+#hello .cc-flower i{position:absolute;inset:0;background:var(--cc-ox);
+  -webkit-mask:url(../assets/mark-ink.svg) center/contain no-repeat,var(--cc-speckle) 0 0/90px 90px;-webkit-mask-composite:source-in;
+  mask:url(../assets/mark-ink.svg) center/contain no-repeat,var(--cc-speckle) 0 0/90px 90px;mask-composite:intersect}
+#hello .cc-flower i.ghost{opacity:.22;transform:translate(-1.6px,1.1px) rotate(-3deg)}
+#hello .cc-name{margin:0;font:400 46px/1 var(--serif);letter-spacing:-.008em;color:var(--cc-ink);text-shadow:0 0 .5px rgba(33,29,24,.55)}
+#hello .cc-role{margin:14px 0 0;font:500 10px/1 var(--sans);letter-spacing:.34em;text-transform:uppercase;padding-left:.34em;color:rgba(33,29,24,.72)}
+#hello .cc-corner{position:absolute;bottom:9.5%;margin:0;font:400 10.5px/1 var(--sans);letter-spacing:.04em;color:rgba(33,29,24,.62)}
+#hello .cc-corner.l{left:8%}
+#hello .cc-corner.r{right:8%}
 /* the back: the note */
 #hello .cc-back-in{position:absolute;inset:12% 9.5% 11%;display:grid;grid-template-columns:104px minmax(0,1fr);gap:26px;align-items:center;text-align:left}
-#hello .cameo{display:block;width:100px;height:128px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 1px var(--ink),0 0 0 5px var(--cc-stock),0 0 0 6px color-mix(in srgb,var(--ink) 35%,transparent)}
-#hello .cameo img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+#hello .cameo{display:block;width:100px;height:128px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 1px var(--cc-ink),0 0 0 5px var(--cc-stock),0 0 0 6px rgba(33,29,24,.3)}
+#hello .cameo img{width:100%;height:100%;object-fit:cover;object-position:50% 22%;pointer-events:none}
 #hello .cc-line{margin:0;font:italic 400 19px/1.3 var(--voice);text-wrap:balance}
 #hello .cc-bio{margin:8px 0 0;font:300 14px/1.5 var(--voice);color:var(--ink2);text-wrap:pretty}
-#hello .cc-facts{margin:10px 0 0;font:11px/1.5 var(--sans);color:var(--ink3)}
-#hello .cc-links{display:flex;flex-wrap:wrap;gap:2px 14px;margin:8px 0 0;font-size:12px}
-#hello .cc-mail{margin:4px 0 0;font-size:11.5px}
-#hello .cc-links a,#hello .cc-links button,#hello .cc-mail a{color:var(--ink2);transition:color .16s}
-#hello .cc-links a:hover,#hello .cc-links button:hover,#hello .cc-mail a:hover,#hello .cc-controls button:hover{color:var(--accent)}
-#hello .cc-controls{display:flex;gap:20px;font-size:12.5px}
-#hello .cc-controls button{color:var(--ink2)}
-@media (max-width:640px){
-  #hello .cc{aspect-ratio:.6}
-  #hello .cc-name{left:10%;top:9%;width:80%;height:30%}
-  #hello .cc-ini{font-size:62px}#hello .cc-caps{font-size:23px}
-  #hello .cc-crest{left:50%;right:auto;top:55%;width:44%;transform:translate(-50%,-50%)}
-  #hello .cc-foot{flex-direction:column;align-items:center;gap:8px;bottom:9%}
-  #hello .cc-back-in{grid-template-columns:1fr;justify-items:center;text-align:center;align-content:center;gap:14px;inset:9% 9%}
-  #hello .cc-links{justify-content:center}
-}
-@media (prefers-reduced-motion:reduce){
-  #hello .cc-wrap.arrive{animation:none}#hello .cc{transition:none}
-  #hello .cc-ini,#hello .cc-caps,#hello .cc-l1,#hello .cc-swash path,#hello .cc-foot{transition:none}
-}
-
-/* ── Calling card, round 2: printed, not pressed ──
-   The flower and the rules are printed in ink like the cup on an old card; the name keeps
-   the voice the site already speaks in (Averia, with Mea Culpa's H and S). */
-#hello .cc{transition:none}
-#hello .cc-border{stroke:var(--ink);opacity:.5;filter:none;stroke-width:1}
-#hello .cc-border .thin{stroke-width:.5}
-#hello .cc-curl{stroke:var(--ink);opacity:.55;filter:none;stroke-width:1.1}
-#hello .cc-crest{width:22%;right:12%}
-#hello .cc-crest svg{color:var(--ink);filter:none;transition:opacity .45s ease}
-#hello .cc-crest .mark-ink{animation:none}
-#hello .cc-caps{font:400 34px/1 var(--voice);letter-spacing:.06em}
-#hello .named .cc-caps{letter-spacing:.01em}
-#hello .cc-ini{font-size:84px}
-#hello .cc-foot{font:400 11px/1 var(--voice);text-transform:uppercase;letter-spacing:.34em}
-#hello .cc-foot .cc-what{font-size:13px;letter-spacing:.38em}
 #hello .cc-bio a,#hello .cc-facts a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--ink3)}
 #hello .cc-bio a:hover,#hello .cc-facts a:hover{color:var(--accent)}
 #hello .cc-facts{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:12px 0 0;font:11.5px/1.45 var(--sans);color:var(--ink2)}
 #hello .cc-facts dt{color:var(--ink3)}
 #hello .cc-facts dd{margin:0}
-@media (max-width:640px){#hello .cc-caps{font-size:26px}#hello .cc-ini{font-size:64px}#hello .cc-crest{width:38%}#hello .cc-facts{text-align:left}}
+#hello .cc-links{display:flex;flex-wrap:wrap;gap:2px 14px;margin:8px 0 0;font-size:12px}
+#hello .cc-mail{margin:4px 0 0;font-size:11.5px}
+#hello .cc-links a,#hello .cc-links button,#hello .cc-mail a{color:var(--ink2);transition:color .16s}
+#hello .cc-links a:hover,#hello .cc-links button:hover,#hello .cc-mail a:hover,#hello .cc-controls button:hover{color:var(--accent)}
+/* kept: an oxblood rubber stamp, a little crooked, lands on whichever side faces you */
+#hello .cc-stamp{position:absolute;right:6.5%;top:9%;width:86px;height:86px;color:var(--cc-ox);overflow:visible;pointer-events:none;mix-blend-mode:multiply;opacity:.86;transform:rotate(-13deg);
+  -webkit-mask:var(--cc-speckle) 0 0/120px 120px;mask:var(--cc-speckle) 0 0/120px 120px;animation:ccStamp .42s cubic-bezier(.2,.8,.2,1) .05s both}
+#hello .cc-stamp circle{fill:none;stroke:currentColor;stroke-width:2.2}
+#hello .cc-stamp circle.thin{stroke-width:1}
+#hello .cc-stamp text{fill:currentColor;font:500 7.4px var(--sans);letter-spacing:.12em;text-transform:uppercase;text-anchor:start}
+#hello .cc-stamp text.d{font:italic 400 15px var(--serif);letter-spacing:0;text-transform:none;text-anchor:middle}
+#hello .cc-stamp text.s{font:500 6px var(--sans);letter-spacing:.08em;text-anchor:middle}
+@keyframes ccStamp{0%{opacity:0;transform:translateY(-14px) rotate(-6deg) scale(1.55)}55%{opacity:.9;transform:rotate(-13deg) scale(.94)}100%{opacity:.86;transform:rotate(-13deg) scale(1)}}
+#hello .cc-controls{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 22px;font-size:12.5px}
+#hello .cc-controls button{color:var(--ink2);transition:color .16s,transform .16s var(--quick)}
+#hello .cc-controls button:active{transform:scale(.94)}
+@media (max-width:640px){
+  #hello .cc-hold{aspect-ratio:.6;width:min(100%,360px);margin-inline:auto}
+  #hello .cc-face{-webkit-mask-image:var(--cc-deckle-tall);mask-image:var(--cc-deckle-tall)}
+  #hello .cc-name{font-size:38px;max-width:8ch;line-height:1.02;text-wrap:balance}
+  #hello .cc-corner{left:0!important;right:0!important;text-align:center}
+  #hello .cc-corner.l{bottom:13%}
+  #hello .cc-corner.r{bottom:8.5%}
+  #hello .cc-back-in{grid-template-columns:1fr;justify-items:center;text-align:center;align-content:center;gap:14px;inset:9% 9%}
+  #hello .cc-links{justify-content:center}
+  #hello .cc-facts{text-align:left}
+}
+@media (prefers-reduced-motion:reduce){
+  #hello .cc-wrap.arrive,#hello .cc-stamp{animation:none}
+}
+
 /* the quiet mark: a slow turn on the map, a bloom on the way in */
 .mark-ink{display:block;width:100%;height:100%;overflow:visible;animation:inkTurn 120s linear infinite;transition:transform .5s var(--e-dm)}
 .mark:hover .mark-ink,.mark:focus-visible .mark-ink{transform:scale(1.08)}
 .intro-mark .mark-ink{animation:inkBloom 1.1s var(--e-out) both,inkTurn 120s linear 1.1s infinite}
 @keyframes inkTurn{to{rotate:360deg}}
 @keyframes inkBloom{from{opacity:0;transform:scale(.3) rotate(-50deg)}}
-.cc-flyer .mark-ink{animation:none}
 .sound-btn{color:var(--ink2)}
 .sound-btn[aria-pressed=true]{color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.mark-ink{animation:none!important}}
@@ -865,9 +849,8 @@ body.mark-gone .mark{opacity:0;transition:opacity .2s}
 
 /* the flower is drawn in ink, so at night it is printed in light */
 :root[data-theme=dark] .mark-ink{filter:invert(1) sepia(.18) brightness(.92)}
-:root[data-theme=dark] :is(#hello .cc, .cc-flyer) .mark-ink{filter:none}
 /* the calling card stays a cream card, now lying on a dark table */
-:root[data-theme=dark] #hello .cc{--ink:#191915;--ink2:rgba(25,25,21,.56);--ink3:rgba(25,25,21,.32);--hair:rgba(25,25,21,.14);--hair2:rgba(25,25,21,.07);--ox:#6B2A2F;--ground:#F6F2E8;color:var(--ink)}
+:root[data-theme=dark] #hello .cc{--cc-stock:#EFE9DC;--ink:#191915;--ink2:rgba(25,25,21,.56);--ink3:rgba(25,25,21,.32);--hair:rgba(25,25,21,.14);--hair2:rgba(25,25,21,.07);--ox:#6B2A2F;--ground:#F6F2E8;color:var(--ink)}
 :root[data-theme=dark] .c-dock{background:color-mix(in srgb,#fff 6%,var(--ground))}
 :root[data-theme=dark] #plate img{box-shadow:0 30px 60px -30px rgba(0,0,0,.8)}
 
