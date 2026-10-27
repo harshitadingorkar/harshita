@@ -843,3 +843,38 @@ body.mark-gone .mark{opacity:0;transition:opacity .2s}
 .pt[data-kind=films]:hover .dot,.pt[data-kind=films]:focus-visible .dot{opacity:0;transform:scale(.4)}
 .pt[data-kind=films]:hover .pot,.pt[data-kind=films]:focus-visible .pot{opacity:1;transform:translate(-50%,-60%) scale(1) rotate(0)}
 .pt[data-kind=films] .pot{transform:translate(-50%,-60%) scale(.35) rotate(40deg)}
+
+/* ---------- Lights out (dark mode) ----------
+   Micro-interactions after josephines.world: icons morph rather than swap, parts stagger by ~30ms,
+   presses give a little (scale .92), and everything quick runs on cubic-bezier(.2,.8,.2,1). */
+:root{--ctl:cubic-bezier(.34,1.45,.64,1);--quick:cubic-bezier(.2,.8,.2,1)}
+:root[data-theme=dark]{--ground:#16140F;--ink:#ECE6DA;--ink2:rgba(236,230,218,.6);--ink3:rgba(236,230,218,.34);--hair:rgba(236,230,218,.16);--hair2:rgba(236,230,218,.07);--ox:#CF7D80;color-scheme:dark}
+.theme-btn{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:2px;color:var(--ink);border-radius:50%;transition:transform .18s var(--quick),background-color .18s var(--quick)}
+.theme-btn:hover{transform:rotate(-14deg);background:var(--hair2)}
+.theme-btn:active{transform:scale(.88)}
+.navlinks .theme-btn::after{display:none}
+.theme-btn svg{width:15px;height:15px;overflow:visible}
+.tb-core{transform-box:view-box;transform-origin:12px 12px;transition:transform .5s var(--ctl)}
+.tb-bite{transform-box:view-box;transform:translate(9px,-9px);transition:transform .46s var(--ctl) .05s}
+.tb-ray{stroke-dasharray:1;stroke-dashoffset:0;transition:stroke-dashoffset .3s var(--quick) calc(var(--i) * 30ms + .12s),opacity .2s ease calc(var(--i) * 30ms + .12s)}
+:root[data-theme=dark] .tb-core{transform:scale(1.5) rotate(-24deg)}
+:root[data-theme=dark] .tb-bite{transform:none}
+:root[data-theme=dark] .tb-ray{stroke-dashoffset:1;opacity:0;transition-delay:calc((7 - var(--i)) * 26ms)}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+.no-tx body,.no-tx .intro,.no-tx #sheet,.no-tx #index{transition:none!important}
+
+/* the flower is drawn in ink, so at night it is printed in light */
+:root[data-theme=dark] .mark-ink{filter:invert(1) sepia(.18) brightness(.92)}
+:root[data-theme=dark] :is(#hello .cc, .cc-flyer) .mark-ink{filter:none}
+/* the calling card stays a cream card, now lying on a dark table */
+:root[data-theme=dark] #hello .cc{--ink:#191915;--ink2:rgba(25,25,21,.56);--ink3:rgba(25,25,21,.32);--hair:rgba(25,25,21,.14);--hair2:rgba(25,25,21,.07);--ox:#6B2A2F;--ground:#F6F2E8;color:var(--ink)}
+:root[data-theme=dark] .c-dock{background:color-mix(in srgb,#fff 6%,var(--ground))}
+:root[data-theme=dark] #plate img{box-shadow:0 30px 60px -30px rgba(0,0,0,.8)}
+
+/* map / list: a press gives, the pill stretches (see placePill), the landing word hops */
+.views button{transition:color .2s ease,transform .16s var(--quick)}
+.views button:active{transform:scale(.92)}
+.views button:hover:not(.on){color:var(--ink)}
+.views .hop{display:inline-block}
+.views .vpill{transform-origin:50% 50%}
+@media (prefers-reduced-motion:reduce){.tb-core,.tb-bite,.tb-ray,.theme-btn,.views button{transition:none}}

@@ -44,6 +44,9 @@
     chime() { if (!on()) return; wake(); tone(SCALE[3], -.2, .05); tone(SCALE[5], .2, .04, .12); },
     tap() { if (ready()) tone(SCALE[0] / 2, 0, .06, 0, .5); },
     flick() { if (ready()) flick(); },
+    // two soft notes: up when the map opens out, down when it folds into a list
+    steps(up) { if (!ready()) return; const [a, b] = up ? [SCALE[2], SCALE[5]] : [SCALE[5], SCALE[2]]; tone(a, -.15, .035, 0, .7); tone(b, .15, .03, .09, .9); },
+    dusk(dark) { if (!ready()) return; tone(dark ? SCALE[0] : SCALE[7], 0, .035, 0, 1.6); tone(dark ? SCALE[2] / 2 : SCALE[9], 0, .02, .14, 1.8); },
   };
   // Someone who left sound on gets it back at their first click or keypress.
   if (on()) { const h = () => wake(); addEventListener('pointerdown', h, { once: true }); addEventListener('keydown', h, { once: true }); }

@@ -520,7 +520,24 @@ function buildIndex(ix) {
   ix.replaceChildren(stage, card);
 }
 const views = $('#views'), vpill = $('.vpill', views);
-function placePill() { const b = $('button.on', views); if (!b) return; vpill.style.transform = `translateX(${b.offsetLeft}px)`; vpill.style.width = b.offsetWidth + 'px'; }
+let pillAt = null;
+function placePill() {
+  const b = $('button.on', views); if (!b) return;
+  const to = [b.offsetLeft, b.offsetWidth], from = pillAt; pillAt = to;
+  vpill.style.transform = `translateX(${to[0]}px)`; vpill.style.width = to[1] + 'px';
+  if (!from || RM || from[0] === to[0]) return;
+  // The pill stretches across both words like a drop of ink, then lets go and settles with a little give.
+  const l = Math.min(from[0], to[0]), w = Math.max(from[0] + from[1], to[0] + to[1]) - l, dir = Math.sign(to[0] - from[0]);
+  vpill.animate([
+    { transform: `translateX(${from[0]}px) scaleY(1)`, width: from[1] + 'px' },
+    { transform: `translateX(${l}px) scaleY(.82)`, width: w + 'px', offset: .42 },
+    { transform: `translateX(${to[0] + dir * 3}px) scaleY(1.06)`, width: (to[1] - 4) + 'px', offset: .74 },
+    { transform: `translateX(${to[0]}px) scaleY(1)`, width: to[1] + 'px' }
+  ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  // and the word it lands on does a small hop, letter by letter
+  if (!b.dataset.split) { b.dataset.split = 1; b.replaceChildren(...[...b.textContent].map((c, i) => h('span', { class: 'hop', style: `--h:${i}` }, c))); }
+  $$('.hop', b).forEach(s => s.animate([{ transform: 'none' }, { transform: 'translateY(-3.5px)', offset: .4 }, { transform: 'none' }], { duration: 360, delay: 140 + +s.style.getPropertyValue('--h') * 34, easing: 'cubic-bezier(.3,0,.3,1)' }));
+}
 const indexMotion = { animations: [], clones: [], timers: [], phase: null, token: 0 };
 const indexGlyph = row => {
   const section = row.closest('.iacc');
@@ -626,7 +643,23 @@ function toggleIndex(on) {
     else flyToMap();
   }
 }
-$$('button', views).forEach(b => b.onclick = () => toggleIndex(b.dataset.v === 'list'));
+$$('button', views).forEach(b => b.onclick = () => { const list = b.dataset.v === 'list'; if (list !== body.classList.contains('show-index')) window.portfolioSound?.steps(!list); toggleIndex(list); });
+
+/* ---------- lights out ---------- */
+// The other theme spreads out from the switch as a widening circle; the sun folds its rays and takes a bite to become a moon.
+const themeBtn = $('#themeBtn'), docEl = document.documentElement;
+const markTheme = t => { themeBtn.setAttribute('aria-pressed', t === 'dark'); themeBtn.title = t === 'dark' ? 'lights on' : 'lights out'; };
+if (themeBtn) {
+  markTheme(docEl.dataset.theme);
+  themeBtn.onclick = () => {
+    const t = docEl.dataset.theme === 'dark' ? 'light' : 'dark';
+    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
+    window.portfolioSound?.dusk(t === 'dark');
+    if (RM || !document.startViewTransition) return apply();
+    const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    document.startViewTransition(apply).ready.then(() => docEl.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${R}px at ${x}px ${y}px)`] }, { duration: 760, easing: 'cubic-bezier(.65,0,.35,1)', pseudoElement: '::view-transition-new(root)' })).catch(() => {});
+  };
+}
 requestAnimationFrame(placePill); document.fonts && document.fonts.ready.then(placePill);
 $('#home').onclick = e => { e.preventDefault(); toggleIndex(false); closeSheet(); setFilter(null); };
 

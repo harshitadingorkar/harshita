@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Harshita Shyale, designer in Seattle</title>
 <meta name="description" content="Harshita Shyale is a designer in Seattle, at Salesloft. Software by day, clay by night. A map of what she keeps and makes.">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
 <link rel="icon" href="assets/mark-chry.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mea+Culpa&family=Averia+Serif+Libre:ital,wght@0,300;0,400;1,300;1,400&family=Geist+Mono:wght@400&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -20,7 +21,7 @@
   <p class="tagline" id="tagline"></p>
 </header>
 <nav class="corner tr" aria-label="Site">
-  <div class="navlinks"><span class="views" id="views" role="group" aria-label="View"><i class="vpill" aria-hidden="true"></i><button data-v="map" class="on">map</button><button data-v="list">list</button></span><button id="soundBtn" class="sound-btn" aria-pressed="false" title="each point has a note: higher on the map, higher in pitch; further right, further into your right ear">(sound off)</button><button id="aboutBtn">about</button><a id="mailLink" href="#">contact</a></div>
+  <div class="navlinks"><span class="views" id="views" role="group" aria-label="View"><i class="vpill" aria-hidden="true"></i><button data-v="map" class="on">map</button><button data-v="list">list</button></span><button id="soundBtn" class="sound-btn" aria-pressed="false" title="each point has a note: higher on the map, higher in pitch; further right, further into your right ear">(sound off)</button><button id="aboutBtn">about</button><a id="mailLink" href="#">contact</a><button id="themeBtn" class="theme-btn" type="button" aria-pressed="false" aria-label="Dark mode" title="lights out"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="tb-mask"><rect x="-4" y="-4" width="32" height="32" fill="#fff"/><circle class="tb-bite" cx="16.5" cy="7.5" r="5.6" fill="#000"/></mask></defs><g mask="url(#tb-mask)"><circle class="tb-core" cx="12" cy="12" r="5" fill="currentColor"/></g><g class="tb-rays" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line class="tb-ray" style="--i:0" pathLength="1" x1="12.00" y1="3.80" x2="12.00" y2="1.20"/><line class="tb-ray" style="--i:1" pathLength="1" x1="17.80" y1="6.20" x2="19.64" y2="4.36"/><line class="tb-ray" style="--i:2" pathLength="1" x1="20.20" y1="12.00" x2="22.80" y2="12.00"/><line class="tb-ray" style="--i:3" pathLength="1" x1="17.80" y1="17.80" x2="19.64" y2="19.64"/><line class="tb-ray" style="--i:4" pathLength="1" x1="12.00" y1="20.20" x2="12.00" y2="22.80"/><line class="tb-ray" style="--i:5" pathLength="1" x1="6.20" y1="17.80" x2="4.36" y2="19.64"/><line class="tb-ray" style="--i:6" pathLength="1" x1="3.80" y1="12.00" x2="1.20" y2="12.00"/><line class="tb-ray" style="--i:7" pathLength="1" x1="6.20" y1="6.20" x2="4.36" y2="4.36"/></g></svg></button></div>
   <div class="minimap" id="minimap" aria-label="Jump to a quarter"></div>
 </nav>
 <footer class="corner bl browse">
