@@ -29,7 +29,7 @@ window.SITE = {
     { id: 'influence', type: 'work', role: 'product designer', title: 'Influence Graph', org: 'Salesloft', year: '2025', meta: 'Salesloft · 2025', quad: 'tr', x: .76, y: .26, tags: ['product', 'ai', 'research'], kind: 'vault',
       line: 'Who really holds sway in a deal, read from the calls and emails sellers already have.',
       img: 'cases/salesloft/deal-map.jpg', video: 'cases/salesloft/deal-map.mp4', vcap: 'the deal map, in motion: who turned resistant, who no one has met yet, and the person who can win them over.' },
-    { id: 'sony', type: 'work', role: 'capstone', title: 'Sony', org: 'Sony × UW', year: '2025', meta: 'Sony × UW · capstone', quad: 'tl', x: -.82, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
+    { id: 'sony', type: 'work', role: 'capstone', title: 'Sony', org: 'Sony', year: '2025', meta: 'Sony · capstone · 2025', sub: 'after the purchase', hint: 'what Sony owes you after you buy: Sonia, an AI that asks first', quad: 'tl', x: -.82, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
       line: 'What does Sony owe you after you buy? A capstone about a smarter, more sustainable life after the purchase.', img: 'sony.jpg', images: ['sony.jpg'],
       alt: 'A phone on a dark field glowing violet: Sonia, an AI assistant, asks before it uses your data.' },
     { id: 'safe', type: 'work', role: 'product designer', title: 'A Safe Space', org: 'UW + UW Medicine', year: '2023', meta: 'UW + UW Medicine · 2023', quad: 'tl', x: -.18, y: .40, tags: ['research', 'health'], kind: 'vault', case: 'safe',

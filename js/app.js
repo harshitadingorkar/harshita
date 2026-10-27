@@ -85,7 +85,7 @@ function buildPlane() {
   }
   const mark = h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) });
   plane.append(mark);
-  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
+  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.sub||p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
   layout(); preview(active);
 }
 function layout() {
@@ -142,7 +142,7 @@ function bindPoint(e) {
   const p = e._p;
   let turnTimer;
   const stopHint=()=>{if(p.type==='work'&&!sessionStorage.getItem('work-dot-hovered')){sessionStorage.setItem('work-dot-hovered','1');$('.start-here')?.remove();body.classList.add('work-pulse-stopped');}};
-  e.addEventListener('mouseenter', () => { if (sheetOpen) return; window.portfolioSound?.pluck(p.x, p.y); if(p.id==='wobblefoot')e.classList.add('wobbling'); stopHint(); const c = plateFor(p); plate.replaceChildren(...(c ? [c] : [])); if(p.id==='wobblefoot'&&!RM){let n=0;turnTimer=setInterval(()=>{if(c)c.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);} requestAnimationFrame(() => plate.classList.toggle('on', !!c && !sheetOpen)); pill.innerHTML = `${p.title}<span class="k">${p.org}</span>`; pill.classList.add('on'); });
+  e.addEventListener('mouseenter', () => { if (sheetOpen) return; window.portfolioSound?.pluck(p.x, p.y); if(p.id==='wobblefoot')e.classList.add('wobbling'); stopHint(); const c = plateFor(p); plate.replaceChildren(...(c ? [c] : [])); if(p.id==='wobblefoot'&&!RM){let n=0;turnTimer=setInterval(()=>{if(c)c.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);} requestAnimationFrame(() => plate.classList.toggle('on', !!c && !sheetOpen)); pill.innerHTML = `${p.title}<span class="k">${p.hint || p.org}</span>`; pill.classList.add('on'); });
   e.addEventListener('mouseleave', () => {clearInterval(turnTimer);e.classList.remove('wobbling');plate.classList.remove('on'); pill.classList.remove('on'); });
   e.addEventListener('click', () => { stopHint(); const r = srcRect(p); ready.then(() => open(p, r)); });
 }
