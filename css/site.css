@@ -1353,3 +1353,4 @@ button.pf-pile img:hover{scale:1.06;translate:0 6px;z-index:2}
 .pf-head::after{content:'';display:block;clear:both}
 @media (max-width:760px){.pf-kid,.pf-kid img{width:76px}}
 .b-id{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.arriving .b-intro{animation:fadeIn .9s ease calc(var(--ad,0ms) + 1.45s) both}

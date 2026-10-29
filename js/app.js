@@ -681,8 +681,9 @@ else {
   intro.replaceChildren(h('div', { class: 'intro-inner' }, p));
   introActive = true; document.addEventListener('click', skipIntro, true); document.addEventListener('keydown', skipIntro, true);
   const name = spans.find(s => s.classList.contains('keep')), others = spans.filter(s => s !== name);
-  const dissolveAt = 1150, flightStart = 1900, flightDuration = 1000;
-  arrive(1500);
+  // just her name: it arrives, holds a breath, and settles into the corner as the map draws in around it
+  const alone = others.length === 0, dissolveAt = 1150, flightStart = alone ? 1150 : 1900, flightDuration = 1000;
+  arrive(alone ? 850 : 1500);
   introTimers.push(setTimeout(() => {
     // farthest from the name goes first, like breath leaving a window
     const at = spans.indexOf(name);
