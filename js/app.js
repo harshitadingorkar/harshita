@@ -71,7 +71,7 @@ const HOVER_ART = { clay: () => POT, films: () => REEL };
 /* ---------- plane ---------- */
 const MARK = window.portfolioMark.markup();
 // The flower sits beside her name, like a maker's mark on a colophon, and opens the card.
-const markBtn = $('#markBtn'); markBtn.innerHTML = MARK; markBtn.onclick = e => openAbout(e.currentTarget);
+const markBtn = $('#markBtn'); markBtn.innerHTML = MARK; markBtn.onclick = () => ready.then(openProfile);
 function buildPlane() {
   plane.innerHTML = '';
   if (mobile()) return buildMobile();
@@ -154,50 +154,14 @@ function showPlate(p, e) {
   const R = getComputedStyle(document.documentElement), cx = parseFloat(R.getPropertyValue('--cx')) || innerWidth / 2, cy = parseFloat(R.getPropertyValue('--cy')) || innerHeight / 2;
   const settle = () => { if (tok !== figTok) return; const d = e.querySelector('.dot').getBoundingClientRect(), W = fig.offsetWidth, H = fig.offsetHeight;
     fig.style.transformOrigin = `${d.left + d.width / 2 - (cx - W / 2)}px ${d.top + d.height / 2 - (cy - H / 2)}px`;
-    requestAnimationFrame(() => { if (tok === figTok) { fig.classList.add('in'); linea.rise(fig, e); } }); };
+    requestAnimationFrame(() => { if (tok === figTok) fig.classList.add('in'); }); };
   const imgs = $$('img', fig); Promise.race([Promise.all(imgs.map(i => i.decode ? i.decode().catch(() => {}) : null)), new Promise(r => setTimeout(r, 600))]).then(settle);
   return c;
 }
 function hidePlate() {
-  figTok++; plate.classList.remove('on'); linea.fall();
+  figTok++; plate.classList.remove('on');
   $$('.pfig:not(.out)', plate).forEach(f => { f.classList.add('out'); f.classList.remove('in'); setTimeout(() => f.remove(), 450); });
 }
-/* La Linea: the axis is one line, and while a picture shows it rises into a girl standing beside it,
-   presenting it with an open palm. She is drawn as a single stroke that starts and ends in the axis;
-   every point of her rises out of the flat line together, with a little cel-animation snap, and
-   folds back into it when you leave. An original figure in the 1930s spirit: curls, a flared dress. */
-const linea = (() => {
-  if (!lamp || RM) return { rise() {}, fall() {} };
-  const D = 'M-30 0 L1 0 C1 -10 2 -20 3 -29 C0 -29 -6 -30 -9 -31 C-6 -38 -1 -46 1 -51 C-2 -52 -5 -50 -7 -52 C-11 -54 -15 -55 -17 -58 C-18 -60 -17 -62 -15 -62 C-10 -63 -4 -66 0 -68 C1 -70 3 -71 4 -73 C1 -73 -3 -73 -5 -74 C-8 -75 -8 -79 -5 -78 C-3 -77 -4 -75 -6 -76 C-8 -80 -8 -88 -4 -92 C0 -96 9 -97 15 -94 C19 -92 21 -90 21 -88 C23 -88 25 -86 23 -84 C21 -83 20 -85 21 -86 C21 -85 21 -84 22 -83 C24 -82 26 -81 24 -80 C23 -80 23 -79 23 -79 C24 -78 24 -77 23 -77 C24 -76 24 -75 22 -75 C21 -74 19 -74 17 -74 C16 -73 16 -72 16 -70 C20 -72 27 -74 33 -76 C36 -78 39 -80 41 -79 C42 -78 40 -77 39 -77 C41 -77 42 -75 40 -74 C38 -73 35 -73 33 -72 C27 -70 22 -66 18 -64 C20 -61 20 -57 16 -55 C14 -54 13 -53 13 -51 C17 -44 22 -36 25 -31 C21 -30 17 -29 14 -29 C14 -20 13 -10 13 -3 C15 -2 18 -1 19 0 L11 0 C11 -2 10 -3 10 -6 C10 -14 9 -22 8 -27 C7 -22 6 -12 6 0 L55 0';
-  const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), path = document.createElementNS(NS, 'path');
-  svg.setAttribute('class', 'linea'); svg.setAttribute('aria-hidden', 'true'); svg.append(path); document.body.append(svg);
-  const S = .64, cur = { t: 0, from: 0, to: 0, start: 0, dur: 1, x0: 0, dir: 1, y: 0 };
-  let pts = null, raf = 0, pending = null;
-  const sample = () => { path.setAttribute('d', D); const L = path.getTotalLength(), n = 420; pts = Array.from({ length: n + 1 }, (_, i) => { const q = path.getPointAtLength(L * i / n); return [q.x, q.y]; }); };
-  const draw = () => { const { t, x0, dir, y } = cur; path.setAttribute('d', 'M' + pts.map(([x, py]) => `${(x0 + x * S * dir).toFixed(1)} ${(y + py * S * t).toFixed(1)}`).join('L')); };
-  const gap = on => { const a = $('.axis.h'); if (!a) return; if (!on) { a.style.maskImage = a.style.webkitMaskImage = ''; return; }
-    const r = a.getBoundingClientRect(), [m, n] = [cur.x0 - 30 * S * cur.dir, cur.x0 + 55 * S * cur.dir].sort((u, v) => u - v).map(v => v - r.left);
-    a.style.maskImage = a.style.webkitMaskImage = `linear-gradient(90deg,#000 ${m}px,transparent ${m}px,transparent ${n}px,#000 ${n}px)`; };
-  const up = k => 1 + 2.2 * (k - 1) ** 3 + 1.2 * (k - 1) ** 2, down = k => k * k;
-  const tick = now => {
-    const k = Math.min(1, (now - cur.start) / cur.dur); cur.t = cur.from + (cur.to - cur.from) * (cur.to > cur.from ? up(k) : down(k)); draw();
-    if (k < 1) { raf = requestAnimationFrame(tick); return; }
-    raf = 0; if (cur.to) return;
-    svg.classList.remove('on'); gap(false); if (pending) { const q = pending; pending = null; go(q); }
-  };
-  const tween = (to, dur) => { cur.from = cur.t; cur.to = to; cur.start = performance.now(); cur.dur = dur; if (!raf) raf = requestAnimationFrame(tick); };
-  const go = spec => { Object.assign(cur, spec); svg.classList.add('on'); gap(true); draw(); tween(1, 780); };
-  return {
-    rise(fig, e) {
-      if (mobile() || body.classList.contains('show-index')) return; if (!pts) sample();
-      const R = getComputedStyle(document.documentElement), cx = parseFloat(R.getPropertyValue('--cx')), cy = parseFloat(R.getPropertyValue('--cy'));
-      const d = e.querySelector('.dot').getBoundingClientRect(), dir = d.left + d.width / 2 < cx ? 1 : -1, reach = 42 * S + 12, left = cx - fig.offsetWidth / 2, right = left + (fig.firstElementChild?.offsetWidth || fig.offsetWidth);
-      const spec = { x0: dir > 0 ? left - reach : right + reach, dir, y: Math.round(cy) + .5 };
-      if (cur.t > .01 || raf) { pending = spec; tween(0, 200); } else go(spec);
-    },
-    fall() { pending = null; if (cur.t > 0 || raf) tween(0, 220); }
-  };
-})();
 // While a picture shows, the axes stop at its edges instead of running across it.
 function axesAround(box) {
   $$('.axis').forEach(a => {
@@ -390,6 +354,55 @@ function openFilm(p, K) {
   v.addEventListener('timeupdate', () => { let on = -1; bs.forEach((b, i) => { if (v.currentTime >= +b.dataset.t - .15) on = i; }); bs.forEach((b, i) => b.classList.toggle('on', i === on)); });
 }
 
+/* ---------- about: a read.cv page in the case sheet ----------
+   Her lines, a strip of pictures, then work, client work and school as plain rows. The work strip stays on top,
+   so from here a visitor is one click from any project. Contact lists the apps she answers on; the one a
+   visitor used last time comes first. Every line can be rewritten in edit mode (data-edit paths into SITE). */
+function openProfile() {
+  const P = S.profile, ed = path => ({ 'data-edit': path });
+  const contacts = [
+    { id: 'email', label: 'Email', sub: S.person.email, href: 'mailto:' + S.person.email },
+    { id: 'linkedin', label: 'LinkedIn', sub: 'send a message', href: S.person.linkedin },
+    { id: 'instagram', label: 'Instagram', sub: '@' + S.person.instagram, href: 'https://ig.me/m/' + S.person.instagram },
+    { id: 'substack', label: 'Substack', sub: '@' + S.person.substack, href: 'https://substack.com/@' + S.person.substack },
+  ];
+  let last = null; try { last = localStorage.getItem('contact-via'); } catch {}
+  contacts.sort((a, b) => (b.id === last) - (a.id === last));
+  const pick = (c, e) => {
+    try { localStorage.setItem('contact-via', c.id); } catch {}
+    if (c.id === 'email') { const sub = $('span', e.currentTarget); navigator.clipboard?.writeText(c.sub).then(() => { sub.textContent = 'copied · ' + c.sub; }).catch(() => {}); }
+  };
+  const menu = h('div', { class: 'pf-menu', role: 'menu', hidden: true }, contacts.map(c => h('a', { role: 'menuitem', href: c.href, target: c.id === 'email' ? null : '_blank', rel: 'noopener', onclick: e => pick(c, e) }, h('b', {}, c.label), h('span', {}, c.sub), c.id === last ? h('em', {}, 'last time') : null)));
+  const contact = h('button', { type: 'button', class: 'pf-act', 'aria-haspopup': 'menu', 'aria-expanded': 'false', onclick: () => { const on = menu.hidden; menu.hidden = !on; contact.setAttribute('aria-expanded', String(on)); } }, 'Contact');
+  const cv = h('a', { class: 'pf-act', href: S.person.resume, target: '_blank', rel: 'noopener', hidden: true }, 'CV ↓');
+  fetch(S.person.resume, { method: 'HEAD' }).then(r => { if (r.ok) cv.hidden = false; }).catch(() => {});
+  // "agents" in the HPE line opens a short note on what those agents were
+  const term = text => { const i = text.search(/\bagents\b/); return i < 0 ? [text] : [text.slice(0, i), h('span', { class: 'term', tabindex: 0 }, 'agents'), text.slice(i + 6)]; };
+  const row = (r, path) => h('div', { class: 'pf-row' }, h('span', { class: 'pf-when' }, r.when),
+    h('div', { class: 'pf-what' },
+      h('p', { class: 'pf-role' }, h('span', ed(path + '.role'), r.role), h('span', { class: 'pf-dot' }, ' · '),
+        r.href ? h('a', { href: r.href, target: '_blank', rel: 'noopener' }, r.org)
+          : r.point ? h('button', { type: 'button', class: 'pf-open', onclick: () => { const q = S.points.find(x => x.id === r.point); if (q) open(q, null); } }, r.org, ' →') : r.org,
+        r.where ? h('span', { class: 'pf-where' }, r.where) : null),
+      h('p', { class: 'pf-text', ...ed(path + '.text') }, ...term(r.text)),
+      /\bagents\b/.test(r.text) ? h('p', { class: 'term-pop', role: 'note', ...ed('profile.agents') }, P.agents) : null));
+  const sec = (label, kids) => h('section', { class: 'pf-sec reveal' }, h('h3', {}, label), kids);
+  const elsewhere = [['LinkedIn', S.person.linkedin], ['Instagram', 'https://www.instagram.com/' + S.person.instagram + '/'], ['Substack', 'https://substack.com/@' + S.person.substack], ['Letterboxd', S.person.letterboxd], ['Are.na', S.person.arena]];
+  openSheet(null, null, null, h('div', { class: 'pf' },
+    h('header', { class: 'pf-head' },
+      h('div', { class: 'pf-acts' }, cv, h('span', { class: 'pf-contact' }, contact, menu)),
+      h('p', { class: 'mono', ...ed('profile.kicker') }, P.kicker),
+      h('h2', { class: 's-title' }, S.person.name),
+      h('p', { class: 'case-line', ...ed('profile.lede') }, P.lede)),
+    h('div', { class: 'pf-photos reveal' }, P.photos.map(([f, alt]) => h('img', { src: A(f), alt, loading: 'lazy' }))),
+    h('div', { class: 'pf-about reveal' }, P.about.map((t, i) => h('p', ed('profile.about.' + i), t))),
+    sec('Work', P.work.map((r, i) => row(r, 'profile.work.' + i))),
+    sec('Client work, through UW', P.clients.map((r, i) => row(r, 'profile.clients.' + i))),
+    sec('Education', P.education.map((r, i) => row(r, 'profile.education.' + i))),
+    sec('Elsewhere', h('p', { class: 'pf-links' }, elsewhere.map(([t, u]) => h('a', { href: u, target: '_blank', rel: 'noopener' }, t + ' ↗'))))));
+}
+document.addEventListener('click', e => { const m = $('.pf-menu:not([hidden])', sheet); if (m && !e.target.closest('.pf-contact')) { m.hidden = true; $('.pf-contact .pf-act', sheet)?.setAttribute('aria-expanded', 'false'); } });
+
 /* vault diagrams — razor-thin, drawn in */
 function diagram(id) {
   const D = {
@@ -445,171 +458,7 @@ function drag(el, bounds) {
   el.addEventListener('pointerup', () => { el.style.boxShadow = ''; const b = bounds.getBoundingClientRect(); const step = () => { vx *= .92; vy *= .92; let x = el.offsetLeft + vx, y = el.offsetTop + vy; const mxx = b.width - el.offsetWidth, myy = b.height - el.offsetHeight; if (x < 0 || x > mxx) { vx *= -.6; x = Math.max(0, Math.min(mxx, x)); } if (y < 0 || y > myy) { vy *= -.6; y = Math.max(0, Math.min(myy, y)); } el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `rotate(${vx * .4}deg)`; if (Math.abs(vx) + Math.abs(vy) > .2) raf = requestAnimationFrame(step); else el.style.transform = ''; }; raf = requestAnimationFrame(step); });
 }
 
-/* about — a calling card. Plain and printed: the name in Mea Culpa, the chrysanthemum in ink with
-   an oxblood impression a hair off register, on cream stock with a deckled edge. It leans toward your hand, lifts off its
-   shadow when you pick it up, and turns over when you drag it sideways or tap it. */
-let helloOpen = false, ccTimers = [], ccRaf = 0;
-const helloRoot = h('div', { id: 'hello', hidden: true });
-document.body.append(helloRoot);
-const later = (ms, fn) => ccTimers.push(setTimeout(fn, RM ? 0 : ms));
 const svgEl = markup => { const t = document.createElement('div'); t.innerHTML = markup; return t.firstElementChild; };
-const SITE_URL = 'https://harshitadingorkar.github.io/harshita/';
-// The card as a contact: her name, work, links and the cameo, ready for Contacts.
-async function vcard() {
-  const P = S.person, esc = s => s.replace(/[\\,;]/g, m => '\\' + m);
-  const lines = ['BEGIN:VCARD', 'VERSION:3.0', 'N:Shyale;Harshita;;;', 'FN:' + P.name, 'TITLE:Designer', 'ORG:Salesloft',
-    'EMAIL;TYPE=INTERNET:' + P.email, 'URL:' + SITE_URL, 'URL:' + P.linkedin, 'ADR;TYPE=WORK:;;;Seattle;WA;;USA', 'NOTE:' + esc(P.line)];
-  try {
-    const b = await (await fetch(A('card-photo.jpg'))).arrayBuffer();
-    let s = ''; new Uint8Array(b).forEach(c => { s += String.fromCharCode(c); });
-    lines.push('PHOTO;ENCODING=b;TYPE=JPEG:' + btoa(s));
-  } catch {}
-  lines.push('END:VCARD');
-  // Lines over 75 characters fold onto the next with a leading space.
-  return lines.map(l => l.match(/.{1,74}/g).join('\r\n ')).join('\r\n') + '\r\n';
-}
-function openAbout() {
-  if (helloOpen) return;
-  if (sheetOpen) closeSheet();
-  helloOpen = true; ccTimers.forEach(clearTimeout); ccTimers = [];
-  const room = id => S.points.find(p => p.id === id);
-  const go = id => () => { const p = room(id); closeAbout(true); if (p) setTimeout(() => open(p, null), 260); };
-  const ink = (cls, text) => h('p', { class: 'cc-ink ' + cls }, text);
-  const front = h('div', { class: 'cc-face cc-front' },
-    h('div', { class: 'cc-flower', 'aria-hidden': 'true' }, h('i', { class: 'ghost' }), h('i')),
-    h('h2', { class: 'cc-ink cc-name' }, S.person.name),
-    ink('cc-role', 'Designer'),
-    ink('cc-corner l', S.person.email),
-    ink('cc-corner r', 'Seattle, Washington'));
-  const back = h('div', { class: 'cc-face cc-back' },
-    h('div', { class: 'cc-back-in' },
-      h('span', { class: 'cameo' }, h('img', { src: A('note-cameo.jpg'), alt: 'Harshita, smiling, holding a bunch of yellow flowers.' })),
-      h('div', { class: 'cc-words' },
-        h('p', { class: 'cc-line', 'data-about-field': 'line' }, S.about[0]),
-        S.about.slice(1).map(text => { const k = text.indexOf('Salesloft'); return h('p', { class: 'cc-bio', 'data-about-field': 'small' }, ...(k < 0 ? [text] : [text.slice(0, k), h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), text.slice(k + 9)])); }),
-        h('dl', { class: 'cc-facts' }, h('dt', {}, 'now'), h('dd', {}, h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), ', designing'), h('dt', {}, 'before'), h('dd', {}, 'HPE, an engineer turned designer'), h('dt', {}, 'at UW'), h('dd', {}, 'a guided study with GitHub, a capstone with Sony')),
-        h('p', { class: 'cc-links' },
-          room('theatre') ? h('button', { type: 'button', onclick: go('theatre') }, 'theatre') : null,
-          room('odds') ? h('button', { type: 'button', onclick: go('odds') }, 'odds & ends') : null,
-          h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'résumé ↗'),
-          h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'linkedin ↗'),
-          h('a', { href: 'https://www.instagram.com/ashlime_soda/', target: '_blank', rel: 'noopener' }, 'instagram ↗')),
-        h('p', { class: 'cc-mail' }, h('a', { href: 'mailto:' + S.person.email }, S.person.email)))));
-  const card = h('div', { class: 'cc' }, front, back);
-  const near = h('i', { class: 'cc-shadow near', 'aria-hidden': 'true' }), far = h('i', { class: 'cc-shadow far', 'aria-hidden': 'true' });
-  const hold = h('div', { class: 'cc-hold' }, far, near, card);
-  const turn = h('button', { type: 'button', class: 'cc-turn' }, '(turn it over)');
-  const keep = h('button', { type: 'button', class: 'cc-keep' }, '(tuck it into your pocket)');
-
-  // One spring turns the card, another lifts it off the table; the lean follows the pointer.
-  const st = { a: 0, va: 0, to: 0, goal: 0, l: 0, vl: 0, lt: 0, tx: 0, ty: 0, ttx: 0, tty: 0, landed: true, drag: null, t: 0 };
-  const facing = () => Math.abs(Math.round(st.goal / 180)) % 2 ? 'back' : 'front';
-  const render = () => {
-    const ang = st.a + st.ty, c = Math.abs(Math.cos(ang * Math.PI / 180)), l = Math.max(0, st.l), z = Math.sign(st.to - st.a) || 0;
-    card.style.transform = `translateY(${-18 * l}px) rotateX(${st.tx}deg) rotateY(${ang}deg) rotateZ(${-1.8 * z * l}deg) scale(${1 + .05 * l})`;
-    card.style.setProperty('--dim', ((1 - c) * .3).toFixed(3));
-    card.style.setProperty('--sx', (50 - st.ty * 6 + ((st.a % 360) + 360) % 360 / 3.6) + '%');
-    const sx = Math.max(.04, c) * (1 - .06 * l);
-    near.style.transform = `translate(${-st.ty * .8}px, ${3 + st.tx * -.6}px) scaleX(${sx})`;
-    near.style.opacity = (1 - Math.min(1, l * 1.6)) * .9;
-    far.style.transform = `translate(${-st.ty * 1.6 + 6 * l}px, ${14 + 30 * l - st.tx}px) scale(${sx * (1 + .04 * l)}, ${1 - .08 * l})`;
-    far.style.opacity = .5 - .18 * l;
-  };
-  const tick = now => {
-    const steps = Math.min(4, Math.max(1, Math.round((now - (st.t || now - 16.7)) / 16.7))); st.t = now;
-    for (let i = 0; i < steps; i++) {
-      if (!st.drag) { st.va = (st.va + (st.to - st.a) * .018) * .82; st.a += st.va; }
-      if (!st.drag && Math.abs(st.goal - st.a) < 30) st.lt = 0; // nearly over: set it down
-      st.vl = (st.vl + (st.lt - st.l) * .09) * .74; st.l += st.vl;
-      st.tx += (st.ttx - st.tx) * .14; st.ty += (st.tty - st.ty) * .14;
-    }
-    render();
-    if (!st.landed && !st.drag && Math.abs(st.to - st.a) < 2 && Math.abs(st.va) < .5 && st.l < .05) { st.landed = true; window.portfolioSound?.pat(); }
-    const moving = st.drag || Math.abs(st.to - st.a) > .05 || Math.abs(st.va) > .02 || Math.abs(st.l) > .002 || Math.abs(st.lt - st.l) > .002 || Math.abs(st.ttx - st.tx) > .02 || Math.abs(st.tty - st.ty) > .02;
-    ccRaf = moving ? requestAnimationFrame(tick) : 0;
-    if (!moving) st.t = 0;
-  };
-  const wake = () => { if (!ccRaf) ccRaf = requestAnimationFrame(tick); };
-  const turned = () => { const b = facing() === 'back'; turn.textContent = b ? '(the front)' : '(turn it over)'; card.classList.toggle('flipped', b); };
-  const flip = () => {
-    st.goal += facing() === 'front' ? 180 : -180; turned();
-    if (RM) { st.a = st.to = st.goal; render(); return; }
-    // lift first, then turn: the card leaves the table a beat before it goes over
-    st.lt = 1; st.landed = false; window.portfolioSound?.flick(); wake();
-    later(70, () => { st.to = st.goal; wake(); });
-  };
-  turn.onclick = flip;
-
-  // Pick it up and drag sideways to turn it; let go past the edge (or flick) and it goes over.
-  const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
-  card.addEventListener('pointerdown', e => {
-    card.dataset.touched = '1';
-    if (e.button || e.target.closest('a,button')) return;
-    card.setPointerCapture(e.pointerId);
-    st.drag = { x: e.clientX, a: st.a, moved: false, v: 0, lx: e.clientX, lt: performance.now(), w: card.offsetWidth };
-    if (!RM) { st.lt = .45; wake(); }
-  });
-  card.addEventListener('pointermove', e => {
-    const d = st.drag; if (!d || !card.hasPointerCapture(e.pointerId)) return;
-    const dx = e.clientX - d.x; if (Math.abs(dx) > 5) d.moved = true;
-    if (!d.moved || RM) return;
-    const now = performance.now(); d.v = (e.clientX - d.lx) / Math.max(8, now - d.lt) * 16.7; d.lx = e.clientX; d.lt = now;
-    st.a = d.a + Math.max(-200, Math.min(200, dx / d.w * 190)); st.va = 0; wake();
-  });
-  const drop = e => {
-    const d = st.drag; if (!d) return; st.drag = null;
-    if (e.type === 'pointercancel') { st.lt = 0; wake(); return; }
-    if (!d.moved) { flip(); return; }
-    const vdeg = Math.max(-14, Math.min(14, d.v / d.w * 190)), base = Math.round(d.a / 180) * 180, delta = st.a + vdeg * 9 - base;
-    const to = Math.abs(delta) > 70 ? base + Math.sign(delta) * 180 : base;
-    if (to !== st.goal) { window.portfolioSound?.flick(); }
-    st.goal = st.to = to; turned();
-    st.va = vdeg; st.lt = to === base ? 0 : .8; st.landed = false; wake();
-  };
-  card.addEventListener('pointerup', drop); card.addEventListener('pointercancel', drop);
-  if (fine && !RM) {
-    hold.addEventListener('pointermove', e => { if (st.drag) return; const r = hold.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * 2 - 1, y = (e.clientY - r.top) / r.height * 2 - 1; st.ttx = -y * 5; st.tty = x * 6; wake(); });
-    hold.addEventListener('pointerleave', () => { st.ttx = st.tty = 0; wake(); });
-  }
-
-  // Keep it: a stamp lands on the side you're looking at, and the card is handed over as a contact.
-  keep.onclick = async () => {
-    const face = facing() === 'back' ? back : front;
-    face.querySelector('.cc-stamp')?.remove();
-    const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    const stamp = svgEl(`<svg class="cc-stamp" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="cc-arc-${face === back ? 'b' : 'f'}" d="M50 50 m-36 0 a36 36 0 1 1 72 0 a36 36 0 1 1 -72 0"/></defs><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="28" class="thin"/><text><textPath href="#cc-arc-${face === back ? 'b' : 'f'}" textLength="222">in your pocket · kept with care ·</textPath></text><text x="50" y="47" class="d">kept</text><text x="50" y="60" class="s">${date}</text></svg>`);
-    face.append(stamp);
-    later(RM ? 0 : 230, () => { window.portfolioSound?.stamp(); hold.animate([{ transform: 'scale(1)' }, { transform: 'scale(.982)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' }); });
-    keep.textContent = '(in your pocket)';
-    const url = URL.createObjectURL(new Blob([await vcard()], { type: 'text/vcard' }));
-    const a = h('a', { href: url, download: 'Harshita Shyale.vcf', hidden: true });
-    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
-  };
-
-  const wrap = h('div', { class: 'cc-wrap', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Harshita’s calling card' }, hold,
-    h('div', { class: 'cc-controls' }, turn, keep, h('button', { type: 'button', class: 'cc-x', onclick: () => closeAbout() }, '(close)')));
-  helloRoot.replaceChildren(h('div', { class: 'h-veil', onclick: () => closeAbout() }), wrap);
-  helloRoot.hidden = false; void helloRoot.offsetWidth; helloRoot.classList.add('on');
-  window.portfolioSound?.chime();
-  body.classList.add('hello-open');
-  render();
-  wrap.classList.add('arrive');
-  // the point of the card is the note on its back, so it turns over on its own after a second
-  later(1000, () => { if (helloOpen && !card.dataset.touched && facing() === 'front') flip(); });
-  setTimeout(() => turn.focus({ preventScroll: true }), 80);
-}
-function closeAbout(quick) {
-  if (!helloOpen) return;
-  helloOpen = false; ccTimers.forEach(clearTimeout); ccTimers = [];
-  cancelAnimationFrame(ccRaf); ccRaf = 0;
-  const wrap = $('.cc-wrap', helloRoot);
-  helloRoot.classList.remove('on'); body.classList.remove('hello-open');
-  const done = () => { helloRoot.hidden = true; helloRoot.replaceChildren(); };
-  if (RM || !wrap) return done();
-  wrap.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(24px) rotate(2deg) scale(.97)', opacity: 0 }], { duration: quick ? 220 : 420, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = done;
-  markBtn.focus({ preventScroll: true });
-}
-addEventListener('keydown', e => { if (e.key === 'Escape' && helloOpen) { e.stopImmediatePropagation(); closeAbout(); } }, true);
 
 const soundBtn = $('#soundBtn');
 if (soundBtn) {
@@ -798,7 +647,7 @@ if (themeBtn) {
 }
 requestAnimationFrame(placePill); document.fonts && document.fonts.ready.then(placePill);
 // Her name is the way to the card.
-$('#home').onclick = e => { e.preventDefault(); openAbout(e.currentTarget); };
+$('#home').onclick = e => { e.preventDefault(); ready.then(openProfile); };
 
 /* boot */
 plane.addEventListener('click', e => { if (!e.target.closest('.pt,.mark,button,a') && active) setFilter(null); });

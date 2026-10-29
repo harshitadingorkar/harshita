@@ -21,6 +21,7 @@
     }
     for(const p of S.points){const o=data.points&&data.points[p.id];if(o)Object.assign(p,o)}
     if(data.person)Object.assign(S.person,data.person);
+    if(data.profile&&S.profile)merge(S.profile,data.profile);
     const tagline=document.querySelector('#tagline');
     if(tagline&&data.person?.line)tagline.textContent=data.person.line;
     const mail=document.querySelector('#mailLink');
@@ -52,6 +53,7 @@
   function exit(){editing=false;document.body.classList.remove('editing');toolbar?.remove();toolbar=null;history.replaceState(null,'',location.pathname+location.search.replace(/([?&])edit(?:=[^&]*)?(&|$)/,(_,a,b)=>a==='?'&&b?'?':b?'&':'' ).replace(/[?&]$/,''));chip()}
   function store(path,value){let node=overrides;for(const part of path.slice(0,-1))node=node[part]??={};node[path.at(-1)]=value}
   function editable(target){
+    if(S&&target.closest('[data-edit]')){const el=target.closest('[data-edit]');return {el,path:el.dataset.edit.split('.')};}
     if(target.closest('#tagline'))return {el:target.closest('#tagline'),path:['person','line']};
     if(S&&target.closest('.pt .point-title')){const p=target.closest('.pt')._p;return p&&{el:target.closest('.point-title'),path:['points',p.id,'title']};}
     if(S&&target.closest('.pt-row .rt')){const row=target.closest('.pt-row');return row._p&&{el:target.closest('.rt'),path:['points',row._p.id,'title']};}
@@ -73,7 +75,7 @@
     if(toolbar?.contains(e.target))return;
     const field=editable(e.target);if(!field||!field.path.slice(1).every(Boolean))return;
     e.preventDefault();const el=field.el;el.contentEditable='true';el.classList.add('edit-outline');el.focus();
-    const end=()=>{el.contentEditable='false';el.classList.remove('edit-outline');const value=el.textContent.trim();store(field.path,value);if(field.path[0]==='points'&&S){const p=S.points.find(x=>x.id===field.path[1]);if(p)p[field.path[2]]=value}if(field.path[0]==='person'&&S){if(field.path[1]==='line')S.person.line=value;if(field.path[1]==='quads')S.quads[field.path[2]].name=value}if(field.path[0]==='about'&&S){if(field.path[1]==='line')S.about[0]=value;else if(field.path[1]==='small')S.about[1]=value;else if(field.path[1]==='name')S.person.name=value}if(field.path[0]==='pages'&&window.COLLECTION_PAGE_COPY)window.COLLECTION_PAGE_COPY[field.path[2]]=value;if(field.path[0]==='cases'&&window.PORTFOLIO_DATA?.short){const parts=field.path[2].split('.');let node=window.PORTFOLIO_DATA.short[field.path[1]];for(const part of parts.slice(0,-1))node=node?.[part];if(node)node[parts.at(-1)]=value}save();};
+    const end=()=>{el.contentEditable='false';el.classList.remove('edit-outline');const value=el.textContent.trim();store(field.path,value);if(field.path[0]==='points'&&S){const p=S.points.find(x=>x.id===field.path[1]);if(p)p[field.path[2]]=value}if(field.path[0]==='person'&&S){if(field.path[1]==='line')S.person.line=value;if(field.path[1]==='quads')S.quads[field.path[2]].name=value}if(field.path[0]==='about'&&S){if(field.path[1]==='line')S.about[0]=value;else if(field.path[1]==='small')S.about[1]=value;else if(field.path[1]==='name')S.person.name=value}if(field.path[0]==='profile'&&S){let n=S;for(const k of field.path.slice(0,-1))n=n?.[k];if(n)n[field.path.at(-1)]=value}if(field.path[0]==='pages'&&window.COLLECTION_PAGE_COPY)window.COLLECTION_PAGE_COPY[field.path[2]]=value;if(field.path[0]==='cases'&&window.PORTFOLIO_DATA?.short){const parts=field.path[2].split('.');let node=window.PORTFOLIO_DATA.short[field.path[1]];for(const part of parts.slice(0,-1))node=node?.[part];if(node)node[parts.at(-1)]=value}save();};
     el.addEventListener('blur',end,{once:true});el.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();el.blur()}if(ev.key==='Escape'){ev.preventDefault();el.blur()}},{once:true});
   },true);
   document.addEventListener('pointerdown',e=>{if(!editing||!S)return;const el=e.target.closest('#plane .pt');if(!el)return;e.preventDefault();e.stopImmediatePropagation();drag={el,startX:e.clientX,startY:e.clientY,left:parseFloat(el.style.left)||e.clientX,top:parseFloat(el.style.top)||e.clientY,moved:false};el.setPointerCapture?.(e.pointerId)},true);
