@@ -12,10 +12,10 @@ window.SITE = {
     letterboxd: 'https://letterboxd.com/harshita/',
   },
   axes: {
-    wonder: { gloss: 'for the joy of it', def: 'open questions, followed for the joy of it.' },
-    work: { gloss: 'for someone', def: 'made for someone, and shipped.' },
-    gather: { gloss: 'kept', def: 'things I keep, and arrange.' },
-    make: { gloss: 'made', def: 'things I made: shipped, prototyped, built.' },
+    wonder: { gloss: 'no deadline', def: 'open questions, followed for the joy of it.' },
+    work: { gloss: 'with a deadline', def: 'made for someone, and shipped.' },
+    gather: { gloss: 'found it', def: 'things I keep, and arrange.' },
+    make: { gloss: 'did it myself', def: 'things I made: shipped, prototyped, built.' },
   },
   quads: {
     tr: { key: 'work + make', name: 'shipped', note: 'work that went out the door.' },

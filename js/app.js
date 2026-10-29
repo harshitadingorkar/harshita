@@ -136,6 +136,17 @@ function plateFor(p) {
   if (p.img) return h('img', { src: A(p.img), alt: '' });
   return null;
 }
+// The picture's caption: what it is, who it was for and when, and its one line.
+function plateCap(p) {
+  const meta = p.type === 'work' ? [p.org, p.year, p.role] : [p.meta];
+  return h('figcaption', { class: 'pcap' }, h('b', {}, p.title), h('span', { class: 'pm' }, meta.filter(Boolean).join(' · ')), h('span', { class: 'pl' }, p.line));
+}
+// The picture grows out of the dot you're touching, so it seems to come from there.
+function growFrom(e) {
+  const d = e.querySelector('.dot').getBoundingClientRect(), W = plate.offsetWidth, H = plate.offsetHeight;
+  const cx = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cx')) || innerWidth / 2, cy = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cy')) || innerHeight / 2;
+  plate.style.transformOrigin = `${d.left + d.width / 2 - (cx - W / 2)}px ${d.top + d.height / 2 - (cy - H / 2)}px`;
+}
 // While a picture shows, the axes stop at its edges instead of running across it.
 function axesAround(box) {
   $$('.axis').forEach(a => {
@@ -149,13 +160,13 @@ new MutationObserver(() => {
   if (!plate.classList.contains('on')) return axesAround(null);
   const c = plate.firstElementChild; if (!c) return;
   const imgs = [...plate.querySelectorAll('img')].map(i => i.decode?.().catch(() => {}));
-  Promise.all(imgs).then(() => { if (plate.classList.contains('on')) { const r = c.getBoundingClientRect(); axesAround(r.width ? r : null); } });
+  Promise.all(imgs).then(() => { if (!plate.classList.contains('on')) return; const R = document.documentElement.style, x = parseFloat(R.getPropertyValue('--cx')), y = parseFloat(R.getPropertyValue('--cy')), w = plate.offsetWidth, hh = plate.offsetHeight; axesAround(w ? { left: x - w / 2, right: x + w / 2, top: y - hh / 2, bottom: y + hh / 2, width: w } : null); });
 }).observe(plate, { attributes: true, attributeFilter: ['class'] });
 function bindPoint(e) {
   const p = e._p;
   let turnTimer;
   const stopHint=()=>{if(p.type==='work'&&!sessionStorage.getItem('work-dot-hovered')){sessionStorage.setItem('work-dot-hovered','1');$('.start-here')?.remove();body.classList.add('work-pulse-stopped');}};
-  e.addEventListener('mouseenter', () => { if (sheetOpen) return; window.portfolioSound?.pluck(p.x, p.y); if(p.id==='wobblefoot')e.classList.add('wobbling'); stopHint(); const c = plateFor(p); plate.replaceChildren(...(c ? [c] : [])); if(p.id==='wobblefoot'&&!RM){let n=0;turnTimer=setInterval(()=>{if(c)c.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);} requestAnimationFrame(() => plate.classList.toggle('on', !!c && !sheetOpen)); pill.innerHTML = `${p.title}<span class="k">${p.hint || p.org}</span>`; pill.classList.add('on'); });
+  e.addEventListener('mouseenter', () => { if (sheetOpen) return; window.portfolioSound?.pluck(p.x, p.y); if(p.id==='wobblefoot')e.classList.add('wobbling'); stopHint(); const c = plateFor(p); plate.replaceChildren(...(c ? [c, plateCap(p)] : [])); if (c) growFrom(e); if(p.id==='wobblefoot'&&!RM){let n=0;turnTimer=setInterval(()=>{if(c)c.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);} requestAnimationFrame(() => plate.classList.toggle('on', !!c && !sheetOpen)); pill.innerHTML = `${p.title}<span class="k">${p.hint || p.org}</span>`; pill.classList.toggle('on', !c); });
   e.addEventListener('mouseleave', () => {clearInterval(turnTimer);e.classList.remove('wobbling');plate.classList.remove('on'); pill.classList.remove('on'); });
   e.addEventListener('click', () => { stopHint(); const r = srcRect(p); ready.then(() => open(p, r)); });
 }
