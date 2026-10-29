@@ -1213,3 +1213,25 @@ body.show-index .settings{opacity:0;pointer-events:none}
 body.case-open .settings{filter:blur(14px);opacity:.16;pointer-events:none}
 .arriving .settings{animation:fadeIn .8s ease calc(var(--ad,0ms) + .35s) both}
 @media (max-width:760px){.b-hint,.settings{display:none}.b-id{display:flex}.b-menu{margin-top:0}}
+
+/* ---------- Round 26: pictures arrive gently ----------
+   #plate is only a holder now. Each hover's figure waits for its picture, then drifts up from the dot
+   (a 6% rise in scale, not a jump), unblurring and brightening over about a second; its caption
+   follows a beat later. A figure on its way out fades on its own, so quick moves never glitch.
+   Pictures get a hairline and a long soft shadow in both themes, on the map and in the list. */
+#plate,#plate.on{position:fixed;left:0;top:0;width:0;height:0;display:block;transform:none;opacity:1;filter:none;transition:none;z-index:11}
+.pfig{position:fixed;left:var(--cx);top:var(--cy);margin:0;display:flex;flex-direction:column;align-items:flex-start;transform:translate(-50%,-50%) scale(.94);opacity:0;filter:blur(8px);will-change:transform,opacity,filter}
+.pfig.in{transform:translate(-50%,-50%) scale(1);opacity:1;filter:none;transition:opacity .8s cubic-bezier(.33,0,.2,1),filter 1s cubic-bezier(.22,1,.36,1),transform 1.4s cubic-bezier(.16,1,.3,1)}
+.pfig.out{opacity:0;transform:translate(-50%,-50%) scale(.985);filter:blur(4px);transition:opacity .3s ease,transform .45s ease,filter .3s ease}
+.pfig .pcap{opacity:0;translate:0 4px;transition:opacity .25s ease,translate .3s ease}
+.pfig.in .pcap{opacity:1;translate:none;transition:opacity .7s ease .35s,translate 1s cubic-bezier(.16,1,.3,1) .35s}
+#plate img,.ifig img,#plate .turnaround-preview{border-radius:3px;box-shadow:0 0 0 1px var(--hair2),0 34px 70px -38px rgba(25,25,21,.42)}
+:root[data-theme=dark] #plate img,:root[data-theme=dark] .ifig img,:root[data-theme=dark] #plate .turnaround-preview{box-shadow:0 0 0 1px var(--hair),0 34px 70px -30px rgba(0,0,0,.85)}
+#plate .tiles img,.ifig .tiles img{border-radius:2px;box-shadow:0 0 0 1px var(--hair2)}
+.ifig{filter:blur(8px);scale:.97;transition:opacity .35s ease,filter .5s ease,scale .5s ease}
+.ifig.on{filter:none;scale:1;transition:opacity .8s cubic-bezier(.33,0,.2,1),filter 1s cubic-bezier(.22,1,.36,1),scale 1.4s cubic-bezier(.16,1,.3,1)}
+.ifig figcaption b{font:400 21px/1.2 var(--voice);letter-spacing:-.01em}
+.f-card img{border-radius:3px;box-shadow:0 0 0 1px var(--hair2)}
+.band .name{transition:opacity .16s ease}
+@media (hover:hover){.band .name:hover{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.pfig,.pfig.in,.pfig.out{transform:translate(-50%,-50%);filter:none;transition:opacity .2s ease}.ifig,.ifig.on{scale:1;filter:none}}

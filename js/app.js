@@ -141,11 +141,23 @@ function plateCap(p) {
   const meta = p.type === 'work' ? [p.org, p.year, p.role] : [p.meta];
   return h('figcaption', { class: 'pcap' }, h('b', {}, p.title), h('span', { class: 'pm' }, meta.filter(Boolean).join(' · ')), h('span', { class: 'pl' }, p.line));
 }
-// The picture grows out of the dot you're touching, so it seems to come from there.
-function growFrom(e) {
-  const d = e.querySelector('.dot').getBoundingClientRect(), W = plate.offsetWidth, H = plate.offsetHeight;
-  const cx = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cx')) || innerWidth / 2, cy = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cy')) || innerHeight / 2;
-  plate.style.transformOrigin = `${d.left + d.width / 2 - (cx - W / 2)}px ${d.top + d.height / 2 - (cy - H / 2)}px`;
+// Each hover gets its own figure. It waits for its picture to arrive, then drifts up from the dot you're on;
+// the one before it fades on its own, so moving quickly between dots never swaps a picture mid-flight.
+let figTok = 0;
+function showPlate(p, e) {
+  hidePlate(); const c = plateFor(p); if (!c) return null;
+  const tok = ++figTok, fig = h('figure', { class: 'pfig' }, c, plateCap(p));
+  plate.append(fig); plate.classList.add('on');
+  const R = getComputedStyle(document.documentElement), cx = parseFloat(R.getPropertyValue('--cx')) || innerWidth / 2, cy = parseFloat(R.getPropertyValue('--cy')) || innerHeight / 2;
+  const settle = () => { if (tok !== figTok) return; const d = e.querySelector('.dot').getBoundingClientRect(), W = fig.offsetWidth, H = fig.offsetHeight;
+    fig.style.transformOrigin = `${d.left + d.width / 2 - (cx - W / 2)}px ${d.top + d.height / 2 - (cy - H / 2)}px`;
+    requestAnimationFrame(() => { if (tok === figTok) fig.classList.add('in'); }); };
+  const imgs = $$('img', fig); Promise.race([Promise.all(imgs.map(i => i.decode ? i.decode().catch(() => {}) : null)), new Promise(r => setTimeout(r, 600))]).then(settle);
+  return c;
+}
+function hidePlate() {
+  figTok++; plate.classList.remove('on');
+  $$('.pfig:not(.out)', plate).forEach(f => { f.classList.add('out'); f.classList.remove('in'); setTimeout(() => f.remove(), 450); });
 }
 // While a picture shows, the axes stop at its edges instead of running across it.
 function axesAround(box) {
@@ -156,18 +168,13 @@ function axesAround(box) {
     a.style.maskImage = a.style.webkitMaskImage = `linear-gradient(${hz ? 90 : 180}deg,#000 ${b0}px,transparent ${b0}px,transparent ${b1}px,#000 ${b1}px)`;
   });
 }
-new MutationObserver(() => {
-  if (!plate.classList.contains('on')) return axesAround(null);
-  const c = plate.firstElementChild; if (!c) return;
-  const imgs = [...plate.querySelectorAll('img')].map(i => i.decode?.().catch(() => {}));
-  Promise.all(imgs).then(() => { if (!plate.classList.contains('on')) return; const R = document.documentElement.style, x = parseFloat(R.getPropertyValue('--cx')), y = parseFloat(R.getPropertyValue('--cy')), w = plate.offsetWidth, hh = plate.offsetHeight; axesAround(w ? { left: x - w / 2, right: x + w / 2, top: y - hh / 2, bottom: y + hh / 2, width: w } : null); });
-}).observe(plate, { attributes: true, attributeFilter: ['class'] });
+
 function bindPoint(e) {
   const p = e._p;
   let turnTimer;
   const stopHint=()=>{if(p.type==='work'&&!sessionStorage.getItem('work-dot-hovered')){sessionStorage.setItem('work-dot-hovered','1');$('.start-here')?.remove();body.classList.add('work-pulse-stopped');}};
-  e.addEventListener('mouseenter', () => { if (sheetOpen) return; window.portfolioSound?.pluck(p.x, p.y); if(p.id==='wobblefoot')e.classList.add('wobbling'); stopHint(); const c = plateFor(p); plate.replaceChildren(...(c ? [c, plateCap(p)] : [])); if (c) growFrom(e); if(p.id==='wobblefoot'&&!RM){let n=0;turnTimer=setInterval(()=>{if(c)c.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);} requestAnimationFrame(() => plate.classList.toggle('on', !!c && !sheetOpen)); pill.innerHTML = `${p.title}<span class="k">${p.hint || p.org}</span>`; pill.classList.toggle('on', !c); });
-  e.addEventListener('mouseleave', () => {clearInterval(turnTimer);e.classList.remove('wobbling');plate.classList.remove('on'); pill.classList.remove('on'); });
+  e.addEventListener('mouseenter', () => { if (sheetOpen) return; window.portfolioSound?.pluck(p.x, p.y); if(p.id==='wobblefoot')e.classList.add('wobbling'); stopHint(); const c = showPlate(p, e); if(p.id==='wobblefoot'&&!RM&&c){let n=0;turnTimer=setInterval(()=>{c.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},520);} pill.innerHTML = `${p.title}<span class="k">${p.hint || p.org}</span>`; pill.classList.toggle('on', !c); });
+  e.addEventListener('mouseleave', () => {clearInterval(turnTimer);e.classList.remove('wobbling');hidePlate(); pill.classList.remove('on'); });
   e.addEventListener('click', () => { stopHint(); const r = srcRect(p); ready.then(() => open(p, r)); });
 }
 
@@ -175,7 +182,7 @@ function bindPoint(e) {
 const sheet = $('#sheet'), veil = $('#veil'); let sheetOpen = false, lastFocus = null;
 let curP = null, fromR = null;
 const ptEl = p => $$('.pt').find(e => e._p === p);
-function srcRect(p) { const m = plate.classList.contains('on') && plate.firstElementChild; if (m) return m.getBoundingClientRect(); const d = ptEl(p); return d ? d.querySelector('.dot').getBoundingClientRect() : null; }
+function srcRect(p) { const m = $('.pfig.in', plate)?.firstElementChild; if (m) return m.getBoundingClientRect(); const d = ptEl(p); return d ? d.querySelector('.dot').getBoundingClientRect() : null; }
 const thumbSrc = q => q.img ? A(q.img) : q.kind === 'archive' && DATA.arena ? (b => b && (b.image.local || b.image.thumb))(DATA.arena.channels.flatMap(c => c.blocks).find(b => b.image)) : q.kind === 'films' && DATA.films && DATA.films[0] ? DATA.films[0].local || DATA.films[0].poster : null;
 function heroFor(p) {
   if (p.video) return Object.assign(h('video', { src: A(p.video), poster: p.img ? A(p.img) : null, muted: true, loop: true, playsinline: true, autoplay: !RM, controls: RM, 'aria-label': p.vcap || p.title }), { muted: true, defaultMuted: true });
@@ -198,7 +205,7 @@ function grow(card, from) {
   if (card.firstElementChild && card.firstElementChild.tagName === 'IMG' && !im.complete) { im.decode().catch(() => {}).then(go); setTimeout(go, 450); } else requestAnimationFrame(go);
 }
 function openSheet(quadKey, kicker, title, ...content) {
-  plate.classList.remove('on'); pill.classList.remove('on');
+  hidePlate(); pill.classList.remove('on');
   if (!sheetOpen) lastFocus = document.activeElement;
   const p = curP, from = fromR, was = sheetOpen; curP = fromR = null;
   sheet.dataset.quad = quadKey || ''; sheet._p = p; sheet.classList.remove('leaving');
@@ -564,7 +571,7 @@ function closeAbout(quick) {
   markBtn.focus({ preventScroll: true });
 }
 addEventListener('keydown', e => { if (e.key === 'Escape' && helloOpen) { e.stopImmediatePropagation(); closeAbout(); } }, true);
-$('#aboutBtn').onclick = e => openAbout(e.currentTarget);
+
 const soundBtn = $('#soundBtn');
 if (soundBtn) {
   const show = () => { const v = !!window.portfolioSound?.on(); soundBtn.setAttribute('aria-pressed', String(v)); soundBtn.textContent = v ? 'sound on' : 'sound off'; };
@@ -611,11 +618,7 @@ const views = $('#views');
 const menu = $('.b-menu');
 $$('.mw', menu).forEach(b => { const w = b.textContent.trim(); b.setAttribute('aria-label', w); b.replaceChildren(...['a', 'b'].map(k => h('span', { class: 'mw-' + k, 'aria-hidden': 'true' }, [...w].map((c, i) => h('i', { style: '--i:' + i }, c))))); });
 // The view toggle wears Averia on the side you're on, under a sliding pill; "about" borrows it only while hovered.
-const about = $('#aboutBtn');
 const wearCurrent = () => $$('button', views).forEach(x => x.classList.toggle('worn', x.classList.contains('on')));
-about.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') about.classList.add('worn'); });
-about.addEventListener('pointerleave', () => about.classList.remove('worn'));
-about.addEventListener('focus', () => about.classList.add('worn')); about.addEventListener('blur', () => about.classList.remove('worn'));
 const vpill = $('.vpill', views); let pillAt = null;
 function placePill() {
   wearCurrent();
@@ -684,7 +687,7 @@ function flyToList() {
   const ix = $('#index'); renderIndex();
   const entries = readIndexRects(ix), token = ++indexMotion.token;
   indexMotion.phase = 'in';
-  plate.classList.remove('on'); pill.classList.remove('on');
+  hidePlate(); pill.classList.remove('on');
   body.classList.add('show-index', 'index-entering');
   const card = $('.icard', ix);
   if (card) {
@@ -727,7 +730,7 @@ function toggleIndex(on) {
   if (!moving && on === body.classList.contains('show-index')) return;
   cancelIndexMotion();
   $$('button', views).forEach(b => b.classList.toggle('on', (b.dataset.v === 'list') === on)); placePill();
-  plate.classList.remove('on'); pill.classList.remove('on');
+  hidePlate(); pill.classList.remove('on');
   if (on) {
     body.classList.remove('show-index');
     if (RM || mobile()) crossfadeIndex(true);
@@ -755,7 +758,8 @@ if (themeBtn) {
   };
 }
 requestAnimationFrame(placePill); document.fonts && document.fonts.ready.then(placePill);
-$('#home').onclick = e => { e.preventDefault(); toggleIndex(false); closeSheet(); setFilter(null); };
+// Her name is the way to the card.
+$('#home').onclick = e => { e.preventDefault(); openAbout(e.currentTarget); };
 
 /* boot */
 plane.addEventListener('click', e => { if (!e.target.closest('.pt,.mark,button,a') && active) setFilter(null); });
