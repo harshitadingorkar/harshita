@@ -1235,3 +1235,21 @@ body.case-open .settings{filter:blur(14px);opacity:.16;pointer-events:none}
 .band .name{transition:opacity .16s ease}
 @media (hover:hover){.band .name:hover{opacity:.55}}
 @media (prefers-reduced-motion:reduce){.pfig,.pfig.in,.pfig.out{transform:translate(-50%,-50%);filter:none;transition:opacity .2s ease}.ifig,.ifig.on{scale:1;filter:none}}
+
+/* ---------- Round 27: what she does, and what this is ----------
+   Three voices under the flower: the name in mono, what she does in plain words, and what the
+   map is, said aside in Averia. On a phone the same two lines open the page. */
+.b-id{row-gap:10px;align-items:start}
+.b-mark{margin-top:-1px}
+.b-intro{grid-column:2;display:grid;gap:3px;max-width:400px}
+.i-do{margin:0;font:14px/1.45 var(--sans);color:var(--ink);text-wrap:pretty}
+.i-do a{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--ink3);transition:text-decoration-color .16s ease}
+.i-do a:hover{text-decoration-color:currentColor}
+.i-index{margin:0;font:italic 400 15px/1.4 var(--voice);color:var(--ink2);text-wrap:pretty}
+@media (max-width:760px){
+  .b-intro{display:none}
+  .statement{display:grid;gap:10px;pointer-events:auto;font-size:inherit}
+  .statement .i-do{font:400 26px/1.2 var(--voice);letter-spacing:-.015em}
+  .statement .i-index{font-size:17px}
+}
+.i-do{text-wrap:balance}

@@ -3,6 +3,8 @@ window.SITE = {
     name: 'Harshita Shyale',
     line: 'Designer at Salesloft, in Seattle, making beautiful things that help people.',
     statement: 'Making beautiful things\nthat help people.',
+    intro: 'I design agentic AI that works alongside sellers and revenue teams, at {Salesloft}.',
+    index: 'A personal index of work, and the curiosities that feed it.',
     now: 'Designing how sellers work alongside AI, at Salesloft. I started as a software engineer, and I still build what I design.',
     email: 'hello@harshitashyale.com',
     linkedin: 'https://www.linkedin.com/in/harshita-shyale',

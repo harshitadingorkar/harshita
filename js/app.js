@@ -16,7 +16,10 @@ window.PORTFOLIO_READY = ready;
 
 /* ---------- chrome ---------- */
 
-$('#statement').replaceChildren(...S.person.statement.split('\n').flatMap((l, i) => i ? [' ', h('br'), l] : [l]));
+// Under her name, three voices: the name in mono, what she does in plain words, and what the map is, said aside in Averia.
+const introLines = () => { const [pre, post] = S.person.intro.split('{Salesloft}'); return [h('p', { class: 'i-do' }, pre, h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), post), h('p', { class: 'i-index' }, S.person.index)]; };
+$('#intro-lines').replaceChildren(...introLines());
+$('#statement').replaceChildren(...introLines());
 
 const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
