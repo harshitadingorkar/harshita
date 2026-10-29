@@ -69,9 +69,6 @@ const REEL = `<svg class="pot" viewBox="0 0 40 40" aria-hidden="true">
 </svg>`;
 const HOVER_ART = { clay: () => POT, films: () => REEL };
 /* ---------- plane ---------- */
-const MARK = window.portfolioMark.markup();
-// The flower sits beside her name, like a maker's mark on a colophon, and opens the card.
-const markBtn = $('#markBtn'); markBtn.innerHTML = MARK; markBtn.onclick = () => ready.then(openProfile);
 function buildPlane() {
   plane.innerHTML = '';
   if (mobile()) return buildMobile();
@@ -503,7 +500,7 @@ function buildIndex(ix) {
   const show = p => { if (stage._p === p) return; stage._p = p; $('.stage-empty',stage)?.remove(); const token=++stageToken,c=plateFor(p),caption=h('figcaption',{},h('b',{},`${p.org} — ${p.title}`),h('span',{'data-point-id':p.id,'data-point-field':'line'},p.line)); const f=c?h('figure',{class:'ifig'},c,caption):null;if(!f)return;stage.append(f);const imgs=$$('img',f);Promise.all(imgs.map(img=>img.decode?.().catch(()=>{}))).then(()=>{if(token!==stageToken)return;requestAnimationFrame(()=>f.classList.add('on'));setTimeout(()=>{if(token===stageToken)$$('.ifig',stage).filter(x=>x!==f).forEach(x=>x.remove());},460);}); };
   const acc = (key, label, type, rows, count, open) => { const sec = h('section', { class: 'iacc' + (open ? ' open' : '') }); const head = h('button', { class: 'ihead', 'aria-expanded': String(!!open), onclick: () => { const o = !sec.classList.contains('open'); sec.classList.toggle('open', o); head.setAttribute('aria-expanded', String(o)); } }, type?typeGlyph(type):h('i',{class:'g dash'}), h('span', { class: 'il' }, label), count != null ? h('sup', {}, String(count)) : null, h('span', { class: 'plus', 'aria-hidden': 'true' }, '+')); sec.append(head, h('div', { class: 'icontent' }, h('div', {}, rows))); return sec; };
   const card = h('div', { class: 'icard' },
-    h('div', { class: 'ihd' }, h('i', { class: 'fl', html: MARK }), h('span', {}, 'index')),
+    h('div', { class: 'ihd' }, h('span', {}, 'index')),
     h('ol', { class: 'ibio' }, S.bio.map((t, n) => h('li', {}, h('span', { class: 'n' }, `[${String(n + 1).padStart(2, '0')}]`), h('span', { html: t })))),
     SEC.map(([type,label], si) => { const pts = S.points.filter(p => p.type === type); return acc(type, label, type, pts.map((p, n) => { const r = h('button', { class: 'irow pt-row', style: '--i:' + n, onmouseenter: () => show(p), onfocus: () => show(p), onclick: e => { const im = $('.ifig.on img, .ifig.on .tiles', stage); open(p, (stage._p === p && im ? im : e.currentTarget).getBoundingClientRect()); } }, typeGlyph(type), h('span', { class: 'rt' }, p.title), h('span', { class: 'rs' }, [p.org, p.year].filter(Boolean).join(' · ')),h('span',{class:'row-arrow','aria-hidden':'true'},'→')); r._p = p; return r; }), pts.length, si===0); }),
     acc('exp', 'experience', null, S.experience.map(([org, role, year], n) => h('div', { class: 'irow', style: '--i:' + n }, h('i',{class:'g dash'}),h('span', { class: 'rt' }, org), h('span', { class: 'rs' }, role+' · '+year)))),
@@ -681,7 +678,7 @@ else {
   // The line arrives whole, then everything but her name dissolves, and the name settles into the corner.
   const spans = words.map((word, i) => h('span', { class: 'intro-word' + (word === 'Harshita' ? ' keep' : ''), style: `--word-delay:${i * 70}ms` }, word));
   p.replaceChildren(...spans.flatMap((s, i) => i < spans.length - 1 ? [s, ' '] : [s]));
-  intro.replaceChildren(h('div', { class: 'intro-inner' }, h('span', { class: 'intro-mark', html: MARK }), p));
+  intro.replaceChildren(h('div', { class: 'intro-inner' }, p));
   introActive = true; document.addEventListener('click', skipIntro, true); document.addEventListener('keydown', skipIntro, true);
   const name = spans.find(s => s.classList.contains('keep')), others = spans.filter(s => s !== name);
   const dissolveAt = 1150, flightStart = 1900, flightDuration = 1000;
@@ -704,11 +701,6 @@ else {
     };
     Object.assign(name.style, { animation: 'none', opacity: 1, filter: 'none' });
     flip(name, $('#home'), true);
-    // the flower drifts to its place beside her name, shrinking as it lands and turning a sixth of a turn, so its six petals settle exactly where they began
-    const m = $('.intro-mark', intro), f = m.getBoundingClientRect(), g = markBtn.getBoundingClientRect();
-    m.style.transformOrigin = '50% 50%'; m.style.transition = 'none'; m.style.transform = 'none'; m.getBoundingClientRect();
-    m.style.transition = `transform ${flightDuration + 200}ms cubic-bezier(.45,0,.15,1)`;
-    m.style.transform = `translate(${g.left + g.width / 2 - f.left - f.width / 2}px,${g.top + g.height / 2 - f.top - f.height / 2}px) scale(${g.width / f.width}) rotate(60deg)`;
     intro.classList.add('done');
   }, flightStart));
   introTimers.push(setTimeout(() => {
