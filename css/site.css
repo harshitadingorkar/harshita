@@ -1360,3 +1360,9 @@ button.pf-pile img:hover{scale:1.06;translate:0 6px;z-index:2}
 .pf-head .case-line{text-wrap:pretty}
 .pf-about a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--ink3);transition:text-decoration-color .16s ease,color .16s ease}
 .pf-about a:hover{color:var(--ink);text-decoration-color:currentColor}
+/* the fan grows out of the title line and shows only its top half until you reach for it */
+.pf-row .pf-pile{margin:-2px 0 0}
+.pf-row:is(:hover,:focus-within) .pf-pile{height:36px}
+.pf-row:is(:hover,:focus-within) .pf-pile img{translate:0 6px}
+.pf-row .pf-pile:is(:hover,:focus-visible){height:80px}
+@media (hover:none){.pf-pile{height:36px}.pf-pile img{translate:0 6px}}

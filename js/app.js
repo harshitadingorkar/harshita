@@ -379,7 +379,8 @@ function openProfile() {
   // "agents" in the HPE line opens a short note on what those agents were
   const term = text => { const i = text.search(/\bagents\b/); return i < 0 ? [text] : [text.slice(0, i), h('span', { class: 'term', tabindex: 0 }, 'agents'), text.slice(i + 6)]; };
   // Rows read like rghv.ca: what and where on one line, when at the right edge, a line or two under it.
-  // Hovering a row lifts a small fan of its pictures out from under it; for work with a case, they open it.
+  // Hovering a row grows a fan of its pictures out of the title line, cut off halfway so it teases; hover the fan
+  // to see it whole, click it to open the case.
   const pile = r => { if (!r.pile) return null; const q = r.point && S.points.find(x => x.id === r.point), imgs = r.pile.map((f, i) => h('img', { src: A(f), alt: '', loading: 'lazy', style: `--i:${i};--r:${((i * 37) % 11 - 5) * .9}deg` }));
     return q ? h('button', { type: 'button', class: 'pf-pile', 'aria-label': 'Open ' + q.title, onclick: () => open(q, null) }, imgs) : h('div', { class: 'pf-pile', 'aria-hidden': 'true' }, imgs); };
   const row = (r, path) => h('div', { class: 'pf-row' + (r.pile ? ' has-pile' : '') },
@@ -389,9 +390,9 @@ function openProfile() {
           : r.point ? h('button', { type: 'button', class: 'pf-open', onclick: () => { const q = S.points.find(x => x.id === r.point); if (q) open(q, null); } }, r.org) : r.org,
         r.where ? h('span', { class: 'pf-where' }, r.where) : null),
       h('span', { class: 'pf-when' }, r.when)),
+    pile(r),
     h('p', { class: 'pf-text', ...ed(path + '.text') }, ...term(r.text)),
-    /\bagents\b/.test(r.text) ? h('p', { class: 'term-pop', role: 'note', ...ed('profile.agents') }, P.agents) : null,
-    pile(r));
+    /\bagents\b/.test(r.text) ? h('p', { class: 'term-pop', role: 'note', ...ed('profile.agents') }, P.agents) : null);
   // Off-the-clock words that have a room on this site link to it; the rest stay plain.
   const ROOMS = [['pictures of silly things', 'collection.html?c=odds'], ['films', 'collection.html?c=films'], ['lists', 'collection.html']];
   const linkify = text => { let parts = [text]; for (const [w, href] of ROOMS) parts = parts.flatMap(x => { if (typeof x !== 'string') return [x]; const i = x.indexOf(w); return i < 0 ? [x] : [x.slice(0, i), h('a', { class: 'pf-room', href }, w), x.slice(i + w.length)]; }); return parts; };
