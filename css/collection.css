@@ -132,3 +132,23 @@ body.is-ready .wall{animation:wall-in .65s ease both}
 @media(max-width:760px){.sidebar-toggle{display:none}.collection-page.sidebar-collapsed .sidebar{transform:translateY(calc(100% - 64px))}}
 @media(prefers-reduced-motion:reduce){.sidebar-toggle,.wall{transition-duration:.01ms!important}}
 @media(prefers-reduced-motion:reduce){.side-mark{animation:none!important}}
+
+/* Theatre: no title over the wall; the panel tells the story, and turns into the play's own page for the two that need it. */
+.theatre-page .wall-title{display:none}
+.theatre-panel{display:grid;gap:12px}
+.theatre-panel h2{margin:0 0 2px}
+.theatre-panel .tp-body{max-width:330px;margin:0;font:400 18px/1.45 var(--serif);color:var(--ink)}
+.theatre-panel a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 35%,transparent);transition:text-decoration-color .16s ease}
+.theatre-panel a:hover{text-decoration-color:currentColor}
+.theatre-panel .tp-kicker{margin:0;font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink2)}
+.theatre-panel .tp-title{margin:0;font:400 25px/1.15 var(--serif);letter-spacing:-.01em;color:var(--ink);text-transform:none;text-wrap:balance}
+.theatre-panel .tp-ask{margin:2px 0 0;font:italic 400 18px/1.4 var(--serif);color:var(--ink)}
+.theatre-panel .tp-body+.tp-award{margin-top:2px}
+.theatre-panel .tp-award{margin:0;font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ox)}
+.theatre-panel .tp-logo{width:120px;height:auto;border-radius:3px;box-shadow:0 0 0 1px var(--hair)}
+.theatre-panel .tp-back{justify-self:start;margin-top:6px;padding:0;border:0;background:none;font:11px/1 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink2);cursor:pointer}
+.theatre-panel .tp-back:hover{color:var(--ink)}
+.theatre-panel>*{animation:tp-in .45s cubic-bezier(.22,1,.36,1) both}
+.theatre-panel>*:nth-child(2){animation-delay:40ms}.theatre-panel>*:nth-child(3){animation-delay:80ms}.theatre-panel>*:nth-child(4){animation-delay:120ms}.theatre-panel>*:nth-child(5){animation-delay:160ms}
+@keyframes tp-in{from{opacity:0;translate:0 4px;filter:blur(3px)}}
+@media (prefers-reduced-motion:reduce){.theatre-panel>*{animation:none}}

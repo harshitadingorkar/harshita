@@ -313,9 +313,9 @@ function shortCase(c, point, kicker) {
 const caseHTML = id => DATA.cases && DATA.cases[id] ? h('div', { class: 'prose reveal', html: DATA.cases[id].html }) : null;
 
 function open(p, rect) {
-  if (p.type === 'collections' || p.kind === 'clay') {
+  if (p.type === 'collections' || p.kind === 'clay' || p.id === 'theatre') {
     body.classList.add('collection-leaving');
-    const url=p.kind==='clay'?'collection.html?c=clay':p.id==='films'?'collection.html?c=films':p.id==='odds'?'collection.html?c=odds':'collection.html';
+    const url=p.id==='theatre'?'collection.html?c=theatre':p.kind==='clay'?'collection.html?c=clay':p.id==='films'?'collection.html?c=films':p.id==='odds'?'collection.html?c=odds':'collection.html';
     setTimeout(() => { location.href = url; }, 350);
     return;
   }
@@ -378,23 +378,29 @@ function openProfile() {
   fetch(S.person.resume, { method: 'HEAD' }).then(r => { if (r.ok) cv.hidden = false; }).catch(() => {});
   // "agents" in the HPE line opens a short note on what those agents were
   const term = text => { const i = text.search(/\bagents\b/); return i < 0 ? [text] : [text.slice(0, i), h('span', { class: 'term', tabindex: 0 }, 'agents'), text.slice(i + 6)]; };
-  const row = (r, path) => h('div', { class: 'pf-row' }, h('span', { class: 'pf-when' }, r.when),
-    h('div', { class: 'pf-what' },
+  // Rows read like rghv.ca: what and where on one line, when at the right edge, a line or two under it.
+  // Hovering a row lifts a small fan of its pictures out from under it; for work with a case, they open it.
+  const pile = r => { if (!r.pile) return null; const q = r.point && S.points.find(x => x.id === r.point), imgs = r.pile.map((f, i) => h('img', { src: A(f), alt: '', loading: 'lazy', style: `--i:${i};--r:${((i * 37) % 11 - 5) * .9}deg` }));
+    return q ? h('button', { type: 'button', class: 'pf-pile', 'aria-label': 'Open ' + q.title, onclick: () => open(q, null) }, imgs) : h('div', { class: 'pf-pile', 'aria-hidden': 'true' }, imgs); };
+  const row = (r, path) => h('div', { class: 'pf-row' + (r.pile ? ' has-pile' : '') },
+    h('div', { class: 'pf-line' },
       h('p', { class: 'pf-role' }, h('span', ed(path + '.role'), r.role), h('span', { class: 'pf-dot' }, ' · '),
         r.href ? h('a', { href: r.href, target: '_blank', rel: 'noopener' }, r.org)
-          : r.point ? h('button', { type: 'button', class: 'pf-open', onclick: () => { const q = S.points.find(x => x.id === r.point); if (q) open(q, null); } }, r.org, ' →') : r.org,
+          : r.point ? h('button', { type: 'button', class: 'pf-open', onclick: () => { const q = S.points.find(x => x.id === r.point); if (q) open(q, null); } }, r.org) : r.org,
         r.where ? h('span', { class: 'pf-where' }, r.where) : null),
-      h('p', { class: 'pf-text', ...ed(path + '.text') }, ...term(r.text)),
-      /\bagents\b/.test(r.text) ? h('p', { class: 'term-pop', role: 'note', ...ed('profile.agents') }, P.agents) : null));
+      h('span', { class: 'pf-when' }, r.when)),
+    h('p', { class: 'pf-text', ...ed(path + '.text') }, ...term(r.text)),
+    /\bagents\b/.test(r.text) ? h('p', { class: 'term-pop', role: 'note', ...ed('profile.agents') }, P.agents) : null,
+    pile(r));
   const sec = (label, kids) => h('section', { class: 'pf-sec reveal' }, h('h3', {}, label), kids);
   const elsewhere = [['LinkedIn', S.person.linkedin], ['Instagram', 'https://www.instagram.com/' + S.person.instagram + '/'], ['Substack', 'https://substack.com/@' + S.person.substack], ['Letterboxd', S.person.letterboxd], ['Are.na', S.person.arena]];
   openSheet(null, null, null, h('div', { class: 'pf' },
     h('header', { class: 'pf-head' },
       h('div', { class: 'pf-acts' }, cv, h('span', { class: 'pf-contact' }, contact, menu)),
+      h('figure', { class: 'pf-kid' }, h('img', { src: A(P.photo[0]), alt: P.photo[1] }), h('figcaption', ed('profile.photo.2'), P.photo[2])),
       h('p', { class: 'mono', ...ed('profile.kicker') }, P.kicker),
       h('h2', { class: 's-title' }, S.person.name),
       h('p', { class: 'case-line', ...ed('profile.lede') }, P.lede)),
-    h('div', { class: 'pf-photos reveal' }, P.photos.map(([f, alt]) => h('img', { src: A(f), alt, loading: 'lazy' }))),
     h('div', { class: 'pf-about reveal' }, P.about.map((t, i) => h('p', ed('profile.about.' + i), t))),
     sec('Work', P.work.map((r, i) => row(r, 'profile.work.' + i))),
     sec('Client work, through UW', P.clients.map((r, i) => row(r, 'profile.clients.' + i))),

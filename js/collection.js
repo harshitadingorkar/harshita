@@ -10,11 +10,34 @@ const pages = {
   arena: { title:'Collection', sub:'kept in curations on are.na', what:'Things I keep: images, references and small artifacts I come back to. Gathered on are.na, arranged here by curation. All rights remain with the original creators.' },
   films: { title:'Films', sub:'watched lately, rated honestly', what:'Everything I’ve watched lately, rated honestly. I was the first Harshita on Letterboxd, so the username is just harshita.' },
   clay: { title:'Clay', sub:'made slowly, by hand', what:'Things I make with my hands, and the pieces I keep for reference.', meditation:'Clay won’t be hurried. It dries when it dries, and it remembers every press of the thumb. Hand-building has no undo, only the next small decision. It’s the slowest thing I do, and the one that makes the rest make sense.', meditation2:'New pieces, and the ones that survive the kiln, go up on Instagram.' },
-  odds: { title:'Odds & ends', sub:'patterns in the ordinary', what:'Photographs of patterns in the ordinary, and how we move through everyday spaces.' }
+  odds: { title:'Odds & ends', sub:'patterns in the ordinary', what:'Photographs of patterns in the ordinary, and how we move through everyday spaces.' },
+  theatre: { title:'Theatre', sub:'', what:'' }
+};
+/* Theatre: a wall of stills, one cluster per play. The panel tells the whole story once and only changes
+   for the two that need more than a title: the play she co-wrote and directed, and the series she runs now. */
+const T = 'assets/theatre/';
+const THEATRE = {
+  plays: [
+    { slug:'trraammtobb', title:'TRRAAMMToBB', year:'2020', images:['poster','tr1','tr2','tr3','tr4','tr5','tr6'] },
+    { slug:'sips-and-scripts', title:'Sips & Scripts', year:'Seattle, now', images:['sips1','sips2','sips3'] },
+    { slug:'youre-all-mime', title:'You’re All Mime', year:'2020', images:['mime'] },
+    { slug:'monkeys-paw', title:'The Monkey’s Paw', year:'2019', images:['monkey'] },
+    { slug:'searching-for-a-lullaby', title:'Searching for a Lullaby', year:'2021', images:['lullaby'] },
+    { slug:'carv', title:'CARV', year:'Bangalore', images:['banner'] }
+  ],
+  aspects:{ banner:2, poster:2.197, tr1:1.449, tr2:1.618, tr3:1.699, tr4:.887, tr5:1.321, tr6:.797, mime:1.501, monkey:1, lullaby:1.501, sips1:.912, sips2:1.778, sips3:1.333 },
+  intro:[
+    ['Before design, there was theatre. I led ', ['CARV','http://carvenglish.wordpress.com/'], ', the theatre company at my college in Bangalore, acted in sold-out original plays, and co-wrote and directed ', ['TRRAAMMToBB','#trraammtobb'], ', which won Best Play and Best Director at IITM in 2020.'],
+    ['In Seattle I started ', ['Sips & Scripts','#sips-and-scripts'], ', a casual line-reading series where anyone can pick up a script and read a part out loud.']
+  ],
+  trraammtobb:{ kicker:'co-written & directed · 2020', title:'The Reasonably Remarkable, Adequately Amusing, Marvelously Mundane Tale of Bryan the Bard', ask:'What happens to the characters in the stories we abandon?', body:'A playwright who never finishes his plays is confronted by the characters he left behind. To get out of their world, he has to help them find their purpose, and finds his own on the way.', award:'Best Play · Best Director · IITM 2020' },
+  sips:{ logo:'sips1', kicker:'started in Seattle', title:'Sips & Scripts', body:'A casual line-reading series. No auditions and no experience needed: pick up a script, choose a part, and read it out loud with whoever showed up.', link:['Come read with us ↗','https://forms.gle/9Qm4NhswapDw7TTF7'] }
 };
 const pageCopy = pages[pageId] || pages.arena;
 window.COLLECTION_PAGE_COPY=pageCopy;
 window.COLLECTION_PAGE_ID=pageId;
+document.body.classList.toggle('theatre-page', pageId === 'theatre');
+if (pageId === 'theatre') { $('#theatre-panel').hidden = false; $('.intro-section').hidden = true; }
 const mono = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toLowerCase() : 'date unknown';
 const dateValue = b => b.connected_at || b.created_at || '';
 const relative = d => {
@@ -141,7 +164,7 @@ function buildStamp(block, index, copyX, copyY, dims) {
   if (block.turnaround) art.style.backgroundImage = `url("${block.small}")`;
   else { const img = document.createElement('img'); img.src = block.small; img.alt = blockTitle(block) || block.channel; img.loading = 'lazy'; img.decoding = 'async'; art.append(img); }
   frame.append(art);
-  const tag = document.createElement('span'); tag.className = 'stamp-tag'; tag.textContent = `${block.channel} · ${mono(dateValue(block))}`;
+  const tag = document.createElement('span'); tag.className = 'stamp-tag'; tag.textContent = block.tag || `${block.channel} · ${mono(dateValue(block))}`;
   frame.append(tag); node.append(frame);
   node.dataset.block = block.id;
   node._block = block;
@@ -209,8 +232,21 @@ function schedulePosition() {
   updateRaf = requestAnimationFrame(() => { updateRaf = 0; positionPool(); });
 }
 window.addEventListener('resize', () => { if (activeBlocks.length) makePool(); else schedulePosition(); });
+// The theatre panel: the whole story by default; the play's own page while it, or one of its stills, is in view.
+function theatrePanel(slug) {
+  const sec = $('#theatre-panel'); if (!sec) return;
+  const el = (tag, cls, ...kids) => { const n = document.createElement(tag); if (cls) n.className = cls; n.append(...kids.filter(k => k != null)); return n; };
+  const link = ([text, href]) => { const a = el('a', null, text); a.href = href; if (href.startsWith('#')) a.addEventListener('click', e => { e.preventDefault(); selectChannel(href.slice(1)); }); else { a.target = '_blank'; a.rel = 'noopener'; } return a; };
+  const back = () => { const b = el('button', 'tp-back', '← all of it'); b.type = 'button'; b.addEventListener('click', () => selectChannel('')); return b; };
+  let kids;
+  if (slug === 'trraammtobb') { const d = THEATRE.trraammtobb; kids = [el('p', 'tp-kicker mono', d.kicker), el('h2', 'tp-title', d.title), el('p', 'tp-ask', d.ask), el('p', 'tp-body', d.body), el('p', 'tp-award mono', d.award), back()]; }
+  else if (slug === 'sips-and-scripts') { const d = THEATRE.sips, img = el('img', 'tp-logo'); img.src = T + d.logo + '.jpg'; img.alt = 'The Sips & Scripts mark: a figure in blue ink reading aloud from a script.'; kids = [img, el('p', 'tp-kicker mono', d.kicker), el('h2', 'tp-title', d.title), el('p', 'tp-body', d.body), link(d.link), back()]; }
+  else kids = [el('h2', null, 'What this is'), ...THEATRE.intro.map(parts => el('p', 'tp-body', ...parts.map(x => typeof x === 'string' ? x : link(x))))];
+  sec.dataset.slug = slug || ''; sec.replaceChildren(...kids);
+}
 function renderSidebar() {
   const list = $('#channel-list'), lately = $('#lately');
+  if (pageId === 'theatre') { theatrePanel(activeChannel === 'trraammtobb' || activeChannel === 'sips-and-scripts' ? activeChannel : ''); $('.curation-section h2').textContent = 'Plays'; $('.lately-section').hidden = true; }
   $('#clay-meditation').hidden = pageId !== 'clay';
   if(pageId==='clay'){const ps=$$('#clay-meditation p');if(ps[0])ps[0].textContent=pageCopy.meditation;if(ps[1])ps[1].textContent=pageCopy.meditation2;}
   list.replaceChildren(); lately.replaceChildren();
@@ -242,11 +278,11 @@ function renderSidebar() {
   const total = allChannels.reduce((n,c) => n + c.blocks.length, 0), footer=$('#side-footer'),credit=$('a',footer);
   if(pageId==='films'){credit.href='https://letterboxd.com/harshita/';credit.textContent='logged on letterboxd ↗';}
   else if(pageId==='clay'){credit.href='https://www.instagram.com/ashlime_soda/';credit.textContent='@ashlime_soda ↗';}
-  else if(pageId==='odds'){credit.href='index.html';credit.textContent='back to the map ↗';}
+  else if(pageId==='odds'||pageId==='theatre'){credit.href='index.html';credit.textContent='back to the map ↗';}
   else{credit.href='https://www.are.na/harshita-shyale';credit.textContent='kept on are.na ↗';}
   footer.lastChild.textContent = ` · ${total} images`;
-  $('#wall-status').textContent = `${total} images · synced ${relative(lastSync)}`;
-  const handle = $('#drawer-handle'); handle.innerHTML = `Collection · ${allChannels.length} curations <span>${document.body.classList.contains('drawer-open') ? '▼' : '▲'}</span>`;
+  $('#wall-status').textContent = pageId === 'theatre' ? `${total} stills` : `${total} images · synced ${relative(lastSync)}`;
+  const handle = $('#drawer-handle'); handle.innerHTML = `${pageId === 'theatre' ? `Theatre · ${allChannels.length} plays` : `Collection · ${allChannels.length} curations`} <span>${document.body.classList.contains('drawer-open') ? '▼' : '▲'}</span>`;
 }
 function selectChannel(slug) {
   if (activeChannel === slug) return;
@@ -287,6 +323,7 @@ function setLightbox(block, from, animate = true, stamp = null) {
   const details = document.createTextNode(block.rating!=null?`${block.year||''} · ${'★'.repeat(Math.floor(+block.rating))}${+block.rating%1?'½':''} · watched ${block.watched||''}`:`${block.channel} · added ${mono(dateValue(block))}`);
   const line = document.createElement('br'), link = document.createElement('a');
   link.href = block.link||block.block_url; link.target = '_blank'; link.rel = 'noopener'; link.textContent = block.link?'view film ↗':'view on are.na ↗';
+  if (pageId === 'theatre') { details.textContent = block.tag ? ' · ' + block.tag.split(' · ').slice(1).join(' · ') : ''; if (block.slug === 'trraammtobb' || block.slug === 'sips-and-scripts') theatrePanel(block.slug); }
   caption.append(titleNode, details);
   if(block.link||pageId==='arena'||block.slug==='ceramic-era') caption.append(line,link);
   if (animate && from) {
@@ -317,6 +354,7 @@ function closeLightbox(animate = true) {
     ],{duration:420,easing:'cubic-bezier(.22,1,.36,1)',fill:'forwards'});
     lightboxAnimation.onfinish=finish;
   } else finish();
+  if (pageId === 'theatre') renderSidebar();
   function finish(){ if(lightboxState!==state)return;clearInterval(turnaroundTimer);if(lightboxAnimation){lightboxAnimation.cancel();lightboxAnimation=null;} $('#lightbox').hidden=true; document.body.classList.remove('lightbox-open'); $('#veil').setAttribute('aria-hidden','true'); lightboxState=null; }
 }
 function stepLightbox(step) {
@@ -339,7 +377,7 @@ function localChannel(slug,title,items,description='') {
   const blocks=items.map((item,i)=>({
     id:String(item.id??`${slug}-${i}`),title:item.title||'',type:'Image',channel:title,slug,description,
     small:item.small,src:item.src||item.small,aspect:Number(item.aspect)||1,created_at:item.created_at||'',connected_at:item.connected_at||'',
-    block_url:item.block_url||'#',rating:item.rating,year:item.year,watched:item.watched,link:item.link,turnaround:!!item.turnaround
+    block_url:item.block_url||'#',tag:item.tag,rating:item.rating,year:item.year,watched:item.watched,link:item.link,turnaround:!!item.turnaround
   }));
   return {slug,title,description,count:blocks.length,blocks};
 }
@@ -353,6 +391,7 @@ async function customPageChannels() {
     const range={loved:'loved (4½–5★)',liked:'liked (3½–4★)',fine:'fine (2½–3★)','not-for-me':'not for me (≤2★)',unrated:'unrated'};
     return buckets.map(([slug,title,pred])=>localChannel(slug,range[slug],films.filter(pred)));
   }
+  if(pageId==='theatre') return THEATRE.plays.map(play=>localChannel(play.slug,play.title,play.images.map(k=>({id:k,title:play.title,small:T+k+'.jpg',aspect:THEATRE.aspects[k],tag:`${play.title} · ${play.year}`}))));
   if(pageId==='odds') {
     const items=Array.from({length:13},(_,i)=>{const src=`assets/odds-${String(i+1).padStart(2,'0')}.jpg`;return {id:`odds-${i+1}`,small:src,aspect:1};});
     return [localChannel('odds-and-ends','odds & ends',items)];
@@ -370,9 +409,14 @@ async function customPageChannels() {
   }
   return [];
 }
+// Theatre opens on the play she directed: the wall is panned so its company photo sits in the middle.
+function landOn(blockId) {
+  const node = stampPool.find(n => n._block.id === blockId && n._position.copyX === 0 && n._position.copyY === 0); if (!node) return;
+  const p = node._position; offsetX = p.x + p.width / 2 - wall.clientWidth / 2; offsetY = p.y + p.height / 2 - wall.clientHeight / 2; positionPool();
+}
 async function boot() {
   if(pageId!=='arena') {
-    try { const channels=await customPageChannels();render(channels,Date.now()); }
+    try { const channels=await customPageChannels();render(channels,Date.now()); if(pageId==='theatre')landOn('poster'); }
     catch { render([],0); }
     if(pageId==='clay') {
       try { const fresh=await loadLive();writeCache(fresh);const ceramic=fresh.find(c=>c.title.toLowerCase()==='ceramic era'||c.slug==='ceramic-era'); if(ceramic){const own=allChannels.find(c=>c.slug==='my-pieces');render([own,ceramic].filter(Boolean),Date.now());} } catch {}
