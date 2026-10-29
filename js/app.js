@@ -74,7 +74,7 @@ function buildPlane() {
   plane.innerHTML = '';
   if (mobile()) return buildMobile();
   plane.append(h('div', { class: 'axis h' }), h('div', { class: 'axis v' }));
-  for (const [side, w] of [['top', 'work'], ['bottom', 'wonder'], ['left', 'gather'], ['right', 'make']]) plane.append(h('div', { class: 'alabel ' + side, tabindex: 0 }, w, h('small', {}, S.axes[w].gloss)));
+  for (const [side, w] of [['top', 'work'], ['bottom', 'wonder'], ['left', 'gather'], ['right', 'make']]) { const g = S.axes[w].gloss; plane.append(h('div', { class: 'alabel ' + side, tabindex: 0, 'aria-label': `${w}: ${g}` }, h('span', { class: 'aw' }, w), h('small', { style: '--n:' + g.length }, [...g].map((c, i) => h('i', { style: '--i:' + i }, c))))); }
   for (const [q, d] of Object.entries(S.quads)) {
     const label=h('div', { class: 'qlabel q-' + q }, h('span',{class:'quad-name'},d.name),h('small',{},d.key));
     if(q==='tr'&&!sessionStorage.getItem('work-dot-hovered')) label.append(h('span',{class:'start-here'},'start with the work →'));

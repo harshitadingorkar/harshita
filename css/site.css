@@ -1151,3 +1151,15 @@ body.case-open .keybar{filter:blur(14px);opacity:.16;pointer-events:none}
   .keybar{display:none}
   .b-menu{gap:14px;margin-right:10px}
 }
+
+/* ---------- Round 22: the axes keep their meaning to themselves ----------
+   Only the word shows. Hover it and its meaning writes itself beside it in Averia's italic,
+   a letter at a time, rising a little as if the pen were still wet; leave and it unwrites from the end. */
+.alabel{display:flex;align-items:baseline;gap:9px;padding:8px;margin:-8px;cursor:default}
+.alabel.right{flex-direction:row-reverse}
+.alabel small,.alabel.left small,.alabel.right small{display:inline-block;margin:0;font:italic 400 16px/1 var(--voice);letter-spacing:-.005em;text-transform:none;color:var(--ink2);white-space:pre;opacity:1;transform:none}
+.alabel small i{display:inline-block;font-style:inherit;opacity:0;filter:blur(3px);translate:0 4px;rotate:-6deg;transition:opacity .16s ease calc((var(--n) - var(--i)) * 10ms),filter .16s ease calc((var(--n) - var(--i)) * 10ms),translate .2s ease calc((var(--n) - var(--i)) * 10ms),rotate .2s ease calc((var(--n) - var(--i)) * 10ms)}
+.alabel:is(:hover,:focus-visible) small i{opacity:1;filter:none;translate:none;rotate:0deg;transition:opacity .3s ease calc(var(--i) * 32ms),filter .4s ease calc(var(--i) * 32ms),translate .5s var(--e-dm) calc(var(--i) * 32ms),rotate .5s var(--e-dm) calc(var(--i) * 32ms)}
+.alabel:is(:hover,:focus-visible) .aw{color:var(--ink)}
+.aw{transition:color .2s ease}
+@media (prefers-reduced-motion:reduce){.alabel small i{transition:opacity .15s ease!important;filter:none;translate:none;rotate:0deg}}
