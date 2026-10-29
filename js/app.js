@@ -599,11 +599,28 @@ const views = $('#views');
    letter by letter, and it comes home when you leave. Every other link only fades. */
 const menu = $('.b-menu');
 $$('.mw', menu).forEach(b => { const w = b.textContent.trim(); b.setAttribute('aria-label', w); b.replaceChildren(...['a', 'b'].map(k => h('span', { class: 'mw-' + k, 'aria-hidden': 'true' }, [...w].map((c, i) => h('i', { style: '--i:' + i }, c))))); });
-const wear = b => $$('.mw', menu).forEach(x => x.classList.toggle('worn', x === b));
-const wearCurrent = () => wear($('button.on', views));
-$$('.mw', menu).forEach(b => { b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') wear(b); }); b.addEventListener('focus', () => wear(b)); b.addEventListener('blur', wearCurrent); });
-menu.addEventListener('pointerleave', wearCurrent);
-function placePill() { wearCurrent(); }
+// The view toggle wears Averia on the side you're on, under a sliding pill; "about" borrows it only while hovered.
+const about = $('#aboutBtn');
+const wearCurrent = () => $$('button', views).forEach(x => x.classList.toggle('worn', x.classList.contains('on')));
+about.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') about.classList.add('worn'); });
+about.addEventListener('pointerleave', () => about.classList.remove('worn'));
+about.addEventListener('focus', () => about.classList.add('worn')); about.addEventListener('blur', () => about.classList.remove('worn'));
+const vpill = $('.vpill', views); let pillAt = null;
+function placePill() {
+  wearCurrent();
+  const b = $('button.on', views); if (!b) return;
+  const to = [b.offsetLeft, b.offsetWidth], from = pillAt; pillAt = to;
+  vpill.style.transform = `translateX(${to[0]}px)`; vpill.style.width = to[1] + 'px';
+  if (!from || RM || from[0] === to[0]) return;
+  // The pill stretches across both words like a drop of ink, then lets go and settles with a little give.
+  const l = Math.min(from[0], to[0]), w = Math.max(from[0] + from[1], to[0] + to[1]) - l, dir = Math.sign(to[0] - from[0]);
+  vpill.animate([
+    { transform: `translateX(${from[0]}px) scaleY(1)`, width: from[1] + 'px' },
+    { transform: `translateX(${l}px) scaleY(.82)`, width: w + 'px', offset: .42 },
+    { transform: `translateX(${to[0] + dir * 3}px) scaleY(1.06)`, width: (to[1] - 4) + 'px', offset: .74 },
+    { transform: `translateX(${to[0]}px) scaleY(1)`, width: to[1] + 'px' }
+  ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
+}
 const indexMotion = { animations: [], clones: [], timers: [], phase: null, token: 0 };
 const indexGlyph = row => {
   const section = row.closest('.iacc');

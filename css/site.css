@@ -1163,3 +1163,13 @@ body.case-open .keybar{filter:blur(14px);opacity:.16;pointer-events:none}
 .alabel:is(:hover,:focus-visible) .aw{color:var(--ink)}
 .aw{transition:color .2s ease}
 @media (prefers-reduced-motion:reduce){.alabel small i{transition:opacity .15s ease!important;filter:none;translate:none;rotate:0deg}}
+
+/* ---------- Round 23: map / list reads as a switch again ----------
+   A paper pill sits under the side you're on and slides across like a drop of ink; that word wears
+   Averia. "about" stands apart, a plain word that borrows the italic only while hovered. */
+.b-menu{gap:26px}
+.b-menu .views{display:inline-flex;position:relative;align-items:baseline;padding:2px;border-radius:10px;box-shadow:inset 0 0 0 1px var(--hair2)}
+.b-menu .views .mw{position:relative;z-index:1;padding:3px 11px 4px}
+.b-menu .views .vpill{display:block;position:absolute;left:0;top:2px;bottom:2px;border-radius:8px;background:var(--paper);box-shadow:0 0 0 1px var(--hair),0 1px 2px rgba(0,0,0,.05);transition:transform .45s var(--e-dm),width .45s var(--e-dm)}
+.b-menu .views .mw:not(.on):hover{color:var(--ink)}
+@media (max-width:760px){.b-menu{gap:12px}.b-menu .views .mw{padding:3px 9px 4px}}
