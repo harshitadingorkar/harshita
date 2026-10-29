@@ -27,7 +27,6 @@ const fwrap = $('#filters'), legend = $('#type-legend'); let active = null;
 const count = k => S.points.filter(p => p.tags.includes(k)).length;
 const types = [['work','●'],['collections','◎'],['making','▲'],['writing','■']];
 types.filter(([type]) => S.points.some(p => p.type === type)).forEach(([type, glyph]) => legend.append(h('button', { class:'legend-item', 'data-type':type, onmouseenter:()=>preview('type:'+type), onmouseleave:()=>preview(active), onfocus:()=>preview('type:'+type), onblur:()=>preview(active), onclick:()=>setFilter(active==='type:'+type?null:'type:'+type), 'aria-label':'Filter '+type }, h('i',{class:'type-glyph '+type},glyph), ' '+type)));
-legend.append(h('span', { class: 'legend-note' }, h('i', { class: 'type-glyph shipped', 'aria-hidden': 'true' }), ' shipped'));
 function matches(p,k) { return k ? k.startsWith('type:') ? p.type===k.slice(5) : p.tags.includes(k) : true; }
 function preview(k) { $$('.pt').forEach(e => { const on = matches(e._p,k); e.classList.toggle('match', !!k && on); e.classList.toggle('mute', !!k && !on); }); legend.classList.toggle('has-active',!!k&&k.startsWith('type:')); }
 function setFilter(k) { active = k; fwrap.classList.toggle('has-active', !!k); $$('button[data-k]', fwrap).forEach(b => b.classList.toggle('on', b.dataset.k === k)); $$('[data-type]',legend).forEach(b=>b.classList.toggle('on',k==='type:'+b.dataset.type)); preview(k); renderIndex(); }
