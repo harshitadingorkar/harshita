@@ -37,7 +37,8 @@
   });
   const save=()=>localStorage.setItem(key,JSON.stringify(overrides,null,2));
   let editing=false,toolbar=null,drag=null;
-  const chip=()=>{document.querySelector('.local-edits')?.remove();if(!localStorage.getItem(key))return;const n=document.createElement('button');n.className='local-edits';n.textContent='local edits · reset';n.onclick=()=>{localStorage.removeItem(key);location.reload()};document.body.append(n)};
+  // No corner chip for local edits: reset lives in the design panel and the edit toolbar.
+  const chip=()=>{document.querySelector('.local-edits')?.remove();return;if(!localStorage.getItem(key))return;const n=document.createElement('button');n.className='local-edits';n.textContent='local edits · reset';n.onclick=()=>{localStorage.removeItem(key);location.reload()};document.body.append(n)};
   function ensureStyles(){if(document.querySelector('#edit-mode-css'))return;const s=document.createElement('style');s.id='edit-mode-css';s.textContent=`
   .edit-toolbar{position:fixed;z-index:1000;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:11px;padding:9px 13px;border:1px solid rgba(25,25,21,.14);border-radius:9px;background:#f2efe7;color:#191915;box-shadow:0 8px 26px #19191520;font:12px 'Instrument Sans',sans-serif;white-space:nowrap}
   .edit-toolbar button{border:0;background:none;color:inherit;font:inherit;cursor:pointer}.edit-toolbar button:hover{text-decoration:underline}.edit-toolbar input{width:24px;height:24px;border:0;background:transparent;padding:0;cursor:pointer}
