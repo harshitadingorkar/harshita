@@ -1112,3 +1112,42 @@ body.collection-leaving .band,body.collection-leaving .statement{filter:blur(8px
   .f-card h3{margin:-4px 0 0;font:400 24px/1.2 var(--voice);letter-spacing:-.012em;text-wrap:pretty}
   .f-card:active{opacity:.6}
 }
+
+/* ---------- Round 21: the map is the page again ----------
+   Round 20 sidelined the map to make room for a colophon; the concept is the map. The band keeps only
+   the name (with its flower) and a small menu. Contact lives on the card. The map is centred, its
+   axes nearly edge to edge, and each axis says what it means, so the plot explains itself.
+   The key is one quiet line along the bottom. The sentence stays on the phone only. */
+.band{justify-content:space-between;align-items:center;gap:24px}
+.b-id{display:flex;width:auto;gap:9px;align-items:center}
+.b-menu{display:flex;flex-direction:row;align-items:baseline;gap:18px;margin-left:auto}
+.mw-a{font-size:14px}
+.mw-b{font-size:15px}
+.b-tools{margin:0 0 0 6px}
+.statement{display:none}
+
+.axis{opacity:.42}
+.axis.h{left:var(--edge);right:var(--edge);top:var(--cy)}
+.axis.v{top:var(--mT);bottom:64px;left:var(--cx)}
+.alabel small,.alabel.left small,.alabel.right small{display:inline;margin-left:8px;font:13px/1.4 var(--sans);text-transform:none;letter-spacing:0;color:var(--ink3);opacity:1;transform:none}
+.alabel.top{left:calc(var(--cx) + 12px);top:calc(var(--mT) - 2px)}
+.alabel.bottom{left:calc(var(--cx) + 12px);bottom:62px}
+.alabel.left{left:var(--edge);top:calc(var(--cy) - 26px)}
+.alabel.right{right:var(--edge);top:calc(var(--cy) - 26px)}
+
+.keybar{position:fixed;left:var(--edge);bottom:26px;z-index:30}
+.keybar .type-legend{flex-direction:row;align-items:center;gap:18px;font:13px/1 var(--sans);color:var(--ink2)}
+.keybar .type-legend::before{display:none}
+.keybar .type-legend button,.keybar .type-legend .legend-note{gap:7px;color:var(--ink2);padding:0;margin:0;border:0}
+.keybar .type-legend .legend-note{font:11px/1 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink3)}
+.keybar .type-legend button:hover,.keybar .type-legend button.on{color:var(--ink)}
+body.show-index .keybar{opacity:0;pointer-events:none}
+.keybar{transition:opacity .3s ease,filter .85s cubic-bezier(.4,0,.2,1)}
+body.case-open .keybar{filter:blur(14px);opacity:.16;pointer-events:none}
+.arriving .keybar{animation:fadeIn .8s ease calc(var(--ad,0ms) + .35s) both}
+
+@media (max-width:760px){
+  .statement{display:block}
+  .keybar{display:none}
+  .b-menu{gap:14px;margin-right:10px}
+}

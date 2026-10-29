@@ -15,9 +15,9 @@ window.PORTFOLIO_DATA = DATA;
 window.PORTFOLIO_READY = ready;
 
 /* ---------- chrome ---------- */
-$('#mailLink').href = 'mailto:' + S.person.email;
+
 $('#statement').replaceChildren(...S.person.statement.split('\n').flatMap((l, i) => i ? [' ', h('br'), l] : [l]));
-$('#now').textContent = S.person.now;
+
 const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
 if (editorShortcut) { updateEditorShortcut(); editorShortcut.addEventListener('click', () => window.enterPortfolioEdit?.()); window.addEventListener('site-editor-enabled', updateEditorShortcut); }
@@ -85,12 +85,11 @@ function buildPlane() {
 }
 function layout() {
   if (mobile()) return;
-  // The map sits off-centre: under the band, right of the statement, and runs off the right and bottom edges.
-  const W = innerWidth, H = innerHeight, band = $('#band').getBoundingClientRect().bottom, st = $('#statement').getBoundingClientRect();
-  const L = Math.max(W * .34, st.right + 56), T = band + 40, R = W - 64, B = H - 52;
-  const cx = (L + R) / 2, cy = (T + B) / 2, sx = (R - L) / 2 - 24, sy = (B - T) / 2 - 8;
+  // The map is the page: centred, its axes running nearly edge to edge, under a slim band.
+  const W = innerWidth, H = innerHeight, band = $('#band').getBoundingClientRect().bottom;
+  const cx = W / 2, cy = (band + H) / 2 - 10, sx = cx - Math.max(150, W * .14) - 60, sy = cy - band - 70;
   const r = document.documentElement.style;
-  for (const [k, v] of Object.entries({ '--cx': cx, '--cy': cy, '--mL': L, '--mT': T, '--bandH': band })) r.setProperty(k, Math.round(v) + 'px');
+  for (const [k, v] of Object.entries({ '--cx': cx, '--cy': cy, '--mT': band + 24, '--bandH': band })) r.setProperty(k, Math.round(v) + 'px');
   $$('.pt').forEach(e => { e.style.left = (cx + e._p.x * sx) + 'px'; e.style.top = (cy - e._p.y * sy) + 'px'; });
 }
 function buildMobile() {
