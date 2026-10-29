@@ -1192,3 +1192,24 @@ body.case-open .keybar{filter:blur(14px);opacity:.16;pointer-events:none}
 #plate{z-index:11}
 .pcap{margin-top:0;padding:16px 18px 6px 0;background:var(--ground)}
 .pcap{align-self:stretch}
+
+/* ---------- Round 25: one control up top, the rest said quietly ----------
+   The top right holds only the view switch and "about". Sound and lights leave the header and
+   become two words in the bottom-right corner, in the same mono as the labels. Under her name,
+   one line tells a visitor how the map works. */
+.b-id{display:grid;grid-template-columns:auto 1fr;column-gap:9px;row-gap:6px;align-items:center}
+.b-hint{grid-column:2;margin:0;font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink3)}
+.band{align-items:flex-start}
+.b-menu{margin-top:-5px}
+#aboutBtn .mw-a{font:11px/1.45 var(--mono);letter-spacing:.02em;text-transform:uppercase}
+#aboutBtn .mw-b{font-size:15px}
+#aboutBtn{color:var(--ink2)}
+.settings{position:fixed;right:var(--edge);bottom:26px;z-index:30;display:flex;gap:20px;align-items:baseline}
+.settings button,.settings .ep-open{position:static;padding:0;font:11px/1 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink3);transition:color .16s ease}
+.settings button:hover,.settings .ep-open:hover{color:var(--ink)}
+.settings button[aria-pressed=true]{color:var(--ink2)}
+body.show-index .settings{opacity:0;pointer-events:none}
+.settings{transition:opacity .3s ease,filter .85s cubic-bezier(.4,0,.2,1)}
+body.case-open .settings{filter:blur(14px);opacity:.16;pointer-events:none}
+.arriving .settings{animation:fadeIn .8s ease calc(var(--ad,0ms) + .35s) both}
+@media (max-width:760px){.b-hint,.settings{display:none}.b-id{display:flex}.b-menu{margin-top:0}}

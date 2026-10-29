@@ -567,7 +567,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && helloOpen) { e.stop
 $('#aboutBtn').onclick = e => openAbout(e.currentTarget);
 const soundBtn = $('#soundBtn');
 if (soundBtn) {
-  const show = () => { const v = !!window.portfolioSound?.on(); soundBtn.setAttribute('aria-pressed', String(v)); soundBtn.setAttribute('aria-label', v ? 'Sound on' : 'Sound off'); };
+  const show = () => { const v = !!window.portfolioSound?.on(); soundBtn.setAttribute('aria-pressed', String(v)); soundBtn.textContent = v ? 'sound on' : 'sound off'; };
   // turning it on: the cone gives a thump, the waves draw out one by one, and a ring carries on past them
   show(); soundBtn.onclick = () => { window.portfolioSound?.set(!window.portfolioSound.on()); show(); soundBtn.classList.remove('ping'); void soundBtn.offsetWidth; soundBtn.classList.add('ping'); };
   soundBtn.addEventListener('animationend', e => { if (e.animationName === 'sb-ring') soundBtn.classList.remove('ping'); });
@@ -742,7 +742,7 @@ $$('button', views).forEach(b => b.onclick = () => { const list = b.dataset.v ==
 /* ---------- lights out ---------- */
 // The other theme spreads out from the switch as a widening circle; the sun folds its rays and takes a bite to become a moon.
 const themeBtn = $('#themeBtn'), docEl = document.documentElement;
-const markTheme = t => { themeBtn.setAttribute('aria-pressed', t === 'dark'); themeBtn.title = t === 'dark' ? 'lights on' : 'lights out'; };
+const markTheme = t => { themeBtn.setAttribute('aria-pressed', t === 'dark'); themeBtn.textContent = t === 'dark' ? 'lights off' : 'lights on'; };
 if (themeBtn) {
   markTheme(docEl.dataset.theme);
   themeBtn.onclick = () => {
