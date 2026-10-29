@@ -392,6 +392,9 @@ function openProfile() {
     h('p', { class: 'pf-text', ...ed(path + '.text') }, ...term(r.text)),
     /\bagents\b/.test(r.text) ? h('p', { class: 'term-pop', role: 'note', ...ed('profile.agents') }, P.agents) : null,
     pile(r));
+  // Off-the-clock words that have a room on this site link to it; the rest stay plain.
+  const ROOMS = [['pictures of silly things', 'collection.html?c=odds'], ['films', 'collection.html?c=films'], ['lists', 'collection.html']];
+  const linkify = text => { let parts = [text]; for (const [w, href] of ROOMS) parts = parts.flatMap(x => { if (typeof x !== 'string') return [x]; const i = x.indexOf(w); return i < 0 ? [x] : [x.slice(0, i), h('a', { class: 'pf-room', href }, w), x.slice(i + w.length)]; }); return parts; };
   const sec = (label, kids) => h('section', { class: 'pf-sec reveal' }, h('h3', {}, label), kids);
   const elsewhere = [['LinkedIn', S.person.linkedin], ['Instagram', 'https://www.instagram.com/' + S.person.instagram + '/'], ['Substack', 'https://substack.com/@' + S.person.substack], ['Letterboxd', S.person.letterboxd], ['Are.na', S.person.arena]];
   openSheet(null, null, null, h('div', { class: 'pf' },
@@ -401,7 +404,7 @@ function openProfile() {
       h('p', { class: 'mono', ...ed('profile.kicker') }, P.kicker),
       h('h2', { class: 's-title' }, S.person.name),
       h('p', { class: 'case-line', ...ed('profile.lede') }, P.lede)),
-    h('div', { class: 'pf-about reveal' }, P.about.map((t, i) => h('p', ed('profile.about.' + i), t))),
+    h('div', { class: 'pf-about reveal' }, P.about.map((t, i) => h('p', ed('profile.about.' + i), ...linkify(t)))),
     sec('Work', P.work.map((r, i) => row(r, 'profile.work.' + i))),
     sec('Client work, through UW', P.clients.map((r, i) => row(r, 'profile.clients.' + i))),
     sec('Education', P.education.map((r, i) => row(r, 'profile.education.' + i))),

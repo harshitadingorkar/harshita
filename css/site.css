@@ -1358,3 +1358,5 @@ button.pf-pile img:hover{scale:1.06;translate:0 6px;z-index:2}
 @media (prefers-reduced-motion:reduce){.pf-pile,.pf-pile img{transition:none}}
 @media (max-width:760px){.pf-kid img{width:140px}.pf-line{flex-wrap:wrap;gap:2px 12px}}
 .pf-head .case-line{text-wrap:pretty}
+.pf-about a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--ink3);transition:text-decoration-color .16s ease,color .16s ease}
+.pf-about a:hover{color:var(--ink);text-decoration-color:currentColor}
