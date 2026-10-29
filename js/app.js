@@ -154,14 +154,50 @@ function showPlate(p, e) {
   const R = getComputedStyle(document.documentElement), cx = parseFloat(R.getPropertyValue('--cx')) || innerWidth / 2, cy = parseFloat(R.getPropertyValue('--cy')) || innerHeight / 2;
   const settle = () => { if (tok !== figTok) return; const d = e.querySelector('.dot').getBoundingClientRect(), W = fig.offsetWidth, H = fig.offsetHeight;
     fig.style.transformOrigin = `${d.left + d.width / 2 - (cx - W / 2)}px ${d.top + d.height / 2 - (cy - H / 2)}px`;
-    requestAnimationFrame(() => { if (tok === figTok) fig.classList.add('in'); }); };
+    requestAnimationFrame(() => { if (tok === figTok) { fig.classList.add('in'); linea.rise(fig, e); } }); };
   const imgs = $$('img', fig); Promise.race([Promise.all(imgs.map(i => i.decode ? i.decode().catch(() => {}) : null)), new Promise(r => setTimeout(r, 600))]).then(settle);
   return c;
 }
 function hidePlate() {
-  figTok++; plate.classList.remove('on');
+  figTok++; plate.classList.remove('on'); linea.fall();
   $$('.pfig:not(.out)', plate).forEach(f => { f.classList.add('out'); f.classList.remove('in'); setTimeout(() => f.remove(), 450); });
 }
+/* La Linea: the axis is one line, and while a picture shows it rises into a girl standing beside it,
+   presenting it with an open palm. She is drawn as a single stroke that starts and ends in the axis;
+   every point of her rises out of the flat line together, with a little cel-animation snap, and
+   folds back into it when you leave. An original figure in the 1930s spirit: curls, a flared dress. */
+const linea = (() => {
+  if (!lamp || RM) return { rise() {}, fall() {} };
+  const D = 'M-30 0 L1 0 C1 -10 2 -20 3 -29 C0 -29 -6 -30 -9 -31 C-6 -38 -1 -46 1 -51 C-2 -52 -5 -50 -7 -52 C-11 -54 -15 -55 -17 -58 C-18 -60 -17 -62 -15 -62 C-10 -63 -4 -66 0 -68 C1 -70 3 -71 4 -73 C1 -73 -3 -73 -5 -74 C-8 -75 -8 -79 -5 -78 C-3 -77 -4 -75 -6 -76 C-8 -80 -8 -88 -4 -92 C0 -96 9 -97 15 -94 C19 -92 21 -90 21 -88 C23 -88 25 -86 23 -84 C21 -83 20 -85 21 -86 C21 -85 21 -84 22 -83 C24 -82 26 -81 24 -80 C23 -80 23 -79 23 -79 C24 -78 24 -77 23 -77 C24 -76 24 -75 22 -75 C21 -74 19 -74 17 -74 C16 -73 16 -72 16 -70 C20 -72 27 -74 33 -76 C36 -78 39 -80 41 -79 C42 -78 40 -77 39 -77 C41 -77 42 -75 40 -74 C38 -73 35 -73 33 -72 C27 -70 22 -66 18 -64 C20 -61 20 -57 16 -55 C14 -54 13 -53 13 -51 C17 -44 22 -36 25 -31 C21 -30 17 -29 14 -29 C14 -20 13 -10 13 -3 C15 -2 18 -1 19 0 L11 0 C11 -2 10 -3 10 -6 C10 -14 9 -22 8 -27 C7 -22 6 -12 6 0 L55 0';
+  const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), path = document.createElementNS(NS, 'path');
+  svg.setAttribute('class', 'linea'); svg.setAttribute('aria-hidden', 'true'); svg.append(path); document.body.append(svg);
+  const S = .64, cur = { t: 0, from: 0, to: 0, start: 0, dur: 1, x0: 0, dir: 1, y: 0 };
+  let pts = null, raf = 0, pending = null;
+  const sample = () => { path.setAttribute('d', D); const L = path.getTotalLength(), n = 420; pts = Array.from({ length: n + 1 }, (_, i) => { const q = path.getPointAtLength(L * i / n); return [q.x, q.y]; }); };
+  const draw = () => { const { t, x0, dir, y } = cur; path.setAttribute('d', 'M' + pts.map(([x, py]) => `${(x0 + x * S * dir).toFixed(1)} ${(y + py * S * t).toFixed(1)}`).join('L')); };
+  const gap = on => { const a = $('.axis.h'); if (!a) return; if (!on) { a.style.maskImage = a.style.webkitMaskImage = ''; return; }
+    const r = a.getBoundingClientRect(), [m, n] = [cur.x0 - 30 * S * cur.dir, cur.x0 + 55 * S * cur.dir].sort((u, v) => u - v).map(v => v - r.left);
+    a.style.maskImage = a.style.webkitMaskImage = `linear-gradient(90deg,#000 ${m}px,transparent ${m}px,transparent ${n}px,#000 ${n}px)`; };
+  const up = k => 1 + 2.2 * (k - 1) ** 3 + 1.2 * (k - 1) ** 2, down = k => k * k;
+  const tick = now => {
+    const k = Math.min(1, (now - cur.start) / cur.dur); cur.t = cur.from + (cur.to - cur.from) * (cur.to > cur.from ? up(k) : down(k)); draw();
+    if (k < 1) { raf = requestAnimationFrame(tick); return; }
+    raf = 0; if (cur.to) return;
+    svg.classList.remove('on'); gap(false); if (pending) { const q = pending; pending = null; go(q); }
+  };
+  const tween = (to, dur) => { cur.from = cur.t; cur.to = to; cur.start = performance.now(); cur.dur = dur; if (!raf) raf = requestAnimationFrame(tick); };
+  const go = spec => { Object.assign(cur, spec); svg.classList.add('on'); gap(true); draw(); tween(1, 780); };
+  return {
+    rise(fig, e) {
+      if (mobile() || body.classList.contains('show-index')) return; if (!pts) sample();
+      const R = getComputedStyle(document.documentElement), cx = parseFloat(R.getPropertyValue('--cx')), cy = parseFloat(R.getPropertyValue('--cy'));
+      const d = e.querySelector('.dot').getBoundingClientRect(), dir = d.left + d.width / 2 < cx ? 1 : -1, reach = 42 * S + 12, left = cx - fig.offsetWidth / 2, right = left + (fig.firstElementChild?.offsetWidth || fig.offsetWidth);
+      const spec = { x0: dir > 0 ? left - reach : right + reach, dir, y: Math.round(cy) + .5 };
+      if (cur.t > .01 || raf) { pending = spec; tween(0, 200); } else go(spec);
+    },
+    fall() { pending = null; if (cur.t > 0 || raf) tween(0, 220); }
+  };
+})();
 // While a picture shows, the axes stop at its edges instead of running across it.
 function axesAround(box) {
   $$('.axis').forEach(a => {
@@ -779,7 +815,33 @@ const skipIntro = e => {
   introActive = false; introTimers.forEach(clearTimeout); clearTimeout(arrivalTimer); unlistenIntro();
   body.classList.remove('introing', 'arriving'); intro.remove();
 };
+// On a desktop the site opens as one line: it draws in from the left to her name at the centre, carries on
+// to the right, then her name lifts to the corner, the gap closes, and the line opens upward and downward into the map.
+function lineIntro() {
+  const R = getComputedStyle(document.documentElement), cx = parseFloat(R.getPropertyValue('--cx')), cy = Math.round(parseFloat(R.getPropertyValue('--cy'))), mT = parseFloat(R.getPropertyValue('--mT')), E = 36, W = innerWidth, H = innerHeight;
+  const name = h('p', { class: 'li-name' }, 'Harshita'), box = h('div', { class: 'li', 'aria-hidden': 'true' }, name);
+  body.append(box); body.classList.add('lined'); arrive(2300);
+  const nr = name.getBoundingClientRect(), a = nr.left - 20, b = nr.right + 20;
+  const seg = (cls, css) => h('i', { class: 'li-seg ' + cls, style: css });
+  box.append(seg('h l', `left:${E}px;top:${cy}px;width:${a - E}px`), seg('h r', `left:${b}px;top:${cy}px;width:${W - E - b}px`), seg('h m', `left:${a}px;top:${cy}px;width:${b - a}px`),
+    seg('v u', `left:${Math.round(cx)}px;top:${mT}px;height:${cy - mT}px`), seg('v d', `left:${Math.round(cx)}px;top:${cy}px;height:${H - 64 - cy}px`));
+  const T = [], at = (ms, fn) => T.push(setTimeout(fn, ms));
+  const done = () => { T.forEach(clearTimeout); document.removeEventListener('click', skip, true); document.removeEventListener('keydown', skip, true); box.remove(); body.classList.add('linear'); body.classList.remove('lined'); };
+  const skip = e => { e.preventDefault(); e.stopPropagation(); clearTimeout(arrivalTimer); body.classList.remove('arriving'); done(); };
+  document.addEventListener('click', skip, true); document.addEventListener('keydown', skip, true);
+  requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add('s1')));
+  at(1000, () => box.classList.add('s2'));
+  at(1650, () => {
+    box.classList.add('s3');
+    const to = $('#home').getBoundingClientRect(), from = name.getBoundingClientRect();
+    name.style.transformOrigin = '0 0';
+    name.style.transform = `translate(${to.left - from.left}px,${to.top - from.top}px) scale(${to.height / from.height})`;
+  });
+  at(2150, () => box.classList.add('s4'));
+  at(3300, done);
+}
 if (sessionStorage.getItem('seen') || RM) { intro.remove(); arrive(0); }
+else if (!mobile()) { sessionStorage.setItem('seen', 1); intro.remove(); lineIntro(); }
 else {
   sessionStorage.setItem('seen', 1); body.classList.add('introing');
   const p = $('p', intro), words = p.textContent.trim().split(/\s+/);
