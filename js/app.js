@@ -674,33 +674,7 @@ const skipIntro = e => {
   introActive = false; introTimers.forEach(clearTimeout); clearTimeout(arrivalTimer); unlistenIntro();
   body.classList.remove('introing', 'arriving'); intro.remove();
 };
-// On a desktop the site opens as one line: it draws in from the left to her name at the centre, carries on
-// to the right, then her name lifts to the corner, the gap closes, and the line opens upward and downward into the map.
-function lineIntro() {
-  const R = getComputedStyle(document.documentElement), cx = parseFloat(R.getPropertyValue('--cx')), cy = Math.round(parseFloat(R.getPropertyValue('--cy'))), mT = parseFloat(R.getPropertyValue('--mT')), E = 36, W = innerWidth, H = innerHeight;
-  const name = h('p', { class: 'li-name' }, 'Harshita'), box = h('div', { class: 'li', 'aria-hidden': 'true' }, name);
-  body.append(box); body.classList.add('lined'); arrive(2300);
-  const nr = name.getBoundingClientRect(), a = nr.left - 20, b = nr.right + 20;
-  const seg = (cls, css) => h('i', { class: 'li-seg ' + cls, style: css });
-  box.append(seg('h l', `left:${E}px;top:${cy}px;width:${a - E}px`), seg('h r', `left:${b}px;top:${cy}px;width:${W - E - b}px`), seg('h m', `left:${a}px;top:${cy}px;width:${b - a}px`),
-    seg('v u', `left:${Math.round(cx)}px;top:${mT}px;height:${cy - mT}px`), seg('v d', `left:${Math.round(cx)}px;top:${cy}px;height:${H - 64 - cy}px`));
-  const T = [], at = (ms, fn) => T.push(setTimeout(fn, ms));
-  const done = () => { T.forEach(clearTimeout); document.removeEventListener('click', skip, true); document.removeEventListener('keydown', skip, true); box.remove(); body.classList.add('linear'); body.classList.remove('lined'); };
-  const skip = e => { e.preventDefault(); e.stopPropagation(); clearTimeout(arrivalTimer); body.classList.remove('arriving'); done(); };
-  document.addEventListener('click', skip, true); document.addEventListener('keydown', skip, true);
-  requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add('s1')));
-  at(1000, () => box.classList.add('s2'));
-  at(1650, () => {
-    box.classList.add('s3');
-    const to = $('#home').getBoundingClientRect(), from = name.getBoundingClientRect();
-    name.style.transformOrigin = '0 0';
-    name.style.transform = `translate(${to.left - from.left}px,${to.top - from.top}px) scale(${to.height / from.height})`;
-  });
-  at(2150, () => box.classList.add('s4'));
-  at(3300, done);
-}
 if (sessionStorage.getItem('seen') || RM) { intro.remove(); arrive(0); }
-else if (!mobile()) { sessionStorage.setItem('seen', 1); intro.remove(); lineIntro(); }
 else {
   sessionStorage.setItem('seen', 1); body.classList.add('introing');
   const p = $('p', intro), words = p.textContent.trim().split(/\s+/);

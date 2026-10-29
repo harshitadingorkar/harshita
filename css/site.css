@@ -1254,30 +1254,6 @@ body.case-open .settings{filter:blur(14px);opacity:.16;pointer-events:none}
 }
 .i-do{text-wrap:balance}
 
-/* ---------- Round 28: La Linea ----------
-   The map is one line. It opens as one (left, to her name, right, then up and down into the axes),
-   and while a picture shows, the axis rises into a girl beside it, presenting it. */
-.linea{position:fixed;inset:0;width:100%;height:100%;z-index:12;pointer-events:none;overflow:visible;opacity:0}
-.linea.on{opacity:1}
-.linea path{fill:none;stroke:var(--ink);stroke-opacity:.42;stroke-width:1;stroke-linejoin:round;stroke-linecap:round}
-body:has(.linea.on) .axis.h{opacity:.42}
-
-.li{position:fixed;inset:0;z-index:15;pointer-events:none}
-.li-seg{position:absolute;display:block;background:var(--ink);opacity:.42}
-.li-seg.h{height:1px;transform:scaleX(0);transform-origin:left center}
-.li-seg.m{transform-origin:center}
-.li-seg.v{width:1px;transform:scaleY(0);transform-origin:center bottom}
-.li-seg.v.d{transform-origin:center top}
-.li-name{position:absolute;left:calc(var(--cx) - .5px);top:var(--cy);margin:0;translate:-50% -52%;white-space:nowrap;font:italic 400 38px/1 var(--voice);letter-spacing:-.015em;color:var(--ink);opacity:0;filter:blur(6px);transition:opacity .8s ease .55s,filter 1s ease .55s,transform 1s cubic-bezier(.65,0,.35,1)}
-.li.s1 .li-seg.l{transform:none;transition:transform 1s cubic-bezier(.65,0,.35,1)}
-.li.s1 .li-name{opacity:1;filter:none}
-.li.s2 .li-seg.r{transform:none;transition:transform .7s cubic-bezier(.33,0,.2,1)}
-.li.s3 .li-seg.m{transform:none;transition:transform .55s cubic-bezier(.65,0,.35,1) .15s}
-.li.s3 .li-name{opacity:0;transition:transform 1s cubic-bezier(.65,0,.35,1),opacity .35s ease .7s}
-.li.s4 .li-seg.v{transform:none;transition:transform .9s cubic-bezier(.16,1,.3,1)}
-body.lined .axis{opacity:0;animation:none!important}
-body.linear .axis{animation:none!important}
-
 /* ---------- Round 29: about, read.cv-shaped ----------
    The calling card is gone. About opens in the case sheet (the work strip stays on top): her name and line
    like a case head, CV and Contact at the top right, a strip of pictures, her words, then work, client
@@ -1366,3 +1342,13 @@ button.pf-pile img:hover{scale:1.06;translate:0 6px;z-index:2}
 .pf-row:is(:hover,:focus-within) .pf-pile img{translate:0 6px}
 .pf-row .pf-pile:is(:hover,:focus-visible){height:80px}
 @media (hover:none){.pf-pile{height:36px}.pf-pile img{translate:0 6px}}
+/* the childhood print, small and borderless, tucked into the opening lines so the words wrap around it; its caption shows on hover */
+.pf-head{display:block}
+.pf-head>*+*{margin-top:8px}
+.pf-kid{float:left;position:relative;width:92px;margin:4px 20px 6px 0;padding:0;background:none;box-shadow:none;rotate:-2deg}
+.pf-kid img{width:92px;border-radius:2px;box-shadow:0 10px 22px -14px rgba(0,0,0,.5)}
+.pf-kid figcaption{position:absolute;left:50%;top:calc(100% + 6px);translate:-50% -2px;padding:0;white-space:nowrap;font:italic 400 13px/1 var(--voice);color:var(--ink2);opacity:0;pointer-events:none;transition:opacity .2s ease,translate .3s var(--e-dm)}
+.pf-kid:hover figcaption,.pf-kid:focus-within figcaption{opacity:1;translate:-50% 0}
+.pf-head .s-title{margin:2px 0 6px}
+.pf-head::after{content:'';display:block;clear:both}
+@media (max-width:760px){.pf-kid,.pf-kid img{width:76px}}
