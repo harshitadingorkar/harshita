@@ -54,7 +54,7 @@ window.SITE = {
     { id: 'hpe', type: 'work', role: 'UX designer', title: 'Keeping AI models in check', org: 'Hewlett Packard Enterprise', year: '2022', meta: 'HPE · 2022–23', quad: 'tr', x: .30, y: .80, tags: ['product', 'ai'], kind: 'shipped', case: 'hpe',
       line: 'One place for data scientists to catch their models quietly getting worse. Designed it, then built it in React.', img: 'hpe.jpg', images: ['hpe.jpg', 'hpe-01.jpg', 'hpe-02.jpg'],
       alt: 'The AI model monitoring dashboard: performance and drift charts.' },
-    { id: 'arena', type: 'collections', title: 'The collection', org: 'eight collections', year: '', meta: 'eight collections', quad: 'bl', x: -.40, y: -.72, tags: ['archive'], kind: 'archive',
+    { id: 'arena', type: 'collections', title: 'The collection', org: 'curations on are.na', year: '', meta: 'curations on are.na', quad: 'bl', x: -.40, y: -.72, tags: ['archive'], kind: 'archive',
       line: 'images, references and small artifacts I come back to, kept in public.' },
     { id: 'odds', type: 'collections', title: 'Odds & ends', org: 'visual notes', year: '', meta: 'visual notes', quad: 'bl', x: -.46, y: -.42, tags: ['photographs'], kind: 'room', room: 'odds',
       line: 'patterns in the ordinary, and how we move through everyday spaces.', img: 'odds-03.jpg' },

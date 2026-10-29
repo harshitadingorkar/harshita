@@ -110,7 +110,13 @@ async function downloadJpeg(url, relativePath, workDir) {
       outputPath,
     ]);
   } catch (error) {
-    throw new Error(`Image conversion failed for ${url}: ${error.message}`);
+    // Without ImageMagick, macOS's own sips does the same job (first frame, fit in 900px, JPEG at 80).
+    if (error.code !== "ENOENT") throw new Error(`Image conversion failed for ${url}: ${error.message}`);
+    try {
+      await execFile("sips", ["-s", "format", "jpeg", "-s", "formatOptions", "80", "-Z", "900", inputPath, "--out", outputPath]);
+    } catch (fallbackError) {
+      throw new Error(`Image conversion failed for ${url}: ${fallbackError.message}`);
+    }
   } finally {
     await rm(inputPath, { force: true });
   }

@@ -7,7 +7,7 @@ const wall = $('#wall'), field = $('#stamp-field'), sidebar = $('#sidebar');
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const pageId = new URLSearchParams(location.search).get('c') || 'arena';
 const pages = {
-  arena: { title:'Collection', sub:'kept in eight curations', what:'Things I keep: images, references and small artifacts I come back to. Gathered on are.na, arranged here in eight curations. All rights remain with the original creators.' },
+  arena: { title:'Collection', sub:'kept in curations on are.na', what:'Things I keep: images, references and small artifacts I come back to. Gathered on are.na, arranged here by curation. All rights remain with the original creators.' },
   films: { title:'Films', sub:'watched lately, rated honestly', what:'Everything I’ve watched lately, rated honestly. I was the first Harshita on Letterboxd, so the username is just harshita.' },
   clay: { title:'Clay', sub:'made slowly, by hand', what:'Things I make with my hands, and the pieces I keep for reference.', meditation:'Clay won’t be hurried. It dries when it dries, and it remembers every press of the thumb. Hand-building has no undo, only the next small decision. It’s the slowest thing I do, and the one that makes the rest make sense.', meditation2:'New pieces, and the ones that survive the kiln, go up on Instagram.' },
   odds: { title:'Odds & ends', sub:'patterns in the ordinary', what:'Photographs of patterns in the ordinary, and how we move through everyday spaces.' }
@@ -96,11 +96,12 @@ function normalizeFallback(raw) {
     slug: channel.slug, title: channel.title, description: channel.description || '', count: channel.count || channel.blocks.length,
     blocks: (channel.blocks || []).map(block => {
       const image = block.image || {};
-      const src = image.display || image.thumb || image.local || '';
+      // the saved copy first: it loads anywhere, including places that can't reach Are.na
+      const src = image.local || image.display || image.thumb || '';
       if (!src) return null;
       return {
         id: String(block.id), title: block.title || '', type: block.type || 'Image', channel: channel.title, slug: channel.slug,
-        description: channel.description || '', small: image.thumb || image.local || src, src: image.local || image.display || src,
+        description: channel.description || '', small: image.local || image.thumb || src, src: image.local || image.display || src,
         aspect: Number(image.width) && Number(image.height) ? Number(image.width) / Number(image.height) : 1,
         width: Number(image.width) || 0, height: Number(image.height) || 0,
         connected_at: block.connected_at || '', created_at: block.created_at || '', block_url: block.block_url || `https://www.are.na/block/${block.id}`

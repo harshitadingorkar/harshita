@@ -1,5 +1,18 @@
 [
   {
+    "filmTitle": "Dorothy",
+    "filmYear": "2026",
+    "memberRating": "5.0",
+    "watchedDate": "2026-10-28",
+    "rewatch": "No",
+    "link": "https://letterboxd.com/harshita/film/dorothy-2026/",
+    "poster": {
+      "url": "https://a.ltrbxd.com/resized/film-poster/1/4/5/0/1/8/9/1450189-dorothy-2026-0-600-0-900-crop.jpg?v=404f54492e",
+      "local": "data/img/films/dorothy-2026-10-28.jpg"
+    },
+    "review": "I’m at a loss for words. This is exceptional, incredible & so beautiful. The kind of movie that makes me believe in how strong the power of cinema is. I’ll be thinking of this one for a while, exceptional performances across the board!"
+  },
+  {
     "filmTitle": "You Can See Everything",
     "filmYear": "2026",
     "memberRating": null,
@@ -633,19 +646,6 @@
     "poster": {
       "url": "https://a.ltrbxd.com/resized/film-poster/1/1/9/6/9/1/1/1196911-wuthering-heights-2026-0-600-0-900-crop.jpg?v=7d02cf3bdc",
       "local": "data/img/films/wuthering-heights-2026-02-18.jpg"
-    },
-    "review": null
-  },
-  {
-    "filmTitle": "Dying for Sex",
-    "filmYear": "2025",
-    "memberRating": "5.0",
-    "watchedDate": "2026-02-09",
-    "rewatch": "No",
-    "link": "https://letterboxd.com/harshita/film/dying-for-sex/",
-    "poster": {
-      "url": "https://a.ltrbxd.com/resized/film-poster/1/3/3/7/5/9/3/1337593-dying-for-sex-0-600-0-900-crop.jpg?v=e16476ed1e",
-      "local": "data/img/films/dying-for-sex-2026-02-09.jpg"
     },
     "review": null
   },
