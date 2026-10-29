@@ -16,6 +16,8 @@ window.PORTFOLIO_READY = ready;
 
 /* ---------- chrome ---------- */
 $('#mailLink').href = 'mailto:' + S.person.email;
+$('#statement').replaceChildren(...S.person.statement.split('\n').flatMap((l, i) => i ? [' ', h('br'), l] : [l]));
+$('#now').textContent = S.person.now;
 const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
 if (editorShortcut) { updateEditorShortcut(); editorShortcut.addEventListener('click', () => window.enterPortfolioEdit?.()); window.addEventListener('site-editor-enabled', updateEditorShortcut); }
@@ -66,35 +68,32 @@ const REEL = `<svg class="pot" viewBox="0 0 40 40" aria-hidden="true">
 const HOVER_ART = { clay: () => POT, films: () => REEL };
 /* ---------- plane ---------- */
 const MARK = window.portfolioMark.markup();
+// The flower sits beside her name, like a maker's mark on a colophon, and opens the card.
+const markBtn = $('#markBtn'); markBtn.innerHTML = MARK; markBtn.onclick = e => openAbout(e.currentTarget);
 function buildPlane() {
   plane.innerHTML = '';
   if (mobile()) return buildMobile();
-  plane.append(h('div', { class: 'axis h' }), h('div', { class: 'axis v' }), h('div', { class: 'ticks', id: 'ticks' }));
+  plane.append(h('div', { class: 'axis h' }), h('div', { class: 'axis v' }));
   for (const [side, w] of [['top', 'work'], ['bottom', 'wonder'], ['left', 'gather'], ['right', 'make']]) plane.append(h('div', { class: 'alabel ' + side, tabindex: 0 }, w, h('small', {}, S.axes[w].gloss)));
   for (const [q, d] of Object.entries(S.quads)) {
     const label=h('div', { class: 'qlabel q-' + q }, h('span',{class:'quad-name'},d.name),h('small',{},d.key));
     if(q==='tr'&&!sessionStorage.getItem('work-dot-hovered')) label.append(h('span',{class:'start-here'},'start with the work →'));
     plane.append(label);
   }
-  const mark = h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) });
-  plane.append(mark);
   S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.sub||p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
   layout(); preview(active);
 }
 function layout() {
   if (mobile()) return;
-  const W = innerWidth, H = innerHeight, mx = Math.max(150, W * .14), my = Math.max(84, H * .12);
-  const r = document.documentElement.style; r.setProperty('--ax-l', '64px'); r.setProperty('--ax-r', '64px'); r.setProperty('--ax-t', '56px'); r.setProperty('--ax-b', '56px');
-  const cx = W / 2, cy = H / 2, sx = cx - mx - 60, sy = cy - my;
+  // The map sits off-centre: under the band, right of the statement, and runs off the right and bottom edges.
+  const W = innerWidth, H = innerHeight, band = $('#band').getBoundingClientRect().bottom, st = $('#statement').getBoundingClientRect();
+  const L = Math.max(W * .34, st.right + 56), T = band + 40, R = W - 64, B = H - 52;
+  const cx = (L + R) / 2, cy = (T + B) / 2, sx = (R - L) / 2 - 24, sy = (B - T) / 2 - 8;
+  const r = document.documentElement.style;
+  for (const [k, v] of Object.entries({ '--cx': cx, '--cy': cy, '--mL': L, '--mT': T, '--bandH': band })) r.setProperty(k, Math.round(v) + 'px');
   $$('.pt').forEach(e => { e.style.left = (cx + e._p.x * sx) + 'px'; e.style.top = (cy - e._p.y * sy) + 'px'; });
-  const off = 28; const ql = { tl: [cx - off, cy - off, 'right', 'bottom'], tr: [cx + off, cy - off, 'left', 'bottom'], bl: [cx - off, cy + off, 'right', 'top'], br: [cx + off, cy + off, 'left', 'top'] };
-  for (const [q, [x, y, ax, ay]] of Object.entries(ql)) { const e = $('.q-' + q); e.style[ax === 'right' ? 'right' : 'left'] = (ax === 'right' ? W - x : x) + 'px'; e.style[ay === 'bottom' ? 'bottom' : 'top'] = (ay === 'bottom' ? H - y : y) + 'px'; }
-  const t = $('#ticks'); t.innerHTML = ''; const step = 48;
-  for (let x = cx % step; x < W; x += step) t.append(h('i', { style: `left:${x}px;top:${cy - 3}px;width:1px;height:7px` }));
-  for (let y = cy % step; y < H; y += step) t.append(h('i', { style: `top:${y}px;left:${cx - 3}px;height:1px;width:7px` }));
 }
 function buildMobile() {
-  plane.append(h('button', { class: 'mark', 'aria-label': 'A note from Harshita', html: MARK + '<span class="hint"><span class="hint-default">(hello)</span><span class="hint-hover">(who’s plotting this?)</span></span>', onclick: e => openAbout(e.currentTarget) }));
   for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
   preview(active);
 }
@@ -553,7 +552,7 @@ function closeAbout(quick) {
   const done = () => { helloRoot.hidden = true; helloRoot.replaceChildren(); };
   if (RM || !wrap) return done();
   wrap.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(24px) rotate(2deg) scale(.97)', opacity: 0 }], { duration: quick ? 220 : 420, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = done;
-  $('.mark')?.focus({ preventScroll: true });
+  markBtn.focus({ preventScroll: true });
 }
 addEventListener('keydown', e => { if (e.key === 'Escape' && helloOpen) { e.stopImmediatePropagation(); closeAbout(); } }, true);
 $('#aboutBtn').onclick = e => openAbout(e.currentTarget);
@@ -570,8 +569,21 @@ const qOrder = { tr: 0, tl: 1, br: 2, bl: 3 };
 const SEC = [['work','work (start here)'],['collections','collections'],['making','making'],['writing','writing']].filter(([type]) => S.points.some(p => p.type === type));
 const typeGlyph = type => h('i',{class:'g type-shape '+type,'data-type':type,'aria-hidden':'true'});
 function renderIndex() { const ix = $('#index'); if (!ix._built) buildIndex(ix); $$('.pt-row', ix).forEach(r => r.classList.toggle('mute', !!active && !matches(r._p,active))); }
+/* On a phone the list is a feed you scroll with a thumb: the picture, what kind of work, who it was for, then its line in Averia. */
+function buildFeed(ix) {
+  const card = p => { const src = thumbSrc(p), r = h('button', { class: 'f-card pt-row', onclick: e => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect()) },
+    src ? h('img', { src, alt: p.alt || '', loading: 'lazy' }) : null,
+    h('p', { class: 'f-tags' }, p.tags.map(t => h('span', {}, t))),
+    h('p', { class: 'f-org' }, [p.title, p.org !== p.title ? p.org : null, p.year].filter(Boolean).join(' · ')),
+    h('h3', {}, p.line)); r._p = p; return r; };
+  const sec = (title, note, pts) => h('section', { class: 'f-sec' }, h('header', { class: 'f-head' }, h('p', { class: 'lab' }, note), h('h2', {}, title)), pts.map(card));
+  ix.replaceChildren(h('div', { class: 'feed' },
+    sec('Work.', S.axes.work.def, S.points.filter(p => p.type === 'work')),
+    sec('Kept & made.', S.quads.bl.note, S.points.filter(p => p.type !== 'work'))));
+}
 function buildIndex(ix) {
   ix._built = true;
+  if (mobile()) return buildFeed(ix);
   const stage = h('div', { class: 'istage', 'aria-hidden': 'true' },h('p',{class:'stage-empty'},'hover a line to see it'));
   let stageToken=0;
   const show = p => { if (stage._p === p) return; stage._p = p; $('.stage-empty',stage)?.remove(); const token=++stageToken,c=plateFor(p),caption=h('figcaption',{},h('b',{},`${p.org} — ${p.title}`),h('span',{'data-point-id':p.id,'data-point-field':'line'},p.line)); const f=c?h('figure',{class:'ifig'},c,caption):null;if(!f)return;stage.append(f);const imgs=$$('img',f);Promise.all(imgs.map(img=>img.decode?.().catch(()=>{}))).then(()=>{if(token!==stageToken)return;requestAnimationFrame(()=>f.classList.add('on'));setTimeout(()=>{if(token===stageToken)$$('.ifig',stage).filter(x=>x!==f).forEach(x=>x.remove());},460);}); };
@@ -584,25 +596,16 @@ function buildIndex(ix) {
     acc('contact', 'contact', null, [[S.person.email, 'mailto:' + S.person.email, 'email'], ['linkedin ↗', S.person.linkedin, 'linkedin.com/in/harshita-shyale'], ['résumé ↗', S.person.resume, 'pdf'], ['instagram ↗', 'https://www.instagram.com/ashlime_soda/', '@ashlime_soda']].map(([t, u, s], n) => h('a', { class: 'irow', style: '--i:' + n, href: u, target: u.startsWith('mailto') ? null : '_blank', rel: 'noopener' }, h('i', { class: 'g dash' }), h('span', { class: 'rt' }, t), h('span', { class: 'rs' }, s)))));
   ix.replaceChildren(stage, card);
 }
-const views = $('#views'), vpill = $('.vpill', views);
-let pillAt = null;
-function placePill() {
-  const b = $('button.on', views); if (!b) return;
-  const to = [b.offsetLeft, b.offsetWidth], from = pillAt; pillAt = to;
-  vpill.style.transform = `translateX(${to[0]}px)`; vpill.style.width = to[1] + 'px';
-  if (!from || RM || from[0] === to[0]) return;
-  // The pill stretches across both words like a drop of ink, then lets go and settles with a little give.
-  const l = Math.min(from[0], to[0]), w = Math.max(from[0] + from[1], to[0] + to[1]) - l, dir = Math.sign(to[0] - from[0]);
-  vpill.animate([
-    { transform: `translateX(${from[0]}px) scaleY(1)`, width: from[1] + 'px' },
-    { transform: `translateX(${l}px) scaleY(.82)`, width: w + 'px', offset: .42 },
-    { transform: `translateX(${to[0] + dir * 3}px) scaleY(1.06)`, width: (to[1] - 4) + 'px', offset: .74 },
-    { transform: `translateX(${to[0]}px) scaleY(1)`, width: to[1] + 'px' }
-  ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
-  // and the word it lands on does a small hop, letter by letter
-  if (!b.dataset.split) { b.dataset.split = 1; b.replaceChildren(...[...b.textContent].map((c, i) => h('span', { class: 'hop', style: `--h:${i}` }, c))); }
-  $$('.hop', b).forEach(s => s.animate([{ transform: 'none' }, { transform: 'translateY(-3.5px)', offset: .4 }, { transform: 'none' }], { duration: 360, delay: 140 + +s.style.getPropertyValue('--h') * 34, easing: 'cubic-bezier(.3,0,.3,1)' }));
-}
+const views = $('#views');
+/* the menu: the word you're on wears Averia, a soft inked italic. Hover lends it to another word,
+   letter by letter, and it comes home when you leave. Every other link only fades. */
+const menu = $('.b-menu');
+$$('.mw', menu).forEach(b => { const w = b.textContent.trim(); b.setAttribute('aria-label', w); b.replaceChildren(...['a', 'b'].map(k => h('span', { class: 'mw-' + k, 'aria-hidden': 'true' }, [...w].map((c, i) => h('i', { style: '--i:' + i }, c))))); });
+const wear = b => $$('.mw', menu).forEach(x => x.classList.toggle('worn', x === b));
+const wearCurrent = () => wear($('button.on', views));
+$$('.mw', menu).forEach(b => { b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') wear(b); }); b.addEventListener('focus', () => wear(b)); b.addEventListener('blur', wearCurrent); });
+menu.addEventListener('pointerleave', wearCurrent);
+function placePill() { wearCurrent(); }
 const indexMotion = { animations: [], clones: [], timers: [], phase: null, token: 0 };
 const indexGlyph = row => {
   const section = row.closest('.iacc');
@@ -730,9 +733,9 @@ $('#home').onclick = e => { e.preventDefault(); toggleIndex(false); closeSheet()
 
 /* boot */
 plane.addEventListener('click', e => { if (!e.target.closest('.pt,.mark,button,a') && active) setFilter(null); });
-buildPlane(); renderIndex();
+buildPlane(); renderIndex(); document.fonts && document.fonts.ready.then(layout);
 window.refreshPortfolio = () => { buildPlane(); renderIndex(); layout(); };
-let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); } else layout(); });
+let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); $('#index')._built = false; renderIndex(); } else layout(); });
 const intro = $('#intro');
 let arrivalTimer = 0, introTimers = [], introActive = false;
 const arrive = d => { clearTimeout(arrivalTimer); body.style.setProperty('--ad', d + 'ms'); body.classList.add('arriving'); arrivalTimer = setTimeout(() => body.classList.remove('arriving'), d + 2800); };
@@ -773,8 +776,8 @@ else {
     };
     Object.assign(name.style, { animation: 'none', opacity: 1, filter: 'none' });
     flip(name, $('#home'), true);
-    // the flower drifts to the origin, shrinking as it lands and turning a sixth of a turn, so its six petals settle exactly where they began
-    const m = $('.intro-mark', intro), f = m.getBoundingClientRect(), g = $('.mark').getBoundingClientRect();
+    // the flower drifts to its place beside her name, shrinking as it lands and turning a sixth of a turn, so its six petals settle exactly where they began
+    const m = $('.intro-mark', intro), f = m.getBoundingClientRect(), g = markBtn.getBoundingClientRect();
     m.style.transformOrigin = '50% 50%'; m.style.transition = 'none'; m.style.transform = 'none'; m.getBoundingClientRect();
     m.style.transition = `transform ${flightDuration + 200}ms cubic-bezier(.45,0,.15,1)`;
     m.style.transform = `translate(${g.left + g.width / 2 - f.left - f.width / 2}px,${g.top + g.height / 2 - f.top - f.height / 2}px) scale(${g.width / f.width}) rotate(60deg)`;
@@ -784,5 +787,6 @@ else {
     introActive = false; unlistenIntro(); body.classList.remove('introing'); intro.remove();
   }, flightStart + flightDuration + 200));
 }
-ready.then(() => {});
+// the collection and films borrow their pictures from data that arrives a moment later
+ready.then(() => { if (mobile()) { $('#index')._built = false; renderIndex(); } });
 })();

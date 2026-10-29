@@ -1,4 +1,5 @@
-:root{--night:#0d0c0a;--paper:#f2efe7;--paper-hi:#fbf8f0;--ink:#191915;--ink2:#625f57;--hair:rgba(25,25,21,.14);--ox:#6b2a2f;--serif:"Averia Serif Libre",Georgia,serif;--sans:"Instrument Sans",Arial,sans-serif;--mono:"Geist Mono",monospace}
+@font-face{font-family:'Departure Mono';src:url('../assets/fonts/DepartureMono-Regular.woff2') format('woff2');font-display:swap}
+:root{--night:#0d0c0a;--paper:#f2efe7;--paper-hi:#fbf8f0;--ink:#191915;--ink2:#625f57;--hair:rgba(25,25,21,.14);--ox:#6b2a2f;--serif:"Averia Serif Libre",Georgia,serif;--sans:"Schibsted Grotesk",Arial,sans-serif;--mono:"Departure Mono",ui-monospace,monospace}
 *{box-sizing:border-box}
 html,body{width:100%;height:100%;margin:0;overflow:hidden}
 body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
