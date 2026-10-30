@@ -32,7 +32,7 @@ window.SITE = {
     ['theatre', 'Theatre'], ['clay', 'Clay'], ['photographs', 'Photographs'], ['films', 'Films'], ['archive', 'Archive'], ['writing', 'Writing'],
   ],
   points: [
-    { id: 'influence', type: 'work', role: 'product designer', title: 'Influence Graph', org: 'Salesloft', year: '2025', meta: 'Salesloft · 2025', quad: 'tr', x: .76, y: .26, tags: ['product', 'ai', 'research'], kind: 'vault',
+    { id: 'influence', type: 'work', role: 'product designer', title: 'Influence Graph', org: 'Salesloft', year: '2025', meta: 'Salesloft · 2025', quad: 'tr', x: .74, y: .74, tags: ['product', 'ai', 'research'], kind: 'vault',
       line: 'A map of the people inside a deal, read from the calls and emails a seller already has.',
       img: 'cases/salesloft/deal-map.jpg', video: 'cases/salesloft/deal-map.mp4', vcap: 'the deal map, in motion: who turned resistant, who no one has met yet, and the person who can win them over.',
       body: [
