@@ -178,6 +178,9 @@ const ptEl = p => $$('.pt').find(e => e._p === p);
 function srcRect(p) { const m = $('.pfig.in', plate)?.firstElementChild; if (m) return m.getBoundingClientRect(); const d = ptEl(p); return d ? d.querySelector('.dot').getBoundingClientRect() : null; }
 const thumbSrc = q => q.img ? A(q.img) : q.kind === 'archive' && DATA.arena ? (b => b && (b.image.local || b.image.thumb))(DATA.arena.channels.flatMap(c => c.blocks).find(b => b.image)) : q.kind === 'films' && DATA.films && DATA.films[0] ? DATA.films[0].local || DATA.films[0].poster : null;
 function heroFor(p) {
+  // a case with a still: the best frame of the film, and a click plays the film large
+  if (p.still) return h('button', { type: 'button', class: 'hero-still', 'aria-label': 'Play the film', 'data-src': A(p.video), 'data-poster': A(p.still), onclick: e => enlarge(e.currentTarget, e.currentTarget.querySelector('img')) },
+    h('img', { src: A(p.still), alt: p.vcap || p.title }), h('span', { class: 'hero-play' }, 'play the film'));
   if (p.youtube) return h('iframe', { class: 'yt', src: `https://www.youtube-nocookie.com/embed/${p.youtube}?rel=0&modestbranding=1`, title: p.title, loading: 'lazy', allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin' });
   if (p.id === 'wobblefoot') return h('div', { class: 'turn-hero', role: 'img', 'aria-label': p.alt || p.title, style: `background-image:url("${A(p.sheet)}")` });
   if (p.video) return Object.assign(h('video', { src: A(p.video), poster: p.img ? A(p.img) : null, muted: true, loop: true, playsinline: true, autoplay: !RM, controls: RM, 'aria-label': p.vcap || p.title }), { muted: true, defaultMuted: true });
@@ -401,16 +404,32 @@ document.addEventListener('click', e => { $$('.pf-menu:not([hidden])', sheet).fo
 
 /* a case study as a sneak peek, since it's under NDA: the team, the problem in two sentences, my part,
    three moments from the film, and a way to get in touch. The clips play only while they're on screen. */
+// a clip, large: it grows from where it sits to fill most of the window; a click, Escape or the veil puts it back
+function enlarge(v, origin = v) {
+  const r = origin.getBoundingClientRect(), big = h('video', { src: v.currentSrc || v.src || v.dataset.src, poster: v.poster || v.dataset.poster, muted: true, loop: true, playsinline: true, autoplay: !RM, class: 'zoom-v' });
+  const veil = h('div', { class: 'zoom', role: 'dialog', 'aria-modal': 'true', 'aria-label': v.getAttribute('aria-label') || 'Clip' }, big);
+  document.body.append(veil); big.currentTime = v.currentTime || 0;
+  const w = Math.min(innerWidth * .9, innerHeight * .86 * 16 / 9), hh = w * 9 / 16, L = (innerWidth - w) / 2, T = (innerHeight - hh) / 2;
+  Object.assign(big.style, { left: L + 'px', top: T + 'px', width: w + 'px', height: hh + 'px' });
+  const from = `translate(${r.left - L}px,${r.top - T}px) scale(${r.width / w})`;
+  if (!RM) big.animate([{ transform: from, borderRadius: '24px' }, { transform: 'none', borderRadius: '12px' }], { duration: 560, easing: 'cubic-bezier(.22,1,.36,1)' });
+  requestAnimationFrame(() => veil.classList.add('on'));
+  const close = () => { removeEventListener('keydown', esc, true); veil.classList.remove('on'); const a = RM ? null : big.animate([{ transform: 'none' }, { transform: from }], { duration: 380, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }); setTimeout(() => veil.remove(), RM ? 0 : 380); };
+  const esc = e => { if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); } };
+  veil.addEventListener('click', close); addEventListener('keydown', esc, true);
+}
 function openStudy(p, K) {
   const C = p.study, sec = (label, ...kids) => h('section', { class: 'cs-sec reveal' }, h('p', { class: 'cs-lab' }, label), ...kids);
+  // each moment plays as it scrolls into view; clicking it opens it large
   const moments = C.moments.map(m => h('figure', { class: 'cs-moment reveal' },
-    h('video', { src: A(m.video + '.mp4'), poster: A(m.video + '.jpg'), muted: true, loop: true, playsinline: true, preload: 'none', 'aria-label': m.title }),
+    h('button', { type: 'button', class: 'cs-play', 'aria-label': 'Open ' + m.title + ' large', onclick: e => enlarge(e.currentTarget.querySelector('video')) },
+      h('video', { src: A(m.video + '.mp4'), poster: A(m.video + '.jpg'), muted: true, loop: true, playsinline: true, preload: 'metadata', 'aria-label': m.title })),
     h('figcaption', {}, h('b', {}, m.title), h('span', { class: 'cs-what' }, m.solves))));
   openSheet(p.quad, K, p.title,
     h('dl', { class: 'cs-meta reveal' }, C.meta.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
     sec('the problem', h('h3', { class: 'cs-h' }, C.problem.title), ...C.problem.body.map(t => h('p', { class: 'cs-p' }, t))),
     sec('my part', h('p', { class: 'cs-p' }, C.part)),
-    sec('a peek', h('div', { class: 'cs-moments three' }, moments)),
+    sec('a peek', h('div', { class: 'cs-moments peek' }, moments)),
     h('p', { class: 'nda cs-nda reveal' }, p.nda, ' ', contactMenu('Get in touch')));
   const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting && !RM) v.play?.().catch(() => {}); else v.pause(); }), { root: sheet, threshold: .5 });
   $$('.cs-moment video', sheet).forEach(v => io.observe(v));

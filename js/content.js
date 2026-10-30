@@ -32,9 +32,9 @@ window.SITE = {
     ['theatre', 'Theatre'], ['clay', 'Clay'], ['photographs', 'Photographs'], ['films', 'Films'], ['archive', 'Archive'], ['writing', 'Writing'],
   ],
   points: [
-    { id: 'influence', type: 'work', role: 'product designer', title: 'Influence Graph', org: 'Salesloft', year: '2025', meta: 'Salesloft · 2025', quad: 'tr', x: .74, y: .74, tags: ['product', 'ai', 'research'], kind: 'vault',
+    { id: 'influence', type: 'work', role: 'product designer', title: 'Influence Graph', org: 'Salesloft', year: '2025', meta: 'Salesloft · 2025', quad: 'tr', x: .86, y: .9, tags: ['product', 'ai', 'research'], kind: 'vault',
       line: 'A map of the people inside a deal, read from the calls and emails a seller already has.',
-      img: 'cases/salesloft/deal-map-screens.jpg', video: 'cases/salesloft/deal-map-screens.mp4', vcap: 'The Influence Graph in motion: the people in a deal, how each of them feels, who sways whom, and the next move.',
+      img: 'cases/salesloft/deal-map-screens.jpg', still: 'cases/salesloft/deal-map-screens.jpg', video: 'cases/salesloft/deal-map-screens.mp4', vcap: 'The Influence Graph in motion: the people in a deal, how each of them feels, who sways whom, and the next move.',
       body: [
         'Influence Graph is a map of who moves a deal: who decides, who sways them, and how each of them feels this week. Salesloft already hears every call and email, so the map draws itself from those, not from a seller’s memory or the spreadsheet open beside it.',
         'I designed it from the first sketch. I sat with sellers who were drawing these maps by hand, tried shapes that didn’t hold, and landed on two views: a list for the morning, and a map for when a deal turns political. Whatever the system decides about a person, it says why, and you can drag them somewhere else.',

@@ -1483,3 +1483,19 @@ body.introing #home{visibility:visible}
 .cs-nda .pf-act{font:11px/1 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--ink3)}
 .cs-nda .pf-menu{left:-10px;right:auto;top:calc(100% + 10px);font-style:normal}
 @media (max-width:760px){.cs-moments.three{grid-template-columns:1fr}}
+/* the peek, bigger: the clips break out of the text column, one large then two below, and open large on click */
+.cs-moments.peek{display:grid;grid-template-columns:1fr 1fr;gap:28px 22px;width:min(1000px,calc(100vw - 48px));margin-left:50%;translate:-50% 0}
+.cs-moments.peek .cs-moment:first-child{grid-column:1/-1}
+.cs-moments.peek .cs-moment{gap:12px}
+.cs-play{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in;border-radius:10px;transition:translate .4s var(--e-dm)}
+.cs-play:hover{translate:0 -3px}
+.cs-play video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#f3f4f6;box-shadow:0 0 0 1px var(--hair2),0 30px 60px -36px rgba(25,25,21,.4)}
+.cs-moments.peek figcaption{display:grid;gap:3px;grid-template-columns:none;max-width:560px}
+.cs-moments.peek b{font:400 19px/1.25 var(--voice)}
+.cs-moments.peek .cs-what{font:14.5px/1.5 var(--sans);color:var(--ink2)}
+.zoom{position:fixed;inset:0;z-index:150;background:color-mix(in srgb,var(--ground) 0%,transparent);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);cursor:zoom-out;transition:background-color .4s ease,backdrop-filter .4s ease}
+.zoom.on{background:color-mix(in srgb,var(--ground) 82%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.zoom-v{position:fixed;object-fit:cover;border-radius:12px;background:#f3f4f6;transform-origin:0 0;box-shadow:0 50px 100px -40px rgba(0,0,0,.5)}
+@media (max-width:760px){.cs-moments.peek{grid-template-columns:1fr;width:auto;margin-left:0;translate:none}}
+.cs-moments.peek{margin-left:calc((100% - min(1000px, 100vw - 48px)) / 2);translate:none}
+@media (max-width:760px){.cs-moments.peek{margin-left:0}}
