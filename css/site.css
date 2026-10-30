@@ -1424,3 +1424,7 @@ body.introing #home{visibility:visible}
 .pf-kid{float:right;margin:30px 0 6px 20px;rotate:2deg}
 .ibio{display:grid;gap:7px}
 .ibio p{margin:0}
+/* Sir Wobblefoot, turning: six views stepped through, nothing else on the page */
+.turn-hero{width:min(560px,80vw);aspect-ratio:448/398;background-size:200% 300%;background-repeat:no-repeat;animation:turn 3.1s steps(1,end) infinite}
+@keyframes turn{0%{background-position:0 0}16.66%{background-position:100% 0}33.33%{background-position:0 50%}50%{background-position:100% 50%}66.66%{background-position:0 100%}83.33%{background-position:100% 100%}}
+@media (prefers-reduced-motion:reduce){.turn-hero{animation:none}}

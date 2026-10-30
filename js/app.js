@@ -178,6 +178,7 @@ const ptEl = p => $$('.pt').find(e => e._p === p);
 function srcRect(p) { const m = $('.pfig.in', plate)?.firstElementChild; if (m) return m.getBoundingClientRect(); const d = ptEl(p); return d ? d.querySelector('.dot').getBoundingClientRect() : null; }
 const thumbSrc = q => q.img ? A(q.img) : q.kind === 'archive' && DATA.arena ? (b => b && (b.image.local || b.image.thumb))(DATA.arena.channels.flatMap(c => c.blocks).find(b => b.image)) : q.kind === 'films' && DATA.films && DATA.films[0] ? DATA.films[0].local || DATA.films[0].poster : null;
 function heroFor(p) {
+  if (p.id === 'wobblefoot') return h('div', { class: 'turn-hero', role: 'img', 'aria-label': p.alt || p.title, style: `background-image:url("${A(p.sheet)}")` });
   if (p.video) return Object.assign(h('video', { src: A(p.video), poster: p.img ? A(p.img) : null, muted: true, loop: true, playsinline: true, autoplay: !RM, controls: RM, 'aria-label': p.vcap || p.title }), { muted: true, defaultMuted: true });
   if (p.kind === 'films' || (p.kind === 'room' && p.room === 'odds')) return plateFor(p);
   return p.img ? h('img', { src: A(p.img), alt: p.alt || '' }) : null;
@@ -303,9 +304,9 @@ function shortCase(c, point, kicker) {
 const caseHTML = id => DATA.cases && DATA.cases[id] ? h('div', { class: 'prose reveal', html: DATA.cases[id].html }) : null;
 
 function open(p, rect) {
-  if (p.type === 'collections' || p.kind === 'clay' || p.id === 'theatre') {
+  if (p.type === 'collections' || p.id === 'theatre') {
     body.classList.add('collection-leaving');
-    const url=p.id==='theatre'?'collection.html?c=theatre':p.kind==='clay'?'collection.html?c=clay':p.id==='films'?'collection.html?c=films':p.id==='odds'?'collection.html?c=odds':'collection.html';
+    const url=p.id==='theatre'?'collection.html?c=theatre':p.id==='films'?'collection.html?c=films':p.id==='odds'?'collection.html?c=odds':'collection.html';
     setTimeout(() => { location.href = url; }, 350);
     return;
   }
@@ -319,6 +320,8 @@ function open(p, rect) {
     return;
   }
   if (p.beats) return openFilm(p, K);
+  // Sir Wobblefoot is only to be looked at: the turnaround, large, and nothing else
+  if (p.id === 'wobblefoot') return openSheet(p.quad, null, null);
   if (p.brief) return openBrief(p, K);
   if (p.kind === 'vault' || p.kind === 'shipped') return openSheet(p.quad, K, p.title, sc || line, sc ? null : metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), p.video ? h('p', { class: 'c-cap reveal' }, p.vcap) : null, diagram(p.id), sc ? null : p.kind === 'shipped' ? crops(p) : p.images ? h('div', { class: 's-imgs' }, p.images.slice(1).map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null);
   if (p.kind === 'films') return ready.then(() => openFilms(K));
