@@ -42,7 +42,7 @@ window.SITE = {
       beats: [[1, 'While you were away, your deal moved.'], [3, 'Salesloft read every email and call.'], [6, 'Your CRO and CFO turned resistant.'], [8, 'And a new exec no one has met.'], [11, 'Win Dana through Petra.'], [13, 'Brief Petra before Sep 18.'], [18, 'See who moves the deal.']],
       beatsNote: 'The names and dates are made up. The shape of the problem isn’t.',
       nda: 'The rest is under NDA: the research, the versions that didn’t make it, what sellers said when they first saw it. Ask me and I’ll walk you through it.' },
-    { id: 'sony', type: 'work', role: 'client project via UW', title: 'Sony', org: 'Sony', year: '2025', meta: 'Sony · client project via UW · 2025', sub: 'after the purchase', hint: 'what Sony owes you after you buy: Sonia, an AI that asks first', quad: 'tl', x: -.82, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
+    { id: 'sony', type: 'work', role: 'client project via UW', title: 'After the purchase', org: 'Sony', year: '2025', meta: 'Sony · client project via UW · 2025', hint: 'what Sony owes you after you buy: Sonia, an AI that asks first', quad: 'tl', x: -.82, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
       line: 'What does Sony owe you after you buy? A capstone about a smarter, more sustainable life after the purchase.', img: 'sony.jpg', images: ['sony.jpg'],
       alt: 'A phone on a dark field glowing violet: Sonia, an AI assistant, asks before it uses your data.' },
     { id: 'safe', type: 'work', role: 'product designer', title: 'A Safe Space', org: 'UW + UW Medicine', year: '2023', meta: 'UW + UW Medicine · 2023', quad: 'tl', x: -.18, y: .40, tags: ['research', 'health'], kind: 'vault', case: 'safe',
@@ -86,7 +86,7 @@ window.SITE = {
   // one rule for what's dark: only the places, so the eye can run down the companies
   bio: [
     'Product designer at <b>Salesloft</b>, designing agentic AI for sellers and revenue teams.',
-    'Before that, a software designer at <b>Hewlett Packard Enterprise</b> and an engineer at <b>Nutanix</b>. Through UW, client work with <b>GitHub</b> and <b>Sony</b>.',
+    'Before that, I’ve worked with <b>Hewlett Packard Enterprise</b>, <b>Nutanix</b>, <b>GitHub</b> and <b>Sony</b>.',
     'I started as a software engineer, and I still build what I design.',
     'Off the clock: theatre, films, and collections of things worth keeping.',
   ],
