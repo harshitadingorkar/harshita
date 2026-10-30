@@ -69,6 +69,8 @@ window.SITE = {
     { id: 'wobblefoot', type: 'making', title: 'Sir Wobblefoot', org: 'ceramics', year: '', meta: 'ceramics', quad: 'br', x: .74, y: -.78, tags: ['clay'], kind: 'clay',
       line: 'A small bowl in an oxblood glaze, standing on two feet, toes and all.', img: 'wobblefoot.jpg', sheet: 'wobblefoot-sheet.jpg', images: ['wobblefoot.jpg', 'wobblefoot-01.jpg', 'wobblefoot-02.jpg'],
       alt: 'Sir Wobblefoot: a small hand-built bowl in a deep oxblood glaze, standing on two sculpted feet with toes.' },
+    { id: 'door', type: 'making', title: 'The door’s open', org: 'what I’m working on now', year: '', meta: 'working with the door open', hint: 'what I’m working on now, a line at a time', quad: 'br', x: .14, y: -.2, tags: ['writing'], kind: 'door',
+      line: 'What I’m working on right now, a line at a time, before it’s finished.' },
   ],
   theatre: [['theatre-1.jpg', 1.5, 'Searching for a Lullaby'], ['theatre-2.jpg', 1.5, 'You’re all Mime'], ['theatre-3.jpg', 2.2, 'National level win'], ['theatre-4.jpg', 1.5, ''], ['theatre-5.jpg', 1, '']],
   odds: Array.from({ length: 13 }, (_, i) => 'odds-' + String(i + 1).padStart(2, '0') + '.jpg'),
@@ -99,6 +101,7 @@ window.SITE = {
       'I started as an engineer building machine learning systems, then moved to design to work on the part I cared about most: how people meet them. I still build what I design.',
       'I was a theatre kid long before I was a designer, and I still think in scenes: who walks in, what they need, and when to step out of the way.',
       'Off the clock: films, music, lists, and pictures of silly things.',
+      'The door’s open: what I’m working on now.',
     ],
     photo: ['about-kid.jpg', 'Harshita as a small child in a blue dress, sprawled across a big office chair like she owns it.', 'already in the big chair'],
     work: [

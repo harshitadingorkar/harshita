@@ -304,6 +304,7 @@ function shortCase(c, point, kicker) {
 const caseHTML = id => DATA.cases && DATA.cases[id] ? h('div', { class: 'prose reveal', html: DATA.cases[id].html }) : null;
 
 function open(p, rect) {
+  if (p.id === 'door') { body.classList.add('collection-leaving'); setTimeout(() => { location.href = 'door/'; }, 350); return; }
   if (p.type === 'collections' || p.id === 'theatre') {
     body.classList.add('collection-leaving');
     const url=p.id==='theatre'?'collection.html?c=theatre':p.id==='films'?'collection.html?c=films':p.id==='odds'?'collection.html?c=odds':'collection.html';
@@ -388,7 +389,7 @@ function openProfile() {
     h('p', { class: 'pf-text', ...ed(path + '.text') }, ...term(r.text)),
     /\bagents\b/.test(r.text) ? h('p', { class: 'term-pop', role: 'note', ...ed('profile.agents') }, P.agents) : null);
   // Off-the-clock words that have a room on this site link to it; the rest stay plain.
-  const ROOMS = [['pictures of silly things', 'collection.html?c=odds'], ['films', 'collection.html?c=films'], ['lists', 'collection.html']];
+  const ROOMS = [['pictures of silly things', 'collection.html?c=odds'], ['films', 'collection.html?c=films'], ['lists', 'collection.html'], ['The door’s open', 'door/']];
   const linkify = text => { let parts = [text]; for (const [w, href] of ROOMS) parts = parts.flatMap(x => { if (typeof x !== 'string') return [x]; const i = x.indexOf(w); return i < 0 ? [x] : [x.slice(0, i), h('a', { class: 'pf-room', href }, w), x.slice(i + w.length)]; }); return parts; };
   const sec = (label, kids) => h('section', { class: 'pf-sec reveal' }, h('h3', {}, label), kids);
   const elsewhere = [['LinkedIn', S.person.linkedin], ['Instagram', 'https://www.instagram.com/' + S.person.instagram + '/'], ['Substack', 'https://substack.com/@' + S.person.substack], ['Letterboxd', S.person.letterboxd], ['Are.na', S.person.arena]];

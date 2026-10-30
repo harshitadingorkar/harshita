@@ -1430,3 +1430,10 @@ body.introing #home{visibility:visible}
 @media (prefers-reduced-motion:reduce){.turn-hero{animation:none}}
 /* the list view's picture stage spans exactly the height of the index card, so whatever shows sits level with the card's centre */
 .istage{top:calc(var(--bandH) + 20px);bottom:28px}
+.pt[data-kind=door] .dot{width:6px;height:6px;background:transparent;box-shadow:inset 0 0 0 1px var(--ink)}
+.pf-about p:last-child{font:italic 400 16px/1.5 var(--voice)}
+/* the door: a small open ring, its own thing among the triangles */
+.pt[data-kind=door] .dot{width:7px;height:7px;border-radius:50%;clip-path:none;background:transparent;box-shadow:inset 0 0 0 1.2px var(--ink)}
+.pt[data-kind=door]:hover .dot,.pt[data-kind=door]:focus-visible .dot{background:transparent;box-shadow:inset 0 0 0 1.2px var(--ox)}
+.pt.pt[data-kind=door] .dot,.pt.pt[data-kind=door]:hover .dot{background:transparent;clip-path:none;border-radius:50%}
+.pt.pt[data-kind=door]:hover .dot,.pt.pt[data-kind=door]:focus-visible .dot{box-shadow:inset 0 0 0 1.4px var(--ox)}

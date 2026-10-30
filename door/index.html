@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Working with the door open — Harshita Shyale</title>
+<meta name="description" content="What Harshita Shyale is working on right now, a line at a time, before it's finished.">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,400;1,400&family=Schibsted+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" href="../assets/fonts/DepartureMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../css/door.css">
+</head>
+<body>
+<main class="door">
+  <nav class="top"><a href="../">← Harshita Shyale</a><span id="updated"></span></nav>
+  <header class="intro">
+    <p class="lab">a running note</p>
+    <h1>Working with the door open</h1>
+    <p>This is where I leave the door propped open: the things I’m working on, a line or two at a time, while they’re still half made. Nothing here is finished. That’s the point.</p>
+    <p class="credit">The idea comes from Andy Matuschak’s note on <a href="https://notes.andymatuschak.org/Work_with_the_garage_door_up" target="_blank" rel="noopener">working with the garage door up</a>, which riffs on <a href="https://www.robinsloan.com/" target="_blank" rel="noopener">Robin Sloan</a> and a woodworker who always keeps his door open. <em>I am here, working.</em></p>
+  </header>
+  <section class="ledger" aria-label="The ledger">
+    <div class="filters" role="group" aria-label="Filter by kind of work" id="filters"></div>
+    <ol class="rows" id="rows"></ol>
+    <p class="empty" id="empty" hidden>Nothing of this kind yet.</p>
+  </section>
+</main>
+<script src="../js/door.js"></script>
+</body>
+</html>
