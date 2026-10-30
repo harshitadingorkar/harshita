@@ -1417,3 +1417,6 @@ body.introing #home{visibility:visible}
 :root{--ctl:var(--e-dm)}
 .c-x:hover{transition:background-color .18s,scale .32s var(--e-dm)}
 .pt .dot,.pt[data-kind] .dot{transition:transform .32s var(--e-dm),scale .32s var(--e-dm),background-color .2s ease}
+#sheet .brief .pf-what{position:relative}
+#sheet .brief p{font:16px/1.6 var(--sans);color:var(--ink);max-width:600px}
+#sheet .brief .term-pop{font:italic 400 15px/1.5 var(--voice)}

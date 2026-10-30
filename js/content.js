@@ -52,7 +52,11 @@ window.SITE = {
       line: 'A code-review redesign tested worse than the one it replaced. We found out why: 60% less mouse movement, 40% faster file navigation.', img: 'github.jpg', images: ['github.jpg', 'github-01.jpg', 'github-02.jpg', 'github-03.jpg', 'github-04.jpg', 'github-05.jpg', 'github-06.jpg', 'github-07.jpg', 'github-08.jpg'],
       alt: 'A pull request: a file tree, line 108 highlighted, and a review comment.' },
     { id: 'hpe', type: 'work', role: 'UX designer', title: 'Keeping AI models in check', org: 'Hewlett Packard Enterprise', year: '2022', meta: 'HPE · 2022–23', quad: 'tr', x: .30, y: .80, tags: ['product', 'ai'], kind: 'shipped', case: 'hpe',
-      line: 'One place for data scientists to catch their models quietly getting worse. Designed it, then built it in React.', img: 'hpe.jpg', images: ['hpe.jpg', 'hpe-01.jpg', 'hpe-02.jpg'],
+      line: 'Automation that took over HPE’s order processing, then a tool that shows data scientists when their models are quietly getting worse.',
+      brief: [
+        'I was building agents before anyone called them that: software bots that took over HPE’s manual order processing, reading each order, checking it and keying it in, with a person stepping in on every hard call. Task accuracy improved by 90%, it saved $3.08M, and it won HPE’s President’s Quality Award.',
+        'That work pulled me toward the people on the other side of the screen. I moved toward UX engineering, and designed, then built in React, an observability tool for machine learning: one place where data scientists can see when a model is quietly getting worse.',
+      ], img: 'hpe.jpg', images: ['hpe.jpg', 'hpe-01.jpg', 'hpe-02.jpg'],
       alt: 'The AI model monitoring dashboard: performance and drift charts.' },
     { id: 'arena', type: 'collections', title: 'The collection', org: 'curations on are.na', year: '', meta: 'curations on are.na', quad: 'bl', x: -.40, y: -.72, tags: ['archive'], kind: 'archive',
       line: 'images, references and small artifacts I come back to, kept in public.' },

@@ -58,6 +58,8 @@ const REEL = `<svg class="pot" viewBox="0 0 40 40" aria-hidden="true">
 <g class="carve-fleck"><circle cx="20" cy="13" r="2.9"/><circle cx="26.66" cy="17.84" r="2.9"/><circle cx="24.11" cy="25.66" r="2.9"/><circle cx="15.89" cy="25.66" r="2.9"/><circle cx="13.34" cy="17.84" r="2.9"/><circle cx="20" cy="20" r="1.1"/></g>
 </svg>`;
 const HOVER_ART = { clay: () => POT, films: () => REEL };
+// the work that glows: shipped at Salesloft and GitHub, and the Sony capstone
+const GLOW = ['influence', 'github', 'sony'];
 /* ---------- plane ---------- */
 function buildPlane() {
   plane.innerHTML = '';
@@ -69,7 +71,7 @@ function buildPlane() {
     if(q==='tr'&&!sessionStorage.getItem('work-dot-hovered')) label.append(h('span',{class:'start-here'},'start with the work →'));
     plane.append(label);
   }
-  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.sub||p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
+  S.points.forEach((p, i) => { const e = h('button', { style: '--i:' + i, class: 'pt' + (p.x > 0.55 || (p.x < 0 && p.x > -0.35) ? ' left' : ''), 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':GLOW.includes(p.id)?'true':null, 'data-id': p.id, 'aria-label': `${p.title}, ${p.meta}` }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), p.type==='work'?h('em',{},p.sub||p.org):h('em', {}, p.year || ''))); e._p = p; bindPoint(e); plane.append(e); });
   layout(); preview(active);
 }
 function layout() {
@@ -82,7 +84,7 @@ function layout() {
   $$('.pt').forEach(e => { e.style.left = (cx + e._p.x * sx) + 'px'; e.style.top = (cy - e._p.y * sy) + 'px'; e.style.setProperty('--d', Math.min(1, Math.hypot(e._p.x, e._p.y) / 1.2).toFixed(3)); });
 }
 function buildMobile() {
-  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
+  for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':GLOW.includes(p.id)?'true':null, 'data-id': p.id }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
   preview(active);
 }
 
@@ -317,6 +319,7 @@ function open(p, rect) {
     return;
   }
   if (p.beats) return openFilm(p, K);
+  if (p.brief) return openBrief(p, K);
   if (p.kind === 'vault' || p.kind === 'shipped') return openSheet(p.quad, K, p.title, sc || line, sc ? null : metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), p.video ? h('p', { class: 'c-cap reveal' }, p.vcap) : null, diagram(p.id), sc ? null : p.kind === 'shipped' ? crops(p) : p.images ? h('div', { class: 's-imgs' }, p.images.slice(1).map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null);
   if (p.kind === 'films') return ready.then(() => openFilms(K));
   if (p.kind === 'paper') return openSheet('bl', K, p.title, line, h('p', { class: 'reveal', style: 'margin-top:22px' }, h('a', { href: p.href, class: 'serif', style: 'font-size:22px;font-style:italic;border-bottom:1px solid currentColor' }, 'read it, like a book →')));
@@ -401,6 +404,13 @@ function openProfile() {
 }
 document.addEventListener('click', e => { const m = $('.pf-menu:not([hidden])', sheet); if (m && !e.target.closest('.pf-contact')) { m.hidden = true; $('.pf-contact .pf-act', sheet)?.setAttribute('aria-expanded', 'false'); } });
 
+/* a brief: the first view and nothing deeper, a couple of paragraphs; "agents" explains itself on hover, as on the about page */
+function openBrief(p, K) {
+  const term = text => { const i = text.search(/\bagents\b/); return i < 0 ? [text] : [text.slice(0, i), h('span', { class: 'term', tabindex: 0 }, 'agents'), text.slice(i + 6)]; };
+  openSheet(p.quad, K, p.title, h('div', { class: 'prose film-body brief reveal' }, p.brief.map(t => /\bagents\b/.test(t)
+    ? h('div', { class: 'pf-what' }, h('p', {}, ...term(t)), h('p', { class: 'term-pop', role: 'note' }, S.profile.agents))
+    : h('p', {}, t))));
+}
 /* vault diagrams — razor-thin, drawn in */
 function diagram(id) {
   const D = {
