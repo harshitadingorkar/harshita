@@ -25,11 +25,13 @@ const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
 if (editorShortcut) { updateEditorShortcut(); editorShortcut.addEventListener('click', () => window.enterPortfolioEdit?.()); window.addEventListener('site-editor-enabled', updateEditorShortcut); }
 
+/* a word that changes its clothes on hover: its own face at rest, Averia's italic when reached for, letter by letter */
+const wearWord = w => h('span', { class: 'wear', 'aria-hidden': 'true' }, ['w-a', 'w-b'].map(k => h('span', { class: k }, [...w].map((c, i) => h('i', { style: '--i:' + i }, c)))));
 /* ---------- filters (Ainsley-style word list) ---------- */
 const fwrap = $('#filters'), legend = $('#type-legend'); let active = null;
 const count = k => S.points.filter(p => p.tags.includes(k)).length;
 const types = [['work','●'],['collections','◎'],['making','▲'],['writing','■']];
-types.filter(([type]) => S.points.some(p => p.type === type)).forEach(([type, glyph]) => legend.append(h('button', { class:'legend-item', 'data-type':type, onmouseenter:()=>preview('type:'+type), onmouseleave:()=>preview(active), onfocus:()=>preview('type:'+type), onblur:()=>preview(active), onclick:()=>setFilter(active==='type:'+type?null:'type:'+type), 'aria-label':'Filter '+type }, h('i',{class:'type-glyph '+type},glyph), ' '+type)));
+types.filter(([type]) => S.points.some(p => p.type === type)).forEach(([type, glyph]) => legend.append(h('button', { class:'legend-item', 'data-type':type, onmouseenter:()=>preview('type:'+type), onmouseleave:()=>preview(active), onfocus:()=>preview('type:'+type), onblur:()=>preview(active), onclick:()=>setFilter(active==='type:'+type?null:'type:'+type), 'aria-label':'Filter '+type }, h('i',{class:'type-glyph '+type},glyph), wearWord(type))));
 function matches(p,k) { return k ? k.startsWith('type:') ? p.type===k.slice(5) : p.tags.includes(k) : true; }
 function preview(k) { $$('.pt').forEach(e => { const on = matches(e._p,k); e.classList.toggle('match', !!k && on); e.classList.toggle('mute', !!k && !on); }); legend.classList.toggle('has-active',!!k&&k.startsWith('type:')); }
 function setFilter(k) { active = k; fwrap.classList.toggle('has-active', !!k); $$('button[data-k]', fwrap).forEach(b => b.classList.toggle('on', b.dataset.k === k)); $$('[data-type]',legend).forEach(b=>b.classList.toggle('on',k==='type:'+b.dataset.type)); preview(k); renderIndex(); }
@@ -50,22 +52,10 @@ const POT = `<svg class="pot" viewBox="0 0 40 40" aria-hidden="true">
 </g>
 <g class="carve-fleck"><circle cx="22.6" cy="18.4" r=".45"/><circle cx="16" cy="13.8" r=".35"/><circle cx="28.4" cy="13.6" r=".4"/><circle cx="20.6" cy="24.9" r=".35"/><circle cx="11.8" cy="12.9" r=".3"/></g>
 </svg>`;
-/* Films, printed small: a reel with its strip running out onto the ground. */
+/* Films: a reel, nothing more. */
 const REEL = `<svg class="pot" viewBox="0 0 40 40" aria-hidden="true">
-<path class="ink" d="M4.8 34.6 21.5 34.3M24 34.5 38.4 34.7" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-<path class="ink" fill="currentColor" d="M24.3 19.4C27.9 22.8 31 27.4 32.3 33.6L37.8 33.6C36.2 26.4 32.3 20.9 27.9 17Z"/>
-<path class="ink" fill="currentColor" d="M16.9 4.9C23.2 4.6 28.3 9.6 28.2 15.9 28.1 22.2 23.1 27.1 16.8 27 10.6 26.9 5.7 21.9 5.8 15.8 5.9 9.7 10.8 5.1 16.9 4.9Z"/>
-<g class="carve-fleck">
-<circle cx="17" cy="9.9" r="2.6"/><circle cx="22.7" cy="14.1" r="2.5"/><circle cx="20.5" cy="20.9" r="2.6"/><circle cx="13.3" cy="20.8" r="2.5"/><circle cx="11.2" cy="14" r="2.6"/>
-<circle cx="17" cy="15.9" r="1.2"/>
-</g>
-<g class="carve" fill="none" stroke-linecap="round">
-<path d="M8.4 12.2C9.4 9.6 11.6 7.7 14.2 7" stroke-width=".8"/>
-<path d="M25.6 19.4C24.4 21.9 22.4 23.7 19.9 24.6" stroke-width=".8"/>
-<path d="M25.4 20.6C28.5 23.9 30.9 28 32.9 33.3" stroke-width=".9" stroke-dasharray=".9 1.5"/>
-<path d="M27.2 18.7C30.7 22 33.6 27 36.5 33.3" stroke-width=".9" stroke-dasharray=".9 1.5"/>
-</g>
-<g class="carve-fleck"><circle cx="9.5" cy="18.3" r=".35"/><circle cx="24.6" cy="9.6" r=".4"/><circle cx="31.4" cy="29.2" r=".3"/></g>
+<circle class="ink" cx="20" cy="20" r="12.5" fill="currentColor"/>
+<g class="carve-fleck"><circle cx="20" cy="13" r="2.9"/><circle cx="26.66" cy="17.84" r="2.9"/><circle cx="24.11" cy="25.66" r="2.9"/><circle cx="15.89" cy="25.66" r="2.9"/><circle cx="13.34" cy="17.84" r="2.9"/><circle cx="20" cy="20" r="1.1"/></g>
 </svg>`;
 const HOVER_ART = { clay: () => POT, films: () => REEL };
 /* ---------- plane ---------- */
@@ -73,7 +63,7 @@ function buildPlane() {
   plane.innerHTML = '';
   if (mobile()) return buildMobile();
   plane.append(h('div', { class: 'axis h' }), h('div', { class: 'axis v' }));
-  for (const [side, w] of [['top', 'work'], ['bottom', 'wonder'], ['left', 'gather'], ['right', 'make']]) { const g = S.axes[w].gloss; plane.append(h('div', { class: 'alabel ' + side, tabindex: 0, 'aria-label': `${w}: ${g}` }, h('span', { class: 'aw' }, w), h('small', { style: '--n:' + g.length }, [...g].map((c, i) => h('i', { style: '--i:' + i }, c))))); }
+  for (const [side, w] of [['top', 'work'], ['bottom', 'wonder'], ['left', 'gather'], ['right', 'make']]) plane.append(h('div', { class: 'alabel ' + side, tabindex: 0, 'aria-label': w }, wearWord(w)));
   for (const [q, d] of Object.entries(S.quads)) {
     const label=h('div', { class: 'qlabel q-' + q }, h('span',{class:'quad-name'},d.name),h('small',{},d.key));
     if(q==='tr'&&!sessionStorage.getItem('work-dot-hovered')) label.append(h('span',{class:'start-here'},'start with the work →'));
@@ -132,6 +122,7 @@ function plateFor(p) {
   if (p.kind === 'archive' && DATA.arena) { const imgs = DATA.arena.channels.flatMap(c => c.blocks).filter(b => b.image).slice(0, 12); return h('div', { class: 'tiles' }, imgs.map(b => h('img', { src: b.image.local || b.image.thumb, alt: '' }))); }
   if (p.kind === 'films' && DATA.films) return h('div', { class: 'tiles' }, DATA.films.slice(0, 8).map(f => h('img', { src: f.local || f.poster, alt: '', style: 'height:138px' })));
   if (p.kind === 'room' && p.room === 'odds') return h('div', { class: 'tiles' }, S.odds.slice(0, 8).map(f => h('img', { src: A(f), alt: '' })));
+  if (p.id === 'theatre') return h('div', { class: 'flip', style: '--n:6' }, ['poster', 'tr2', 'sips1', 'mime', 'tr5', 'lullaby'].map((f, i) => h('img', { src: A('theatre/' + f + '.jpg'), alt: '', style: '--i:' + i })));
   if(p.id==='wobblefoot') return h('div',{class:'turnaround-preview',style:`background-image:url("${A('wobblefoot-sheet.jpg')}")`});
   if (p.img) return h('img', { src: A(p.img), alt: '' });
   return null;

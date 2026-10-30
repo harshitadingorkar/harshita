@@ -19,19 +19,17 @@ const T = 'assets/theatre/';
 const THEATRE = {
   plays: [
     { slug:'trraammtobb', title:'TRRAAMMToBB', year:'2020', images:['poster','tr1','tr2','tr3','tr4','tr5','tr6'] },
-    { slug:'sips-and-scripts', title:'Sips & Scripts', year:'Seattle, now', images:['sips1','sips2','sips3'] },
-    { slug:'youre-all-mime', title:'You’re All Mime', year:'2020', images:['mime'] },
-    { slug:'monkeys-paw', title:'The Monkey’s Paw', year:'2019', images:['monkey'] },
-    { slug:'searching-for-a-lullaby', title:'Searching for a Lullaby', year:'2021', images:['lullaby'] },
-    { slug:'carv', title:'CARV', year:'Bangalore', images:['banner'] }
+    { slug:'scripts-and-sips', title:'Scripts & Sips', year:'Seattle, now', images:['sips1','sips-video','sips2','sips3'] },
+    // plays with a single still share one shelf; each still keeps its own name
+    { slug:'more', title:'More from the stage', images:[['mime','You’re All Mime · 2020'],['monkey','The Monkey’s Paw · 2019'],['lullaby','Searching for a Lullaby · 2021'],['banner','CARV · Bangalore']] }
   ],
-  aspects:{ banner:2, poster:2.197, tr1:1.449, tr2:1.618, tr3:1.699, tr4:.887, tr5:1.321, tr6:.797, mime:1.501, monkey:1, lullaby:1.501, sips1:.912, sips2:1.778, sips3:1.333 },
+  aspects:{ banner:2, poster:2.197, tr1:1.449, tr2:1.618, tr3:1.699, tr4:.887, tr5:1.321, tr6:.797, mime:1.501, monkey:1, lullaby:1.501, sips1:.912, 'sips-video':.5625, sips2:1.778, sips3:1.333 },
   intro:[
     ['Before design, there was theatre. I led ', ['CARV','http://carvenglish.wordpress.com/'], ', the theatre company at my college in Bangalore, acted in sold-out original plays, and co-wrote and directed ', ['TRRAAMMToBB','#trraammtobb'], ', which won Best Play and Best Director at IITM in 2020.'],
-    ['In Seattle I started ', ['Sips & Scripts','#sips-and-scripts'], ', a casual line-reading series where anyone can pick up a script and read a part out loud.']
+    ['In Seattle I started ', ['Scripts & Sips','#scripts-and-sips'], ', a casual line-reading series where anyone can pick up a script and read a part out loud.']
   ],
-  trraammtobb:{ kicker:'co-written & directed · 2020', title:'The Reasonably Remarkable, Adequately Amusing, Marvelously Mundane Tale of Bryan the Bard', ask:'What happens to the characters in the stories we abandon?', body:'A playwright who never finishes his plays is confronted by the characters he left behind. To get out of their world, he has to help them find their purpose, and finds his own on the way.', award:'Best Play · Best Director · IITM 2020' },
-  sips:{ logo:'sips1', kicker:'started in Seattle', title:'Sips & Scripts', body:'A casual line-reading series. No auditions and no experience needed: pick up a script, choose a part, and read it out loud with whoever showed up.', link:['Come read with us ↗','https://forms.gle/9Qm4NhswapDw7TTF7'] }
+  trraammtobb:{ kicker:'co-written & directed · 2020', title:'The Reasonably Remarkable, Adequately Amusing, Marvelously Mundane Tale of Bryan the Bard', ask:'What happens to the characters in the stories we abandon?', body:'A playwright who never finishes a play is cornered by the characters he left behind. The only way out of their world is to help them find their purpose, and somewhere along the way he finds his.', award:'Best Play · Best Director · IITM 2020' },
+  sips:{ logo:'sips1', kicker:'started in Seattle', title:'Scripts & Sips', body:'A casual line-reading series. No auditions and no experience needed: pick up a script, choose a part, and read it out loud with whoever showed up.', link:['Come read with us ↗','https://forms.gle/9Qm4NhswapDw7TTF7'] }
 };
 const pageCopy = pages[pageId] || pages.arena;
 window.COLLECTION_PAGE_COPY=pageCopy;
@@ -162,6 +160,7 @@ function buildStamp(block, index, copyX, copyY, dims) {
   frame.addEventListener('animationend', () => node.classList.remove('is-entering'), { once: true });
   const art = document.createElement('span'); art.className = `stamp-art${block.turnaround?' turnaround-art':''}`; art.style.width = `${width}px`; art.style.height = `${height}px`;
   if (block.turnaround) art.style.backgroundImage = `url("${block.small}")`;
+  else if (block.video) { const v = document.createElement('video'); Object.assign(v, { src: block.video, poster: block.small, muted: true, loop: true, playsInline: true, autoplay: !reducedMotion.matches, preload: 'metadata' }); v.setAttribute('aria-label', block.tag || block.title); art.append(v); }
   else { const img = document.createElement('img'); img.src = block.small; img.alt = blockTitle(block) || block.channel; img.loading = 'lazy'; img.decoding = 'async'; art.append(img); }
   frame.append(art);
   const tag = document.createElement('span'); tag.className = 'stamp-tag'; tag.textContent = block.tag || `${block.channel} · ${mono(dateValue(block))}`;
@@ -175,6 +174,10 @@ function buildStamp(block, index, copyX, copyY, dims) {
     width, height, tilt, arrival: Math.min(760, (index % 34) * 18 + Math.abs(copyX + copyY) * 35)
   };
   node.style.setProperty('--arrival', `${node._position.arrival}ms`);
+  // each print breathes on its own rhythm, and leans a few pixels toward the pointer while it's over it
+  art.style.setProperty('--breath', (5.4 + rand() * 2.4).toFixed(2) + 's'); art.style.setProperty('--breath-at', (-rand() * 6).toFixed(2) + 's');
+  node.addEventListener('mousemove', e => { const r = node.getBoundingClientRect(); frame.style.setProperty('--hx', ((e.clientX - r.left) / r.width - .5) * 10 + 'px'); frame.style.setProperty('--hy', ((e.clientY - r.top) / r.height - .5) * 8 + 'px'); });
+  node.addEventListener('mouseleave', () => { frame.style.removeProperty('--hx'); frame.style.removeProperty('--hy'); });
   node.addEventListener('mouseenter', () => {
     node.classList.add('is-hovered'); field.classList.add('is-hovering'); hovering = true;
     if(block.turnaround&&!reducedMotion.matches){let n=0;clearInterval(node._turn);node._turn=setInterval(()=>{art.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);}
@@ -198,17 +201,20 @@ function makePool() {
   field.replaceChildren();
   stampPool = [];
   if (!activeBlocks.length) return;
-  const cols = Math.min(8, activeBlocks.length), rows = Math.ceil(activeBlocks.length / cols);
+  const n = activeBlocks.length, cols = n < 24 ? Math.min(n, Math.ceil(Math.sqrt(n * 1.6))) : Math.min(8, n), rows = Math.ceil(n / cols);
   const dims = poolDims = { cols, rows, tileW: cols * 280, tileH: rows * 300 };
-  const copiesX = Math.max(1, Math.ceil(window.innerWidth / dims.tileW));
-  const copiesY = Math.max(1, Math.ceil(window.innerHeight / dims.tileH));
+  // A short collection is laid out once, honestly; only a long one wraps around into an endless wall.
+  const few = activeBlocks.length < 24; poolDims.few = few;
+  const copiesX = few ? 0 : Math.max(1, Math.ceil(window.innerWidth / dims.tileW));
+  const copiesY = few ? 0 : Math.max(1, Math.ceil(window.innerHeight / dims.tileH));
   for (let cy = -copiesY; cy <= copiesY; cy++) for (let cx = -copiesX; cx <= copiesX; cx++) {
-    for (let i = 0; i < rows * cols; i++) {
+    for (let i = 0; i < (few ? activeBlocks.length : rows * cols); i++) {
       const block = activeBlocks[i % activeBlocks.length];
       const stamp = buildStamp(block, i, cx, cy, dims);
       field.append(stamp); stampPool.push(stamp);
     }
   }
+  if (poolDims.few) { offsetX = (dims.tileW - wall.clientWidth) / 2; offsetY = (dims.tileH - wall.clientHeight) / 2; }
   positionPool();
   requestAnimationFrame(() => field.classList.remove('filtering'));
 }
@@ -216,6 +222,13 @@ function positionPool() {
   if (!stampPool.length || !poolDims) return;
   const width = wall.clientWidth, height = wall.clientHeight;
   const { tileW, tileH } = poolDims;
+  if (poolDims.few) {
+    // laid out once: the wall pans only as far as its edges, plus a little air
+    const mx = Math.max(0, (tileW - width) / 2) + 120, my = Math.max(0, (tileH - height) / 2) + 120, cx = (tileW - width) / 2, cy = (tileH - height) / 2;
+    offsetX = Math.max(cx - mx, Math.min(cx + mx, offsetX)); offsetY = Math.max(cy - my, Math.min(cy + my, offsetY));
+    for (const node of stampPool) { const p = node._position; node.style.transform = `translate3d(${p.x - offsetX}px,${p.y - offsetY}px,0)`; node.style.setProperty('--arrival', `${p.arrival}ms`); }
+    return;
+  }
   for (const node of stampPool) {
     const p = node._position;
     const baseX = p.x - p.copyX * tileW, baseY = p.y - p.copyY * tileH;
@@ -240,13 +253,13 @@ function theatrePanel(slug) {
   const back = () => { const b = el('button', 'tp-back', '← all of it'); b.type = 'button'; b.addEventListener('click', () => selectChannel('')); return b; };
   let kids;
   if (slug === 'trraammtobb') { const d = THEATRE.trraammtobb; kids = [el('p', 'tp-kicker mono', d.kicker), el('h2', 'tp-title', d.title), el('p', 'tp-ask', d.ask), el('p', 'tp-body', d.body), el('p', 'tp-award mono', d.award), back()]; }
-  else if (slug === 'sips-and-scripts') { const d = THEATRE.sips, img = el('img', 'tp-logo'); img.src = T + d.logo + '.jpg'; img.alt = 'The Sips & Scripts mark: a figure in blue ink reading aloud from a script.'; kids = [img, el('p', 'tp-kicker mono', d.kicker), el('h2', 'tp-title', d.title), el('p', 'tp-body', d.body), link(d.link), back()]; }
+  else if (slug === 'scripts-and-sips') { const d = THEATRE.sips, img = el('img', 'tp-logo'); img.src = T + d.logo + '.jpg'; img.alt = 'The Scripts & Sips mark: a figure in blue ink reading aloud from a script.'; kids = [img, el('p', 'tp-kicker mono', d.kicker), el('h2', 'tp-title', d.title), el('p', 'tp-body', d.body), link(d.link), back()]; }
   else kids = [el('h2', null, 'What this is'), ...THEATRE.intro.map(parts => el('p', 'tp-body', ...parts.map(x => typeof x === 'string' ? x : link(x))))];
   sec.dataset.slug = slug || ''; sec.replaceChildren(...kids);
 }
 function renderSidebar() {
   const list = $('#channel-list'), lately = $('#lately');
-  if (pageId === 'theatre') { theatrePanel(activeChannel === 'trraammtobb' || activeChannel === 'sips-and-scripts' ? activeChannel : ''); $('.curation-section h2').textContent = 'Plays'; $('.lately-section').hidden = true; }
+  if (pageId === 'theatre') { theatrePanel(activeChannel === 'trraammtobb' || activeChannel === 'scripts-and-sips' ? activeChannel : ''); $('.curation-section h2').textContent = 'Plays'; $('.lately-section').hidden = true; }
   $('#clay-meditation').hidden = pageId !== 'clay';
   if(pageId==='clay'){const ps=$$('#clay-meditation p');if(ps[0])ps[0].textContent=pageCopy.meditation;if(ps[1])ps[1].textContent=pageCopy.meditation2;}
   list.replaceChildren(); lately.replaceChildren();
@@ -280,7 +293,8 @@ function renderSidebar() {
   else if(pageId==='clay'){credit.href='https://www.instagram.com/ashlime_soda/';credit.textContent='@ashlime_soda ↗';}
   else if(pageId==='odds'||pageId==='theatre'){credit.href='index.html';credit.textContent='back to the map ↗';}
   else{credit.href='https://www.are.na/harshita-shyale';credit.textContent='kept on are.na ↗';}
-  footer.lastChild.textContent = ` · ${total} images`;
+  let count = $('.count', footer); if (!count) { count = document.createElement('span'); count.className = 'count'; footer.append(count); }
+  count.textContent = ` · ${total} ${pageId === 'theatre' ? 'stills' : 'images'}`;
   $('#wall-status').textContent = pageId === 'theatre' ? `${total} stills` : `${total} images · synced ${relative(lastSync)}`;
   const handle = $('#drawer-handle'); handle.innerHTML = `${pageId === 'theatre' ? `Theatre · ${allChannels.length} plays` : `Collection · ${allChannels.length} curations`} <span>${document.body.classList.contains('drawer-open') ? '▼' : '▲'}</span>`;
 }
@@ -311,9 +325,10 @@ function setLightbox(block, from, animate = true, stamp = null) {
   const previous = $('.lightbox-image', wrap);
   if (previous) previous.remove();
   lb.hidden = false; document.body.classList.add('lightbox-open');
-  const img = document.createElement(block.turnaround?'div':'img'); img.className = block.turnaround?'lightbox-image turnaround-large':'lightbox-image';
+  const img = document.createElement(block.turnaround?'div':block.video?'video':'img'); img.className = block.turnaround?'lightbox-image turnaround-large':'lightbox-image';
+  if (block.video) Object.assign(img, { src: block.video, poster: block.small, controls: true, autoplay: true, loop: true, playsInline: true });
   if(block.turnaround){img.style.backgroundImage=`url("${block.src}")`;img.style.backgroundPosition='0 0';let n=0;if(!reducedMotion.matches)turnaroundTimer=setInterval(()=>{img.style.backgroundPosition=`${n%2?100:0}% ${Math.floor(n/2)*50}%`;n=(n+1)%6;},180);}
-  else{img.src=block.src;img.alt=blockTitle(block)||block.channel;img.decoding='async';}
+  else if(!block.video){img.src=block.src;img.alt=blockTitle(block)||block.channel;img.decoding='async';}
   wrap.append(img);
   const end = lightboxBounds(block, from);
   Object.assign(wrap.style,{left:`${end.left}px`,top:`${end.top}px`,width:`${end.width}px`,height:`${end.height}px`,transform:'none'});
@@ -323,7 +338,7 @@ function setLightbox(block, from, animate = true, stamp = null) {
   const details = document.createTextNode(block.rating!=null?`${block.year||''} · ${'★'.repeat(Math.floor(+block.rating))}${+block.rating%1?'½':''} · watched ${block.watched||''}`:`${block.channel} · added ${mono(dateValue(block))}`);
   const line = document.createElement('br'), link = document.createElement('a');
   link.href = block.link||block.block_url; link.target = '_blank'; link.rel = 'noopener'; link.textContent = block.link?'view film ↗':'view on are.na ↗';
-  if (pageId === 'theatre') { details.textContent = block.tag ? ' · ' + block.tag.split(' · ').slice(1).join(' · ') : ''; if (block.slug === 'trraammtobb' || block.slug === 'sips-and-scripts') theatrePanel(block.slug); }
+  if (pageId === 'theatre') { details.textContent = block.tag ? ' · ' + block.tag.split(' · ').slice(1).join(' · ') : ''; if (block.slug === 'trraammtobb' || block.slug === 'scripts-and-sips') theatrePanel(block.slug); }
   caption.append(titleNode, details);
   if(block.link||pageId==='arena'||block.slug==='ceramic-era') caption.append(line,link);
   if (animate && from) {
@@ -377,7 +392,7 @@ function localChannel(slug,title,items,description='') {
   const blocks=items.map((item,i)=>({
     id:String(item.id??`${slug}-${i}`),title:item.title||'',type:'Image',channel:title,slug,description,
     small:item.small,src:item.src||item.small,aspect:Number(item.aspect)||1,created_at:item.created_at||'',connected_at:item.connected_at||'',
-    block_url:item.block_url||'#',tag:item.tag,rating:item.rating,year:item.year,watched:item.watched,link:item.link,turnaround:!!item.turnaround
+    block_url:item.block_url||'#',tag:item.tag,video:item.video,rating:item.rating,year:item.year,watched:item.watched,link:item.link,turnaround:!!item.turnaround
   }));
   return {slug,title,description,count:blocks.length,blocks};
 }
@@ -391,7 +406,7 @@ async function customPageChannels() {
     const range={loved:'loved (4½–5★)',liked:'liked (3½–4★)',fine:'fine (2½–3★)','not-for-me':'not for me (≤2★)',unrated:'unrated'};
     return buckets.map(([slug,title,pred])=>localChannel(slug,range[slug],films.filter(pred)));
   }
-  if(pageId==='theatre') return THEATRE.plays.map(play=>localChannel(play.slug,play.title,play.images.map(k=>({id:k,title:play.title,small:T+k+'.jpg',aspect:THEATRE.aspects[k],tag:`${play.title} · ${play.year}`}))));
+  if(pageId==='theatre') return THEATRE.plays.map(play=>localChannel(play.slug,play.title,play.images.map(x=>{const [k,tag]=Array.isArray(x)?x:[x,`${play.title} · ${play.year}`];return {id:k,title:tag.split(' · ')[0],small:T+k+'.jpg',video:k==='sips-video'?T+k+'.mp4':null,aspect:THEATRE.aspects[k],tag};})));
   if(pageId==='odds') {
     const items=Array.from({length:13},(_,i)=>{const src=`assets/odds-${String(i+1).padStart(2,'0')}.jpg`;return {id:`odds-${i+1}`,small:src,aspect:1};});
     return [localChannel('odds-and-ends','odds & ends',items)];

@@ -1354,3 +1354,35 @@ button.pf-pile img:hover{scale:1.06;translate:0 6px;z-index:2}
 @media (max-width:760px){.pf-kid,.pf-kid img{width:76px}}
 .b-id{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .arriving .b-intro{animation:fadeIn .9s ease calc(var(--ad,0ms) + 1.45s) both}
+
+/* ---------- Round 32: words that change face, a plain reel, a flipbook ---------- */
+.wear{display:inline-grid;align-items:baseline;justify-items:start}
+.wear>span{grid-area:1/1;white-space:nowrap}
+.wear i{display:inline-block;font-style:inherit;transition:opacity .2s ease calc(var(--i) * 22ms),filter .26s ease calc(var(--i) * 22ms),translate .3s var(--e-dm) calc(var(--i) * 22ms)}
+.wear .w-b{font-style:italic;font-family:var(--voice);text-transform:none;letter-spacing:-.005em}
+.wear .w-b i{opacity:0;filter:blur(3px);translate:0 1.5px}
+:is(.type-legend button,.alabel):is(:hover,:focus-visible) .wear .w-a i,.type-legend button.on .wear .w-a i{opacity:0;filter:blur(3px);translate:0 -1px}
+:is(.type-legend button,.alabel):is(:hover,:focus-visible) .wear .w-b i,.type-legend button.on .wear .w-b i{opacity:1;filter:none;translate:none}
+.keybar .wear .w-b{font-size:15px;line-height:1}
+.alabel{padding:6px 8px;margin:-6px -8px}
+.alabel .wear .w-b{font-size:16px;line-height:1;color:var(--ink)}
+.alabel.right .wear{justify-items:end}
+.alabel small{display:none!important}
+@media (prefers-reduced-motion:reduce){.wear i{transition:opacity .12s ease!important;filter:none!important;translate:none!important}}
+/* the menu's worn word was meant to be italic all along */
+.mw-b i{font-style:italic}
+
+/* films: a plain reel in the oxblood, turning a little as it rises */
+.pt[data-kind=films] .pot{width:30px;height:30px}
+
+/* theatre: six stills take turns, a tiny flipbook */
+#plate .flip{position:relative;width:min(40vw,520px);aspect-ratio:3/2}
+#plate .flip img{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;opacity:0;animation:flip calc(var(--n) * .9s) steps(1,end) calc(var(--i) * .9s) infinite}
+#plate .flip img:first-child{opacity:1}
+@keyframes flip{0%{opacity:1}16.66%{opacity:0}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#plate .flip img{animation:none}}
+
+/* Sir Wobblefoot turns large, in the middle */
+#plate .turnaround-preview{width:min(36vw,440px);height:auto;aspect-ratio:448/398;background-size:200% 300%}
+#plate .flip{aspect-ratio:4/3}
+#plate .flip img[src*="sips1"]{object-fit:contain;background:#F1F3DC}

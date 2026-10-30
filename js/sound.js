@@ -1,10 +1,11 @@
 // Sound, from the first prototype: every point has a note — higher on the map is higher in
-// pitch, further right is further into your right ear. Off until the visitor turns it on.
+// pitch, further right is further into your right ear. On until the visitor turns it off; browsers
+// still hold the first note until their first click or key.
 (() => {
   const SCALE = [220, 246.94, 277.18, 329.63, 369.99, 440, 493.88, 554.37, 659.25, 739.99];
   let ctx = null, out = null, last = 0;
   const key = 'sound';
-  const on = () => { try { return localStorage.getItem(key) === 'on'; } catch { return false; } };
+  const on = () => { try { return localStorage.getItem(key) !== 'off'; } catch { return true; } };
   function wake() {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;

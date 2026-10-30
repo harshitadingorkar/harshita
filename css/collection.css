@@ -152,3 +152,14 @@ body.is-ready .wall{animation:wall-in .65s ease both}
 .theatre-panel>*:nth-child(2){animation-delay:40ms}.theatre-panel>*:nth-child(3){animation-delay:80ms}.theatre-panel>*:nth-child(4){animation-delay:120ms}.theatre-panel>*:nth-child(5){animation-delay:160ms}
 @keyframes tp-in{from{opacity:0;translate:0 4px;filter:blur(3px)}}
 @media (prefers-reduced-motion:reduce){.theatre-panel>*{animation:none}}
+
+/* No stamp frame: the pictures sit on the dark like prints, breathe a little in place, and lean toward the hand. */
+.stamp-frame{padding:0;background:none;filter:drop-shadow(0 12px 18px rgba(0,0,0,.5));transform:rotate(var(--tilt)) translate(var(--hx,0px),var(--hy,0px))}
+.stamp-frame:before,.stamp-art:after{display:none}
+.stamp-art{border-radius:2px;box-shadow:none;background:#1c1a17;animation:breathe var(--breath,6.4s) ease-in-out var(--breath-at,0s) infinite}
+.stamp-art video{display:block;width:100%;height:100%;object-fit:cover}
+@keyframes breathe{0%,100%{translate:0 0;scale:1}50%{translate:0 -3px;scale:1.014}}
+.stamp:hover .stamp-frame,.stamp:focus-visible .stamp-frame{transform:translate(var(--hx,0px),calc(var(--hy,0px) - 4px)) rotate(0deg) scale(1.05)}
+.stamp:hover .stamp-art{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.stamp-art{animation:none}}
+.lightbox-image[controls]{background:#000}
