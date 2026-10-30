@@ -1428,3 +1428,5 @@ body.introing #home{visibility:visible}
 .turn-hero{width:min(560px,80vw);aspect-ratio:448/398;background-size:200% 300%;background-repeat:no-repeat;animation:turn 3.1s steps(1,end) infinite}
 @keyframes turn{0%{background-position:0 0}16.66%{background-position:100% 0}33.33%{background-position:0 50%}50%{background-position:100% 50%}66.66%{background-position:0 100%}83.33%{background-position:100% 100%}}
 @media (prefers-reduced-motion:reduce){.turn-hero{animation:none}}
+/* the list view's picture stage spans exactly the height of the index card, so whatever shows sits level with the card's centre */
+.istage{top:calc(var(--bandH) + 20px);bottom:28px}
