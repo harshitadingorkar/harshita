@@ -414,7 +414,7 @@ function openBrief(p, K) {
   const term = text => { const i = text.search(/\bagents\b/); return i < 0 ? [text] : [text.slice(0, i), h('span', { class: 'term', tabindex: 0 }, 'agents'), text.slice(i + 6)]; };
   openSheet(p.quad, K, p.title, h('div', { class: 'prose film-body brief reveal' }, p.brief.map(t => /\bagents\b/.test(t)
     ? h('div', { class: 'pf-what' }, h('p', {}, ...term(t)), h('p', { class: 'term-pop', role: 'note' }, S.profile.agents))
-    : h('p', {}, t))));
+    : h('p', {}, t))), p.nda ? h('p', { class: 'nda reveal' }, p.nda, ' ', h('a', { href: `mailto:${S.person.email}?subject=${encodeURIComponent(p.title)}` }, S.person.email)) : null);
 }
 /* vault diagrams — razor-thin, drawn in */
 function diagram(id) {
