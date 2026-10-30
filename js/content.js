@@ -41,7 +41,39 @@ window.SITE = {
       ],
       beats: [[1, 'While you were away, your deal moved.'], [3, 'Salesloft read every email and call.'], [6, 'Your CRO and CFO turned resistant.'], [8, 'And a new exec no one has met.'], [11, 'Win Dana through Petra.'], [13, 'Brief Petra before Sep 18.'], [18, 'See who moves the deal.']],
       beatsNote: 'The names and dates are made up. The shape of the problem isn’t.',
-      nda: 'The rest is under NDA: the research, the versions that didn’t make it, what sellers said when they first saw it. Ask me and I’ll walk you through it.' },
+      // the case study, told plainly: who, the problem, the idea, five moments from the film and what each solves, a few decisions, what it taught me
+      study: {
+        meta: [['Role', 'Product designer'], ['Team', 'Me, a design manager, a PM and two engineers'], ['When', '2025–26'], ['Where', 'Salesloft']],
+        problem: {
+          title: 'A deal is a room full of people',
+          body: [
+            'Big deals aren’t won by one person saying yes. There’s someone who signs, someone who sways them, someone quietly against it, and often someone the seller has never met.',
+            'Sellers kept all of this in their heads. What people said was scattered across calls, emails and notes. How they felt was a hunch. And the person who could sink the deal was often someone mentioned once on a call who never made it into the CRM.',
+          ],
+          missing: ['One place to see everyone involved.', 'A way to know how each person feels, beyond a hunch.', 'A heads-up when someone new shows up.'],
+        },
+        idea: {
+          title: 'Start with a draft',
+          body: 'The map is never blank. It opens with its best guess, drawn from the calls and emails Salesloft already hears, and the seller edits it instead of building it from scratch. Every edit teaches it something, so the map gets better the more it’s used.',
+        },
+        moments: [
+          { video: 'cases/salesloft/moments/01-catch-up', title: 'Catch up in seconds', what: 'Since you last looked: what changed, read straight from the calls, emails and meetings.', solves: 'No one digs through a week of threads to know where the deal stands.' },
+          { video: 'cases/salesloft/moments/02-stances-shift', title: 'See where people stand', what: 'Each person carries their role, how they feel and why. Lines show who influences whom, and how often.', solves: 'How someone feels stops being a hunch. Every label comes with its reason.' },
+          { video: 'cases/salesloft/moments/03-new-exec', title: 'Meet the person no one knew', what: 'Someone mentioned on a call but missing from Salesforce shows up, outlined, ready to add.', solves: 'The hidden blocker gets found before they can sink the deal.' },
+          { video: 'cases/salesloft/moments/04-path-to-yes', title: 'Choose a way in', what: 'The map suggests plays along the relationships: reach the CFO through a champion, or bring someone new into the room.', solves: 'The map doesn’t stop at insight. It points to what to do next.' },
+          { video: 'cases/salesloft/moments/05-approve', title: 'Approve, don’t autopilot', what: 'It drafts the steps. The seller approves them, and can undo any of it.', solves: 'The seller stays in charge of every message that goes out.' },
+        ],
+        decisions: [
+          ['Influence over job title', 'A VP can defer to a director. People are placed by how much they actually sway the deal, not where they sit on the org chart.'],
+          ['A list and a map', 'The list answers who’s involved, fast. The map answers how they connect, for when a deal turns political.'],
+          ['Only say what it’s sure of', 'When the system isn’t confident about how someone feels, it says so instead of guessing. One wrong guess costs more trust than a blank.'],
+        ],
+        reflections: [
+          ['Trust is the product.', 'With AI, the risk isn’t that it fails. It’s that people stop believing it. Showing the reason behind every call, and letting people override it, mattered more than any single screen.'],
+          ['Design the loop, not just the feature.', 'The best moment to learn from someone is while they’re already doing the work, like a quick “why did you move this?” as they drag a card.'],
+        ],
+      },
+      nda: 'The rest is under NDA: the research, the versions that didn’t make it, what sellers said when they first saw it, and the numbers. Ask me and I’ll walk you through it.' },
     { id: 'sony', type: 'work', role: 'client project via UW', title: 'After the purchase', org: 'Sony', year: '2025', meta: 'Sony · client project via UW · 2025', hint: 'what Sony owes you after you buy: Sonia, an AI that asks first', quad: 'tl', x: -.82, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
       line: 'What does Sony owe you after you buy? A capstone about a smarter, more sustainable life after the purchase.', img: 'sony.jpg', images: ['sony.jpg'],
       alt: 'A phone on a dark field glowing violet: Sonia, an AI assistant, asks before it uses your data.' },

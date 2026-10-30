@@ -1440,3 +1440,33 @@ body.introing #home{visibility:visible}
 /* A Safe Space opens on its film; the animation is credited right under it */
 .c-hero .yt{display:block;width:min(960px,calc(100vw - 48px));aspect-ratio:16/9;border:0;background:#000}
 .c-credit{max-width:min(960px,calc(100vw - 48px));margin:10px auto 0;font:italic 400 14px/1.4 var(--voice);color:var(--ink2)}
+
+/* ---------- Round 34: the Influence Graph case study ----------
+   Plain sections under the film: team, problem, idea, five moments (clip, what it shows, what it solves),
+   decisions, reflections. Labels in mono, headings in Averia, reading text in the grotesk. */
+.cs-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 20px;margin:6px 0 0;padding:16px 0;border-block:1px solid var(--hair2)}
+.cs-meta dt{font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink3);grid-row:1}
+.cs-meta dd{margin:0;font:14px/1.45 var(--sans);color:var(--ink);grid-row:2}
+.cs-sec{margin-top:64px;display:grid;gap:12px}
+.cs-lab{margin:0;font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink3)}
+.cs-h{margin:0 0 4px;font:400 30px/1.15 var(--voice);letter-spacing:-.015em;color:var(--ink);text-wrap:balance}
+#sheet .cs-p{margin:0;font:16px/1.6 var(--sans);color:var(--ink);max-width:600px;text-wrap:pretty}
+#sheet .cs-quiet{color:var(--ink2);margin-top:6px}
+.cs-list{margin:0;padding:0;list-style:none;display:grid;gap:6px;max-width:600px}
+.cs-list li{position:relative;padding-left:20px;font:16px/1.5 var(--sans);color:var(--ink)}
+.cs-list li::before{content:'';position:absolute;left:2px;top:.62em;width:8px;height:1px;background:var(--ink3)}
+.cs-moments{display:grid;gap:44px;margin-top:8px}
+.cs-moment{margin:0;display:grid;gap:14px}
+.cs-moment video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#f3f4f6;box-shadow:0 0 0 1px var(--hair2),0 30px 60px -36px rgba(25,25,21,.4)}
+.cs-moment figcaption{display:grid;grid-template-columns:34px minmax(0,1fr);gap:4px 12px;max-width:620px}
+.cs-n{grid-row:span 3;font:11px/2.1 var(--mono);color:var(--ox)}
+.cs-moment b{font:400 21px/1.25 var(--voice);color:var(--ink)}
+.cs-what{font:15px/1.55 var(--sans);color:var(--ink2)}
+.cs-solves{font:15px/1.55 var(--sans);color:var(--ink)}
+.cs-solves i{margin-right:8px;font:11px/1 var(--mono);font-style:normal;letter-spacing:.02em;text-transform:uppercase;color:var(--ox)}
+.cs-rows{display:grid;gap:18px;max-width:620px}
+.cs-row{display:grid;gap:4px;padding-top:14px;border-top:1px solid var(--hair2)}
+.cs-row b{font:500 15px/1.4 var(--sans);color:var(--ink)}
+.cs-row b.cs-voice{font:italic 400 20px/1.3 var(--voice)}
+.cs-row p{margin:0;font:15px/1.6 var(--sans);color:var(--ink2);text-wrap:pretty}
+@media (max-width:760px){.cs-meta{grid-template-columns:1fr 1fr}.cs-meta dt,.cs-meta dd{grid-row:auto}.cs-h{font-size:25px}.cs-sec{margin-top:48px}}

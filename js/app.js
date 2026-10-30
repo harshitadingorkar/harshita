@@ -321,6 +321,7 @@ function open(p, rect) {
     $('.body', sheet).classList.add('wide');
     return;
   }
+  if (p.study) return openStudy(p, K);
   if (p.beats) return openFilm(p, K);
   // Sir Wobblefoot is only to be looked at: the turnaround, large, and nothing else
   if (p.id === 'wobblefoot') return openSheet(p.quad, null, null);
@@ -336,6 +337,28 @@ function open(p, rect) {
 
 /* a case told by its film: the beats are chapters; clicking one plays from there, and the one
    on screen is lit as it plays. Then a short account, and the rest offered in person. */
+/* a case study told plainly: the team, the problem in a few sentences, the idea, then five moments from the film,
+   each saying what it shows and what it solves; a few decisions, what it taught me, and the rest offered in person.
+   The moment clips play only while they're on screen. */
+function openStudy(p, K) {
+  const C = p.study, sec = (label, ...kids) => h('section', { class: 'cs-sec reveal' }, h('p', { class: 'cs-lab' }, label), ...kids);
+  const mail = h('a', { href: `mailto:${S.person.email}?subject=${encodeURIComponent(p.title)}` }, S.person.email);
+  const moments = C.moments.map((m, i) => h('figure', { class: 'cs-moment reveal' },
+    h('video', { src: A(m.video + '.mp4'), poster: A(m.video + '.jpg'), muted: true, loop: true, playsinline: true, preload: 'none', 'aria-label': m.title }),
+    h('figcaption', {}, h('span', { class: 'cs-n' }, String(i + 1).padStart(2, '0')), h('b', {}, m.title), h('span', { class: 'cs-what' }, m.what), h('span', { class: 'cs-solves' }, h('i', {}, 'solves'), m.solves))));
+  openSheet(p.quad, K, p.title,
+    h('dl', { class: 'cs-meta reveal' }, C.meta.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
+    sec('the problem', h('h3', { class: 'cs-h' }, C.problem.title), ...C.problem.body.map(t => h('p', { class: 'cs-p' }, t)),
+      h('p', { class: 'cs-p cs-quiet' }, 'Three things were missing:'), h('ul', { class: 'cs-list' }, C.problem.missing.map(t => h('li', {}, t)))),
+    sec('the idea', h('h3', { class: 'cs-h' }, C.idea.title), h('p', { class: 'cs-p' }, C.idea.body)),
+    sec('key moments', h('div', { class: 'cs-moments' }, moments), h('p', { class: 'c-cap' }, p.beatsNote)),
+    sec('decisions', h('div', { class: 'cs-rows' }, C.decisions.map(([t, d]) => h('div', { class: 'cs-row' }, h('b', {}, t), h('p', {}, d))))),
+    sec('what it taught me', h('div', { class: 'cs-rows' }, C.reflections.map(([t, d]) => h('div', { class: 'cs-row' }, h('b', { class: 'cs-voice' }, t), h('p', {}, d))))),
+    h('p', { class: 'nda reveal' }, p.nda, ' ', mail));
+  // play a moment only while it's on screen
+  const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting && !RM) v.play?.().catch(() => {}); else v.pause(); }), { root: sheet, threshold: .5 });
+  $$('.cs-moment video', sheet).forEach(v => io.observe(v));
+}
 function openFilm(p, K) {
   const t = s => `0:${String(s).padStart(2, '0')}`;
   const beats = h('ol', { class: 'beats reveal', 'aria-label': 'The film, beat by beat' }, p.beats.map(([s, w]) => h('li', {}, h('button', { type: 'button', 'data-t': s }, h('span', { class: 'bt' }, t(s)), h('span', { class: 'bw' }, w)))));
