@@ -178,6 +178,7 @@ const ptEl = p => $$('.pt').find(e => e._p === p);
 function srcRect(p) { const m = $('.pfig.in', plate)?.firstElementChild; if (m) return m.getBoundingClientRect(); const d = ptEl(p); return d ? d.querySelector('.dot').getBoundingClientRect() : null; }
 const thumbSrc = q => q.img ? A(q.img) : q.kind === 'archive' && DATA.arena ? (b => b && (b.image.local || b.image.thumb))(DATA.arena.channels.flatMap(c => c.blocks).find(b => b.image)) : q.kind === 'films' && DATA.films && DATA.films[0] ? DATA.films[0].local || DATA.films[0].poster : null;
 function heroFor(p) {
+  if (p.youtube) return h('iframe', { class: 'yt', src: `https://www.youtube-nocookie.com/embed/${p.youtube}?rel=0&modestbranding=1`, title: p.title, loading: 'lazy', allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin' });
   if (p.id === 'wobblefoot') return h('div', { class: 'turn-hero', role: 'img', 'aria-label': p.alt || p.title, style: `background-image:url("${A(p.sheet)}")` });
   if (p.video) return Object.assign(h('video', { src: A(p.video), poster: p.img ? A(p.img) : null, muted: true, loop: true, playsinline: true, autoplay: !RM, controls: RM, 'aria-label': p.vcap || p.title }), { muted: true, defaultMuted: true });
   if (p.kind === 'films' || (p.kind === 'room' && p.room === 'odds')) return plateFor(p);
@@ -207,7 +208,7 @@ function openSheet(quadKey, kicker, title, ...content) {
   if (was) dock.classList.add('still');
   const work=p&&p.type==='work';
   const head=work?h('header',{class:'case-head'},h('p',{class:'mono'},`${p.org} · ${p.year} · ${p.role}`),h('h2',{class:'s-title'},p.title),h('p',{class:'case-line'},p.line)):null;
-  sheet.replaceChildren(...[h('div', { class: 'c-top' }, h('button', { class: 'c-x', onclick: closeSheet, 'aria-label': 'Close' }, '×'), dock), h('div', { class: 'c-namewrap' }, name), head, hero ? h('div', { class: 'c-hero' + (hero.tagName === 'VIDEO' ? ' v' : '') }, hero) : null, h('div', { class: 'body' }, title&&!work ? [h('p', { class: 'c-kick c-in' }, kicker), h('h2', { class: 's-title c-in' }, title)] : null, ...content)].filter(Boolean));
+  sheet.replaceChildren(...[h('div', { class: 'c-top' }, h('button', { class: 'c-x', onclick: closeSheet, 'aria-label': 'Close' }, '×'), dock), h('div', { class: 'c-namewrap' }, name), head, hero ? h('div', { class: 'c-hero' + (hero.tagName === 'VIDEO' ? ' v' : '') }, hero) : null, p && p.credit ? h('p', { class: 'c-cap c-credit' }, p.credit) : null, h('div', { class: 'body' }, title&&!work ? [h('p', { class: 'c-kick c-in' }, kicker), h('h2', { class: 's-title c-in' }, title)] : null, ...content)].filter(Boolean));
   sheet.scrollTop = 0; sheetOpen = true; sheet.classList.add('on'); body.classList.add('case-open'); sheet.focus({ preventScroll: true });
   const card = $('.c-hero', sheet); if (card) grow(card, from);
   const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: sheet, threshold: 0, rootMargin: '0px 0px -6% 0px' });

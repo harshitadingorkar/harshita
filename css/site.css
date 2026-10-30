@@ -1437,3 +1437,6 @@ body.introing #home{visibility:visible}
 .pt[data-kind=door]:hover .dot,.pt[data-kind=door]:focus-visible .dot{background:transparent;box-shadow:inset 0 0 0 1.2px var(--ox)}
 .pt.pt[data-kind=door] .dot,.pt.pt[data-kind=door]:hover .dot{background:transparent;clip-path:none;border-radius:50%}
 .pt.pt[data-kind=door]:hover .dot,.pt.pt[data-kind=door]:focus-visible .dot{box-shadow:inset 0 0 0 1.4px var(--ox)}
+/* A Safe Space opens on its film; the animation is credited right under it */
+.c-hero .yt{display:block;width:min(960px,calc(100vw - 48px));aspect-ratio:16/9;border:0;background:#000}
+.c-credit{max-width:min(960px,calc(100vw - 48px));margin:10px auto 0;font:italic 400 14px/1.4 var(--voice);color:var(--ink2)}
