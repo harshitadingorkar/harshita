@@ -79,7 +79,7 @@ function layout() {
   const cx = W / 2, cy = (band + H) / 2 - 10, sx = cx - Math.max(150, W * .14) - 60, sy = cy - band - 70;
   const r = document.documentElement.style;
   for (const [k, v] of Object.entries({ '--cx': cx, '--cy': cy, '--mT': band + 24, '--bandH': band })) r.setProperty(k, Math.round(v) + 'px');
-  $$('.pt').forEach(e => { e.style.left = (cx + e._p.x * sx) + 'px'; e.style.top = (cy - e._p.y * sy) + 'px'; });
+  $$('.pt').forEach(e => { e.style.left = (cx + e._p.x * sx) + 'px'; e.style.top = (cy - e._p.y * sy) + 'px'; e.style.setProperty('--d', Math.min(1, Math.hypot(e._p.x, e._p.y) / 1.2).toFixed(3)); });
 }
 function buildMobile() {
   for (const [q, d] of Object.entries(S.quads)) { const g = h('section', { class: 'mgroup' }, h('h2', {}, d.name, h('small', {}, d.key))); S.points.filter(p => p.quad === q).forEach(p => { const e = h('button', { class: 'pt', 'data-kind': p.kind, 'data-type':p.type, 'data-pulse':p.type==='work'&&p.quad==='tr'?'true':null, 'data-id': p.id }, HOVER_ART[p.kind] ? h('span', { class: 'dotwrap' }, h('span', { class: 'dot' }), svgEl(HOVER_ART[p.kind]())) : h('span', { class: 'dot' }), h('span', { class: 'lbl' }, h('span',{class:'point-title'},p.title), h('em', {}, p.type==='work'?p.org:p.meta))); e._p = p; bindPoint(e); g.append(e); }); plane.append(g); }
@@ -664,40 +664,19 @@ const skipIntro = e => {
 };
 if (sessionStorage.getItem('seen') || RM) { intro.remove(); arrive(0); }
 else {
+  /* The opening: one line, set right where the axes cross. It gathers out of a soft blur, holds a breath,
+     then parts from the middle outward like mist, and in the same breath the axes draw out from that point
+     and the dots surface in a ripple, nearest first. One curve, one tempo, so it reads as a single gesture. */
   sessionStorage.setItem('seen', 1); body.classList.add('introing');
-  const p = $('p', intro), words = p.textContent.trim().split(/\s+/);
-  // The line arrives whole, then everything but her name dissolves, and the name settles into the corner.
-  const spans = words.map((word, i) => h('span', { class: 'intro-word' + (word === 'Harshita' ? ' keep' : ''), style: `--word-delay:${i * 70}ms` }, word));
+  const p = $('p', intro), words = p.textContent.trim().split(/\s+/), mid = (words.length - 1) / 2;
+  const spans = words.map((word, i) => h('span', { class: 'intro-word', style: `--in:${i * 60}ms;--out:${Math.abs(i - mid) * 55}ms;--side:${Math.sign(i - mid)}` }, word));
   p.replaceChildren(...spans.flatMap((s, i) => i < spans.length - 1 ? [s, ' '] : [s]));
   intro.replaceChildren(h('div', { class: 'intro-inner' }, p));
   introActive = true; document.addEventListener('click', skipIntro, true); document.addEventListener('keydown', skipIntro, true);
-  const name = spans.find(s => s.classList.contains('keep')), others = spans.filter(s => s !== name);
-  // just her name: it arrives, holds a breath, and settles into the corner as the map draws in around it
-  const alone = others.length === 0, dissolveAt = 1150, flightStart = alone ? 1150 : 1900, flightDuration = 1000;
-  arrive(alone ? 850 : 1500);
-  introTimers.push(setTimeout(() => {
-    // farthest from the name goes first, like breath leaving a window
-    const at = spans.indexOf(name);
-    others.forEach(s => { s.style.setProperty('--fade-delay', (spans.length - Math.abs(spans.indexOf(s) - at)) * 90 + 'ms'); s.classList.add('dissolve'); });
-  }, dissolveAt));
-  introTimers.push(setTimeout(() => {
-    const flip = (element, target, scaleFromHeight = false) => {
-      const from = element.getBoundingClientRect(), to = target.getBoundingClientRect();
-      const scale = scaleFromHeight ? to.height / from.height : to.width / from.width;
-      element.style.transformOrigin = '0 0';
-      element.style.transition = 'none';
-      element.style.transform = 'none';
-      element.getBoundingClientRect();
-      element.style.transition = `transform ${flightDuration}ms var(--e-dm)`;
-      element.style.transform = `translate(${to.left - from.left}px,${to.top - from.top}px) scale(${scale})`;
-    };
-    Object.assign(name.style, { animation: 'none', opacity: 1, filter: 'none' });
-    flip(name, $('#home'), true);
-    intro.classList.add('done');
-  }, flightStart));
-  introTimers.push(setTimeout(() => {
-    introActive = false; unlistenIntro(); body.classList.remove('introing'); intro.remove();
-  }, flightStart + flightDuration + 200));
+  const part = 2300, gone = part + 1300;
+  arrive(part + 120);
+  introTimers.push(setTimeout(() => intro.classList.add('parting'), part));
+  introTimers.push(setTimeout(() => { introActive = false; unlistenIntro(); body.classList.remove('introing'); intro.remove(); }, gone));
 }
 // the collection and films borrow their pictures from data that arrives a moment later
 ready.then(() => { if (mobile()) { $('#index')._built = false; renderIndex(); } });

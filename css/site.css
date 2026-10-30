@@ -1386,3 +1386,34 @@ button.pf-pile img:hover{scale:1.06;translate:0 6px;z-index:2}
 #plate .turnaround-preview{width:min(36vw,440px);height:auto;aspect-ratio:448/398;background-size:200% 300%}
 #plate .flip{aspect-ratio:4/3}
 #plate .flip img[src*="sips1"]{object-fit:contain;background:#F1F3DC}
+
+/* ---------- Round 33: the opening is one gesture ----------
+   "a personal index of things kept and made" gathers out of a soft blur right where the axes cross,
+   holds a breath, then parts from the middle like mist, each word drifting up and away from the centre.
+   In the same breath the axes draw outward from that crossing, the dots surface in a ripple (nearest the
+   crossing first), the axis words arrive as the lines reach them, and the name and its lines settle last.
+   Everything arriving shares one curve (--e-dm) and one tempo; only the leaving eases in. */
+:root{--e-leave:cubic-bezier(.45,0,.55,1)}
+.intro,.intro.done{display:block;background:none;transition:none}
+.intro-inner{position:absolute;left:var(--cx,50%);top:var(--cy,50%);translate:-50% -50%;display:block}
+.intro p{margin:0;max-width:none;white-space:nowrap;text-align:center;font:italic 400 clamp(26px,2.9vw,40px)/1.2 var(--voice);letter-spacing:-.012em;color:var(--ink);opacity:1;transform:none;translate:none;animation:none;transition:none}
+.intro-word{display:inline-block;white-space:pre;opacity:0;filter:blur(10px);translate:0 10px;transform:none;animation:mist-in 1.4s var(--e-dm) calc(220ms + var(--in)) both}
+.intro.parting .intro-word{animation:mist-in 1.4s var(--e-dm) calc(220ms + var(--in)) both,mist-out 1.15s var(--e-leave) var(--out) forwards}
+@keyframes mist-in{to{opacity:1;filter:blur(0);translate:0 0}}
+@keyframes mist-out{from{opacity:1;filter:blur(0);translate:0 0}to{opacity:0;filter:blur(14px);translate:calc(var(--side) * 22px) -14px;letter-spacing:.05em}}
+@media (max-width:760px){.intro p{white-space:normal;width:calc(100vw - 48px);font-size:28px;text-wrap:balance}}
+
+.axis.v{transform-origin:50% calc(var(--cy) - var(--mT))}
+.arriving .axis.h{animation:drawX 1.15s var(--e-dm) var(--ad,0ms) both}
+.arriving .axis.v{animation:drawY 1.15s var(--e-dm) var(--ad,0ms) both}
+.arriving .pt{animation:pointIn .95s var(--e-dm) calc(var(--ad,0ms) + .12s + var(--d,.5) * .75s) both}
+.arriving .alabel{animation:fadeIn .8s var(--e-dm) calc(var(--ad,0ms) + .55s) both}
+.arriving .band{animation:fadeIn .9s var(--e-dm) calc(var(--ad,0ms) + .75s) both}
+.arriving .b-intro{animation:fadeIn .9s var(--e-dm) calc(var(--ad,0ms) + 1.05s) both}
+.arriving .keybar,.arriving .settings{animation:fadeIn .9s var(--e-dm) calc(var(--ad,0ms) + .95s) both}
+@keyframes pointIn{from{opacity:0;scale:.4;filter:blur(6px)}}
+body.introing #home{visibility:visible}
+/* one character of motion: no springy overshoots anywhere; small things settle on the same curve as everything else */
+:root{--ctl:var(--e-dm)}
+.c-x:hover{transition:background-color .18s,scale .32s var(--e-dm)}
+.pt .dot,.pt[data-kind] .dot{transition:transform .32s var(--e-dm),scale .32s var(--e-dm),background-color .2s ease}
