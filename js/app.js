@@ -350,8 +350,9 @@ function openStudy(p, K) {
     h('dl', { class: 'cs-meta reveal' }, C.meta.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
     sec('the problem', h('h3', { class: 'cs-h' }, C.problem.title), ...C.problem.body.map(t => h('p', { class: 'cs-p' }, t)),
       h('p', { class: 'cs-p cs-quiet' }, 'Three things were missing:'), h('ul', { class: 'cs-list' }, C.problem.missing.map(t => h('li', {}, t)))),
+    sec('my part', h('p', { class: 'cs-p' }, C.part)),
     sec('the idea', h('h3', { class: 'cs-h' }, C.idea.title), h('p', { class: 'cs-p' }, C.idea.body)),
-    sec('key moments', h('div', { class: 'cs-moments' }, moments), h('p', { class: 'c-cap' }, p.beatsNote)),
+    sec('key moments', h('p', { class: 'cs-story' }, C.storyNote), h('div', { class: 'cs-moments' }, moments)),
     sec('decisions', h('div', { class: 'cs-rows' }, C.decisions.map(([t, d]) => h('div', { class: 'cs-row' }, h('b', {}, t), h('p', {}, d))))),
     sec('what it taught me', h('div', { class: 'cs-rows' }, C.reflections.map(([t, d]) => h('div', { class: 'cs-row' }, h('b', { class: 'cs-voice' }, t), h('p', {}, d))))),
     h('p', { class: 'nda reveal' }, p.nda, ' ', mail));
