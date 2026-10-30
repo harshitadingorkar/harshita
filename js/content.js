@@ -83,11 +83,12 @@ window.SITE = {
     'I care about making beautiful things that help people.',
     'A designer in Seattle, at Salesloft. I came to design through computer science and theatre. First I built automation and machine learning tools as an engineer; now I shape how people work with them.',
   ],
+  // one rule for what's dark: only the places, so the eye can run down the companies
   bio: [
-    '<b>Product designer</b> at <b>Salesloft</b>, designing agentic AI for sellers and revenue teams.',
+    'Product designer at <b>Salesloft</b>, designing agentic AI for sellers and revenue teams.',
     'Before that, a software designer at <b>Hewlett Packard Enterprise</b> and an engineer at <b>Nutanix</b>. Through UW, client work with <b>GitHub</b> and <b>Sony</b>.',
-    'I started as a <b>software engineer</b>, and I still build what I design.',
-    'Off the clock: <b>theatre</b>, <b>films</b>, and <b>collections</b> of things worth keeping.',
+    'I started as a software engineer, and I still build what I design.',
+    'Off the clock: theatre, films, and collections of things worth keeping.',
   ],
   // The about page, read.cv-shaped: a few lines in her voice, pictures, then work and school as plain rows.
   // Every string here can be rewritten in edit mode.
