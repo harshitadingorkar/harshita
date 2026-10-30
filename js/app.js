@@ -322,7 +322,6 @@ function open(p, rect) {
     return;
   }
   if (p.study) return openStudy(p, K);
-  if (p.beats) return openFilm(p, K);
   // Sir Wobblefoot is only to be looked at: the turnaround, large, and nothing else
   if (p.id === 'wobblefoot') return openSheet(p.quad, null, null);
   if (p.brief) return openBrief(p, K);
@@ -335,51 +334,9 @@ function open(p, rect) {
   if (p.kind === 'toy') return openPlayground(K, line);
 }
 
-/* a case told by its film: the beats are chapters; clicking one plays from there, and the one
-   on screen is lit as it plays. Then a short account, and the rest offered in person. */
-/* a case study told plainly: the team, the problem in a few sentences, the idea, then five moments from the film,
-   each saying what it shows and what it solves; a few decisions, what it taught me, and the rest offered in person.
-   The moment clips play only while they're on screen. */
-function openStudy(p, K) {
-  const C = p.study, sec = (label, ...kids) => h('section', { class: 'cs-sec reveal' }, h('p', { class: 'cs-lab' }, label), ...kids);
-  const mail = h('a', { href: `mailto:${S.person.email}?subject=${encodeURIComponent(p.title)}` }, S.person.email);
-  const moments = C.moments.map((m, i) => h('figure', { class: 'cs-moment reveal' },
-    h('video', { src: A(m.video + '.mp4'), poster: A(m.video + '.jpg'), muted: true, loop: true, playsinline: true, preload: 'none', 'aria-label': m.title }),
-    h('figcaption', {}, h('span', { class: 'cs-n' }, String(i + 1).padStart(2, '0')), h('b', {}, m.title), h('span', { class: 'cs-what' }, m.what), h('span', { class: 'cs-solves' }, h('i', {}, 'solves'), m.solves))));
-  openSheet(p.quad, K, p.title,
-    h('dl', { class: 'cs-meta reveal' }, C.meta.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
-    sec('the problem', h('h3', { class: 'cs-h' }, C.problem.title), ...C.problem.body.map(t => h('p', { class: 'cs-p' }, t)),
-      h('p', { class: 'cs-p cs-quiet' }, 'Three things were missing:'), h('ul', { class: 'cs-list' }, C.problem.missing.map(t => h('li', {}, t)))),
-    sec('my part', h('p', { class: 'cs-p' }, C.part)),
-    sec('the idea', h('h3', { class: 'cs-h' }, C.idea.title), h('p', { class: 'cs-p' }, C.idea.body)),
-    sec('key moments', h('p', { class: 'cs-story' }, C.storyNote), h('div', { class: 'cs-moments' }, moments)),
-    sec('decisions', h('div', { class: 'cs-rows' }, C.decisions.map(([t, d]) => h('div', { class: 'cs-row' }, h('b', {}, t), h('p', {}, d))))),
-    sec('what it taught me', h('div', { class: 'cs-rows' }, C.reflections.map(([t, d]) => h('div', { class: 'cs-row' }, h('b', { class: 'cs-voice' }, t), h('p', {}, d))))),
-    h('p', { class: 'nda reveal' }, p.nda, ' ', mail));
-  // play a moment only while it's on screen
-  const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting && !RM) v.play?.().catch(() => {}); else v.pause(); }), { root: sheet, threshold: .5 });
-  $$('.cs-moment video', sheet).forEach(v => io.observe(v));
-}
-function openFilm(p, K) {
-  const t = s => `0:${String(s).padStart(2, '0')}`;
-  const beats = h('ol', { class: 'beats reveal', 'aria-label': 'The film, beat by beat' }, p.beats.map(([s, w]) => h('li', {}, h('button', { type: 'button', 'data-t': s }, h('span', { class: 'bt' }, t(s)), h('span', { class: 'bw' }, w)))));
-  const mail = h('a', { href: `mailto:${S.person.email}?subject=${encodeURIComponent(p.title)}` }, S.person.email);
-  openSheet(p.quad, K, p.title,
-    h('p', { class: 'film-k reveal' }, 'the film, in seven beats'), beats, h('p', { class: 'c-cap reveal' }, p.beatsNote),
-    h('div', { class: 'prose film-body reveal' }, p.body.map(x => h('p', {}, x))),
-    h('p', { class: 'nda reveal' }, p.nda, ' ', mail));
-  const v = $('.c-hero video', sheet), bs = $$('.beats button', sheet);
-  if (!v) return;
-  bs.forEach(b => b.onclick = () => { v.currentTime = +b.dataset.t; v.play?.().catch(() => {}); });
-  v.addEventListener('timeupdate', () => { let on = -1; bs.forEach((b, i) => { if (v.currentTime >= +b.dataset.t - .15) on = i; }); bs.forEach((b, i) => b.classList.toggle('on', i === on)); });
-}
 
-/* ---------- about: a read.cv page in the case sheet ----------
-   Her lines, a strip of pictures, then work, client work and school as plain rows. The work strip stays on top,
-   so from here a visitor is one click from any project. Contact lists the apps she answers on; the one a
-   visitor used last time comes first. Every line can be rewritten in edit mode (data-edit paths into SITE). */
-function openProfile() {
-  const P = S.profile, ed = path => ({ 'data-edit': path });
+/* how to reach her: email, LinkedIn, Instagram, Substack, in a small popover; the one a visitor used last time comes first */
+function contactMenu(label = 'Contact') {
   const contacts = [
     { id: 'email', label: 'Email', sub: S.person.email, href: 'mailto:' + S.person.email },
     { id: 'linkedin', label: 'LinkedIn', sub: 'send a message', href: S.person.linkedin },
@@ -393,7 +350,16 @@ function openProfile() {
     if (c.id === 'email') { const sub = $('span', e.currentTarget); navigator.clipboard?.writeText(c.sub).then(() => { sub.textContent = 'copied · ' + c.sub; }).catch(() => {}); }
   };
   const menu = h('div', { class: 'pf-menu', role: 'menu', hidden: true }, contacts.map(c => h('a', { role: 'menuitem', href: c.href, target: c.id === 'email' ? null : '_blank', rel: 'noopener', onclick: e => pick(c, e) }, h('b', {}, c.label), h('span', {}, c.sub), c.id === last ? h('em', {}, 'last time') : null)));
-  const contact = h('button', { type: 'button', class: 'pf-act', 'aria-haspopup': 'menu', 'aria-expanded': 'false', onclick: () => { const on = menu.hidden; menu.hidden = !on; contact.setAttribute('aria-expanded', String(on)); } }, 'Contact');
+  const contact = h('button', { type: 'button', class: 'pf-act', 'aria-haspopup': 'menu', 'aria-expanded': 'false', onclick: () => { const on = menu.hidden; menu.hidden = !on; contact.setAttribute('aria-expanded', String(on)); } }, label);
+  return h('span', { class: 'pf-contact' }, contact, menu);
+}
+/* ---------- about: a read.cv page in the case sheet ----------
+   Her lines, a strip of pictures, then work, client work and school as plain rows. The work strip stays on top,
+   so from here a visitor is one click from any project. Contact lists the apps she answers on; the one a
+   visitor used last time comes first. Every line can be rewritten in edit mode (data-edit paths into SITE). */
+function openProfile() {
+  const P = S.profile, ed = path => ({ 'data-edit': path });
+  const contact = contactMenu();
   const cv = h('a', { class: 'pf-act', href: S.person.resume, target: '_blank', rel: 'noopener', hidden: true }, 'CV ↓');
   fetch(S.person.resume, { method: 'HEAD' }).then(r => { if (r.ok) cv.hidden = false; }).catch(() => {});
   // "agents" in the HPE line opens a short note on what those agents were
@@ -420,7 +386,7 @@ function openProfile() {
   const elsewhere = [['LinkedIn', S.person.linkedin], ['Instagram', 'https://www.instagram.com/' + S.person.instagram + '/'], ['Substack', 'https://substack.com/@' + S.person.substack], ['Letterboxd', S.person.letterboxd], ['Are.na', S.person.arena]];
   openSheet(null, null, null, h('div', { class: 'pf' },
     h('header', { class: 'pf-head' },
-      h('div', { class: 'pf-acts' }, cv, h('span', { class: 'pf-contact' }, contact, menu)),
+      h('div', { class: 'pf-acts' }, cv, contact),
       h('figure', { class: 'pf-kid' }, h('img', { src: A(P.photo[0]), alt: P.photo[1] }), h('figcaption', ed('profile.photo.2'), P.photo[2])),
       h('p', { class: 'mono', ...ed('profile.kicker') }, P.kicker),
       h('h2', { class: 's-title' }, S.person.name),
@@ -431,8 +397,24 @@ function openProfile() {
     sec('Education', P.education.map((r, i) => row(r, 'profile.education.' + i))),
     sec('Elsewhere', h('p', { class: 'pf-links' }, elsewhere.map(([t, u]) => h('a', { href: u, target: '_blank', rel: 'noopener' }, t + ' ↗'))))));
 }
-document.addEventListener('click', e => { const m = $('.pf-menu:not([hidden])', sheet); if (m && !e.target.closest('.pf-contact')) { m.hidden = true; $('.pf-contact .pf-act', sheet)?.setAttribute('aria-expanded', 'false'); } });
+document.addEventListener('click', e => { $$('.pf-menu:not([hidden])', sheet).forEach(m => { if (!m.parentElement.contains(e.target)) { m.hidden = true; m.parentElement.querySelector('.pf-act')?.setAttribute('aria-expanded', 'false'); } }); });
 
+/* a case study as a sneak peek, since it's under NDA: the team, the problem in two sentences, my part,
+   three moments from the film, and a way to get in touch. The clips play only while they're on screen. */
+function openStudy(p, K) {
+  const C = p.study, sec = (label, ...kids) => h('section', { class: 'cs-sec reveal' }, h('p', { class: 'cs-lab' }, label), ...kids);
+  const moments = C.moments.map(m => h('figure', { class: 'cs-moment reveal' },
+    h('video', { src: A(m.video + '.mp4'), poster: A(m.video + '.jpg'), muted: true, loop: true, playsinline: true, preload: 'none', 'aria-label': m.title }),
+    h('figcaption', {}, h('b', {}, m.title), h('span', { class: 'cs-what' }, m.solves))));
+  openSheet(p.quad, K, p.title,
+    h('dl', { class: 'cs-meta reveal' }, C.meta.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
+    sec('the problem', h('h3', { class: 'cs-h' }, C.problem.title), ...C.problem.body.map(t => h('p', { class: 'cs-p' }, t))),
+    sec('my part', h('p', { class: 'cs-p' }, C.part)),
+    sec('a peek', h('div', { class: 'cs-moments three' }, moments)),
+    h('p', { class: 'nda cs-nda reveal' }, p.nda, ' ', contactMenu('Get in touch')));
+  const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting && !RM) v.play?.().catch(() => {}); else v.pause(); }), { root: sheet, threshold: .5 });
+  $$('.cs-moment video', sheet).forEach(v => io.observe(v));
+}
 /* a brief: the first view and nothing deeper, a couple of paragraphs; "agents" explains itself on hover, as on the about page */
 function openBrief(p, K) {
   const term = text => { const i = text.search(/\bagents\b/); return i < 0 ? [text] : [text.slice(0, i), h('span', { class: 'term', tabindex: 0 }, 'agents'), text.slice(i + 6)]; };

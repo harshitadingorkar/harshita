@@ -34,48 +34,27 @@ window.SITE = {
   points: [
     { id: 'influence', type: 'work', role: 'product designer', title: 'Influence Graph', org: 'Salesloft', year: '2025', meta: 'Salesloft · 2025', quad: 'tr', x: .74, y: .74, tags: ['product', 'ai', 'research'], kind: 'vault',
       line: 'A map of the people inside a deal, read from the calls and emails a seller already has.',
-      img: 'cases/salesloft/deal-map.jpg', video: 'cases/salesloft/deal-map.mp4', vcap: 'the deal map, in motion: who turned resistant, who no one has met yet, and the person who can win them over.',
+      img: 'cases/salesloft/deal-map-screens.jpg', video: 'cases/salesloft/deal-map-screens.mp4', vcap: 'The Influence Graph in motion: the people in a deal, how each of them feels, who sways whom, and the next move.',
       body: [
         'Influence Graph is a map of who moves a deal: who decides, who sways them, and how each of them feels this week. Salesloft already hears every call and email, so the map draws itself from those, not from a seller’s memory or the spreadsheet open beside it.',
         'I designed it from the first sketch. I sat with sellers who were drawing these maps by hand, tried shapes that didn’t hold, and landed on two views: a list for the morning, and a map for when a deal turns political. Whatever the system decides about a person, it says why, and you can drag them somewhere else.',
       ],
-      beats: [[1, 'While you were away, your deal moved.'], [3, 'Salesloft read every email and call.'], [6, 'Your CRO and CFO turned resistant.'], [8, 'And a new exec no one has met.'], [11, 'Win Dana through Petra.'], [13, 'Brief Petra before Sep 18.'], [18, 'See who moves the deal.']],
-      beatsNote: 'The names and dates are made up. The shape of the problem isn’t.',
       // the case study, told plainly: who, the problem, the idea, five moments from the film and what each solves, a few decisions, what it taught me
+      // a sneak peek, not the whole story: it's under NDA
       study: {
         meta: [['Role', 'Product designer'], ['Team', 'Me, a design manager, a PM and two engineers'], ['When', '2025–26'], ['Where', 'Salesloft']],
         problem: {
           title: 'A deal is a room full of people',
-          body: [
-            'Big deals aren’t won by one person saying yes. There’s someone who signs, someone who sways them, someone quietly against it, and often someone the seller has never met.',
-            'Sellers kept track of all of it in their heads. What people said was spread across calls, emails and notes. How they felt was a guess. And the person most likely to sink the deal was often someone mentioned once on a call, who never made it into the CRM.',
-          ],
-          missing: ['One place to see everyone involved.', 'A way to know how each person feels, beyond a guess.', 'A heads-up when someone new shows up.'],
+          body: ['Someone signs, someone sways them, someone is quietly against it, and someone the seller has never met. Sellers kept all of it in their heads, and the person who could sink the deal often never made it into the CRM.'],
         },
-        part: 'A senior designer sketched the first concepts. I took it from there: I sat with sellers who were drawing these maps by hand, ran every round of design after that, tested it with customers, and worked with our PM and engineers on what the system could honestly know about a person.',
-        idea: {
-          title: 'Start with a draft',
-          body: 'The map is never blank. It opens with its best guess, drawn from the calls and emails Salesloft already hears, and the seller corrects it instead of starting from nothing. Every correction teaches it, so the map gets better the more it’s used.',
-        },
-        storyNote: 'One deal, one week. The names are made up. The shape of the problem isn’t.',
+        part: 'I designed it end to end. I sat with sellers who were drawing these maps by hand, and worked with our PM and engineers on what the system could honestly know about a person.',
         moments: [
-          { video: 'cases/salesloft/moments/01-catch-up', title: 'Catch up in seconds', what: 'Since the seller last looked, Daniel declined a deep-dive, Dana pushed back on price, and a new name came up on a call. The map reads it all and says what changed.', solves: 'No one digs through a week of threads to find out where the deal stands.' },
-          { video: 'cases/salesloft/moments/02-stances-shift', title: 'See where people stand', what: 'Daniel and Dana are marked resistant, each with the reason beside them. A line shows Petra, the champion, has swayed Dana eight times.', solves: 'How people feel stops being a guess. Every label comes with its evidence.' },
-          { video: 'cases/salesloft/moments/03-new-exec', title: 'Meet the person no one knew', what: 'Carlos, the COO, came up four times on calls but isn’t in Salesforce. He appears outlined, ready to add.', solves: 'The person who could quietly stop the deal is found before he does.' },
-          { video: 'cases/salesloft/moments/04-path-to-yes', title: 'Choose a way in', what: 'The map suggests moves along the lines between people: reach Dana through Petra, or bring Carlos into the room.', solves: 'Knowing who’s against the deal comes with a way forward.' },
-          { video: 'cases/salesloft/moments/05-approve', title: 'Approve, don’t autopilot', what: 'It drafts three steps for Petra over six days. The seller approves the first, set for 2 PM, and can undo it until then.', solves: 'Nothing goes out without the seller saying yes.' },
-        ],
-        decisions: [
-          ['Influence over job title', 'A VP can defer to a director. People are placed by how much they actually sway the deal, not where they sit on the org chart.'],
-          ['A list and a map', 'The list answers who’s involved, fast. The map answers how they connect, for when a deal turns political.'],
-          ['Only say what it’s sure of', 'When the system isn’t confident about how someone feels, it says so instead of guessing. One wrong guess costs more trust than a blank.'],
-        ],
-        reflections: [
-          ['Trust is the product.', 'People will forgive a tool for not knowing something. They won’t forgive it for being confidently wrong. So every call the map makes shows its reason, and every call can be overridden.'],
-          ['Design the loop, not just the feature.', 'The best moment to learn from someone is while they’re already doing the work, like a quick “why did you move this?” as they drag a card.'],
+          { video: 'cases/salesloft/moments/01-catch-up', title: 'Catch up in seconds', solves: 'What changed since you last looked, read straight from the calls and emails.' },
+          { video: 'cases/salesloft/moments/03-new-exec', title: 'Meet the person no one knew', solves: 'Someone mentioned on a call, but missing from the CRM, shows up ready to add.' },
+          { video: 'cases/salesloft/moments/05-approve', title: 'Approve, don’t autopilot', solves: 'It drafts the next steps. Nothing goes out without the seller saying yes.' },
         ],
       },
-      nda: 'The rest is under NDA: the research, the versions that didn’t make it, what sellers said when they first saw it, and the numbers. Ask me and I’ll walk you through it.' },
+      nda: 'This one is under NDA, so this is only a peek. I’d love to walk you through the rest.' },
     { id: 'sony', type: 'work', role: 'client project via UW', title: 'After the purchase', org: 'Sony', year: '2025', meta: 'Sony · client project via UW · 2025', hint: 'what Sony owes you after you buy: Sonia, an AI that asks first', quad: 'tl', x: -.82, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
       line: 'What does Sony owe you after you buy? A capstone about a smarter, more sustainable life after the purchase.', img: 'sony.jpg', images: ['sony.jpg'],
       alt: 'A phone on a dark field glowing violet: Sonia, an AI assistant, asks before it uses your data.' },
@@ -140,7 +119,7 @@ window.SITE = {
     ],
     photo: ['about-kid.jpg', 'Harshita as a small child in a blue dress, sprawled across a big office chair like she owns it.', 'already in the big chair'],
     work: [
-      { when: '2025 — now', role: 'Product designer', org: 'Salesloft', href: 'https://www.salesloft.com/', where: 'Seattle', point: 'influence', pile: ['cases/salesloft/deal-map.jpg', 'cases/salesloft/frame-08.jpg', 'cases/salesloft/frame-11.jpg', 'cases/salesloft/frame-13.jpg', 'cases/salesloft/frame-18.jpg'],
+      { when: '2025 — now', role: 'Product designer', org: 'Salesloft', href: 'https://www.salesloft.com/', where: 'Seattle', point: 'influence', pile: ['cases/salesloft/deal-map-screens.jpg', 'cases/salesloft/moments/02-stances-shift.jpg', 'cases/salesloft/moments/03-new-exec.jpg', 'cases/salesloft/moments/04-path-to-yes.jpg', 'cases/salesloft/moments/05-approve.jpg'],
         text: 'I design the agentic side of Salesloft: AI that reads a seller’s calls and emails and helps them act on what it finds. I set the interaction patterns AI follows across the product, and designed Influence Graph from the first sketch.' },
       { when: '2021 — 2023', role: 'Software designer', org: 'Hewlett Packard Enterprise', where: 'Bengaluru', point: 'hpe', pile: ['hpe.jpg', 'hpe-01.jpg', 'hpe-02.jpg'],
         text: 'I was building agents before they were called that: software bots that took over HPE’s manual order processing, with a person stepping in on every hard call. Task accuracy improved by 90%, it saved $3.08M, and it won HPE’s President’s Quality Award. I then moved toward UX engineering, designing and building an ML observability tool that shows data scientists when their models are quietly getting worse.' },

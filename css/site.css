@@ -1471,3 +1471,15 @@ body.introing #home{visibility:visible}
 .cs-row p{margin:0;font:15px/1.6 var(--sans);color:var(--ink2);text-wrap:pretty}
 @media (max-width:760px){.cs-meta{grid-template-columns:1fr 1fr}.cs-meta dt,.cs-meta dd{grid-row:auto}.cs-h{font-size:25px}.cs-sec{margin-top:48px}}
 .cs-story{margin:0 0 6px;font:italic 400 19px/1.35 var(--voice);color:var(--ink2)}
+/* the peek: three moments side by side, small; the close offers ways to get in touch instead of a bare email */
+.cs-moments.three{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.cs-moments.three .cs-moment{gap:10px}
+.cs-moments.three video{border-radius:8px}
+.cs-moments.three figcaption{display:grid;gap:3px;grid-template-columns:none}
+.cs-moments.three b{font-size:17px}
+.cs-moments.three .cs-what{font-size:13.5px;line-height:1.45}
+.cs-nda{margin-top:56px}
+.cs-nda .pf-contact{display:inline-block;margin-left:4px;font-style:normal}
+.cs-nda .pf-act{font:11px/1 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--ink3)}
+.cs-nda .pf-menu{left:-10px;right:auto;top:calc(100% + 10px);font-style:normal}
+@media (max-width:760px){.cs-moments.three{grid-template-columns:1fr}}
