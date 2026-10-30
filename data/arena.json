@@ -3,8 +3,56 @@
     "slug": "visual-note-taking",
     "title": "visual note-taking",
     "url": "https://www.are.na/harshita-shyale/visual-note-taking",
-    "count": 4,
+    "count": 7,
     "blocks": [
+      {
+        "id": 52099879,
+        "type": "Image",
+        "title": "2E883887-B380-489D-997C-83FB3D93C06F",
+        "created_at": "2026-10-30T00:05:16Z",
+        "connected_at": "2026-10-30T00:05:16Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52099879",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTg3OS9vcmlnaW5hbF84MTMyMmQ4MTI3ODgzNGUzZTg5ODk4YzE0YzhhNDJiYS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTg3OS9vcmlnaW5hbF84MTMyMmQ4MTI3ODgzNGUzZTg5ODk4YzE0YzhhNDJiYS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52099879.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
+      {
+        "id": 52099751,
+        "type": "Image",
+        "title": "62AE0EC8-62D9-4574-9079-5659AB609370",
+        "created_at": "2026-10-30T00:02:58Z",
+        "connected_at": "2026-10-30T00:02:58Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52099751",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTc1MS9vcmlnaW5hbF8wYzZkNThlN2E3YThlMGI2ZGE4YWRhMDdjYjBkNWFiOC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTc1MS9vcmlnaW5hbF8wYzZkNThlN2E3YThlMGI2ZGE4YWRhMDdjYjBkNWFiOC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52099751.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
+      {
+        "id": 52091838,
+        "type": "Image",
+        "title": "C98B5118-DAB9-4A6E-BAD5-9B23194BB198",
+        "created_at": "2026-10-29T21:46:27Z",
+        "connected_at": "2026-10-29T21:46:27Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52091838",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5MTgzOC9vcmlnaW5hbF85ZWIwMTFkNDkyYTFkMTFkYjgyMzYwNmEwYzM4MzBhZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5MTgzOC9vcmlnaW5hbF85ZWIwMTFkNDkyYTFkMTFkYjgyMzYwNmEwYzM4MzBhZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52091838.jpg",
+          "width": 3024,
+          "height": 4032
+        }
+      },
       {
         "id": 3293196,
         "type": "Image",
@@ -399,8 +447,24 @@
     "slug": "exist-slowly",
     "title": "exist slowly",
     "url": "https://www.are.na/harshita-shyale/exist-slowly",
-    "count": 13,
+    "count": 14,
     "blocks": [
+      {
+        "id": 52099879,
+        "type": "Image",
+        "title": "2E883887-B380-489D-997C-83FB3D93C06F",
+        "created_at": "2026-10-30T00:05:16Z",
+        "connected_at": "2026-10-30T00:05:16Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52099879",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTg3OS9vcmlnaW5hbF84MTMyMmQ4MTI3ODgzNGUzZTg5ODk4YzE0YzhhNDJiYS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTg3OS9vcmlnaW5hbF84MTMyMmQ4MTI3ODgzNGUzZTg5ODk4YzE0YzhhNDJiYS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/exist-slowly/52099879.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
       {
         "id": 40374430,
         "type": "Image",
@@ -593,8 +657,88 @@
     "slug": "cool-lamps-gooar_s_zn8",
     "title": "cool lamps",
     "url": "https://www.are.na/harshita-shyale/cool-lamps-gooar_s_zn8",
-    "count": 21,
+    "count": 26,
     "blocks": [
+      {
+        "id": 52099986,
+        "type": "Image",
+        "title": "98096E57-8BC9-4C45-A51D-EF033CED3DCA",
+        "created_at": "2026-10-30T00:08:14Z",
+        "connected_at": "2026-10-30T00:08:14Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52099986",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTk4Ni9vcmlnaW5hbF81M2M4NTlmNjk1MjRmMmYzYzg2N2UxMTUyOTYzZTg4MS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTk4Ni9vcmlnaW5hbF81M2M4NTlmNjk1MjRmMmYzYzg2N2UxMTUyOTYzZTg4MS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/cool-lamps-gooar_s_zn8/52099986.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
+      {
+        "id": 52099985,
+        "type": "Image",
+        "title": "410BF463-612D-4456-89F5-CF3BECFBBEE9",
+        "created_at": "2026-10-30T00:08:14Z",
+        "connected_at": "2026-10-30T00:08:14Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52099985",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTk4NS9vcmlnaW5hbF8yOTM1M2NhOWY3MzMwZjU4OTJlYmY2NjFhZjE3MjFkZC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTk4NS9vcmlnaW5hbF8yOTM1M2NhOWY3MzMwZjU4OTJlYmY2NjFhZjE3MjFkZC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/cool-lamps-gooar_s_zn8/52099985.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
+      {
+        "id": 52099984,
+        "type": "Image",
+        "title": "6C78A498-62DE-4164-87EE-C68FF1A0915E",
+        "created_at": "2026-10-30T00:08:14Z",
+        "connected_at": "2026-10-30T00:08:14Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52099984",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTk4NC9vcmlnaW5hbF8zZjE2ZDEwM2MwMjZlOThkZDI0MDU1ZTg1MzRkMmMzMC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTk4NC9vcmlnaW5hbF8zZjE2ZDEwM2MwMjZlOThkZDI0MDU1ZTg1MzRkMmMzMC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/cool-lamps-gooar_s_zn8/52099984.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
+      {
+        "id": 52099983,
+        "type": "Image",
+        "title": "B735E262-1872-424C-8F66-8C4110010015",
+        "created_at": "2026-10-30T00:08:14Z",
+        "connected_at": "2026-10-30T00:08:14Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52099983",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTk4My9vcmlnaW5hbF9mN2Q3NTJhMjA2ZDM1NjVkMTIzNTMzNjZhMjI0NzdhNi5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTk4My9vcmlnaW5hbF9mN2Q3NTJhMjA2ZDM1NjVkMTIzNTMzNjZhMjI0NzdhNi5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/cool-lamps-gooar_s_zn8/52099983.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
+      {
+        "id": 52091810,
+        "type": "Image",
+        "title": "2A49E1AB-1D38-419D-B6B0-24E4F4BA7C8D",
+        "created_at": "2026-10-29T21:45:24Z",
+        "connected_at": "2026-10-29T21:45:24Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52091810",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5MTgxMC9vcmlnaW5hbF9lZjMyYWMxMDQyZTc5NTI5N2IzNjc5ZjI3NzRhYzFkOC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5MTgxMC9vcmlnaW5hbF9lZjMyYWMxMDQyZTc5NTI5N2IzNjc5ZjI3NzRhYzFkOC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/cool-lamps-gooar_s_zn8/52091810.jpg",
+          "width": 3024,
+          "height": 4032
+        }
+      },
       {
         "id": 21560688,
         "type": "Image",
@@ -1191,8 +1335,24 @@
     "slug": "hug-a-tree-bjepwhkdrq0",
     "title": "hug a tree",
     "url": "https://www.are.na/harshita-shyale/hug-a-tree-bjepwhkdrq0",
-    "count": 39,
+    "count": 40,
     "blocks": [
+      {
+        "id": 52099751,
+        "type": "Image",
+        "title": "62AE0EC8-62D9-4574-9079-5659AB609370",
+        "created_at": "2026-10-30T00:02:58Z",
+        "connected_at": "2026-10-30T00:02:58Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52099751",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTc1MS9vcmlnaW5hbF8wYzZkNThlN2E3YThlMGI2ZGE4YWRhMDdjYjBkNWFiOC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjA5OTc1MS9vcmlnaW5hbF8wYzZkNThlN2E3YThlMGI2ZGE4YWRhMDdjYjBkNWFiOC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/hug-a-tree-bjepwhkdrq0/52099751.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
       {
         "id": 39406350,
         "type": "Image",

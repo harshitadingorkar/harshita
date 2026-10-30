@@ -311,6 +311,7 @@ async function fetchFilms() {
         memberRating: xmlTag(item, "letterboxd:memberRating"),
         watchedDate,
         rewatch: xmlTag(item, "letterboxd:rewatch"),
+        memberLike: xmlTag(item, "letterboxd:memberLike"),
         link: xmlTag(item, "link"),
         poster: posterUrl ? { url: posterUrl, local } : null,
         review: reviewFromDescription(description),

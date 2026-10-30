@@ -36,7 +36,10 @@ window.COLLECTION_PAGE_COPY=pageCopy;
 window.COLLECTION_PAGE_ID=pageId;
 document.body.classList.toggle('theatre-page', pageId === 'theatre');
 if (pageId === 'theatre') { $('#theatre-panel').hidden = false; $('.intro-section').hidden = true; }
-const mono = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toLowerCase() : 'date unknown';
+// a film's little label, as on Letterboxd: its stars and a heart if she liked it; with neither, just when she watched it
+const filmTag = (rating, liked, watched) => { const r = rating != null && rating !== '' ? '★'.repeat(Math.floor(+rating)) + (+rating % 1 ? '½' : '') : ''; return [[r, liked ? '♥' : ''].filter(Boolean).join(' '), mono(watched)].filter(Boolean).join(' · '); };
+// a bare date (2026-10-28) is a day on her calendar, not midnight in London, so read it as local noon
+const mono = d => d ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(d) ? d + 'T12:00' : d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toLowerCase() : 'date unknown';
 const dateValue = b => b.connected_at || b.created_at || '';
 const relative = d => {
   if (!d) return 'recently';
@@ -335,7 +338,7 @@ function setLightbox(block, from, animate = true, stamp = null) {
   const title = blockTitle(block);
   const caption = $('#lightbox-caption'); caption.replaceChildren();
   const titleNode = document.createElement('span'); titleNode.className = 'lb-title'; titleNode.textContent = title;
-  const details = document.createTextNode(block.rating!=null?`${block.year||''} · ${'★'.repeat(Math.floor(+block.rating))}${+block.rating%1?'½':''} · watched ${block.watched||''}`:`${block.channel} · added ${mono(dateValue(block))}`);
+  const details = document.createTextNode(pageId==='films'?` ${block.year||''} · ${block.tag}`:`${block.channel} · added ${mono(dateValue(block))}`);
   const line = document.createElement('br'), link = document.createElement('a');
   link.href = block.link||block.block_url; link.target = '_blank'; link.rel = 'noopener'; link.textContent = block.link?'view film ↗':'view on are.na ↗';
   if (pageId === 'theatre') { details.textContent = block.tag ? ' · ' + block.tag.split(' · ').slice(1).join(' · ') : ''; if (block.slug === 'trraammtobb' || block.slug === 'scripts-and-sips') theatrePanel(block.slug); }
@@ -400,10 +403,10 @@ async function customPageChannels() {
   if(pageId==='films') {
     const raw=await fetch('data/films.json').then(r=>r.json()), films=raw.map((x,i)=>{
       const po=x.poster&&typeof x.poster==='object'?x.poster:{url:x.poster};
-      return {id:`film-${i}`,title:x.filmTitle||x.title,year:x.filmYear||x.year,rating:x.memberRating??x.rating,watched:x.watchedDate||x.watched,link:x.link,small:po.local||po.url,src:po.local||po.url,aspect:2/3,created_at:x.watchedDate||x.watched};
+      return {id:`film-${i}`,title:(x.filmTitle||x.title||'').replace(/&amp;/g,'&'),year:x.filmYear||x.year,rating:x.memberRating??x.rating,liked:x.memberLike==='Yes',watched:x.watchedDate||x.watched,link:x.link,small:po.local||po.url,src:po.local||po.url,aspect:2/3,created_at:x.watchedDate||x.watched,tag:filmTag(x.memberRating??x.rating,x.memberLike==='Yes',x.watchedDate||x.watched)};
     }).filter(x=>x.title&&x.small);
     const buckets=[['loved','loved',x=>+x.rating>=4.5],['liked','liked',x=>+x.rating>=3.5&&+x.rating<4.5],['fine','fine',x=>+x.rating>=2.5&&+x.rating<3.5],['not-for-me','not for me',x=>x.rating!=null&&+x.rating<=2],['unrated','unrated',x=>x.rating==null||(+x.rating>2&&+x.rating<2.5)]];
-    const range={loved:'loved (4½–5★)',liked:'liked (3½–4★)',fine:'fine (2½–3★)','not-for-me':'not for me (≤2★)',unrated:'unrated'};
+    const range={loved:'loved (4½–5★)',liked:'liked (3½–4★)',fine:'fine (2½–3★)','not-for-me':'not for me (≤2★)',unrated:'no stars'};
     return buckets.map(([slug,title,pred])=>localChannel(slug,range[slug],films.filter(pred)));
   }
   if(pageId==='theatre') return THEATRE.plays.map(play=>localChannel(play.slug,play.title,play.images.map(x=>{const [k,tag]=Array.isArray(x)?x:[x,`${play.title} · ${play.year}`];return {id:k,title:tag.split(' · ')[0],small:T+k+'.jpg',video:k==='sips-video'?T+k+'.mp4':null,aspect:THEATRE.aspects[k],tag};})));
