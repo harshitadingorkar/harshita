@@ -1580,6 +1580,55 @@ body.show-index .band{background:linear-gradient(var(--ground) 70%,color-mix(in 
 .kin-cell[data-ring="2"]{opacity:.9}
 .kin-cell[data-ring="2"] img{filter:none}
 /* all 212 pictures live in one sheet, 15 across; each cell shows its square */
-.kin-img{display:block;width:100%;height:100%;border-radius:4px;background:url(../assets/kin.jpg) calc(var(--x) * 100% / 14) calc(var(--y) * 100% / 14)/1500% 1500% no-repeat,var(--hair2);box-shadow:0 0 0 1px var(--hair2);transition:box-shadow .25s ease}
+.kin-img{display:block;width:100%;height:100%;border-radius:4px;background:url(../assets/kin.jpg) calc(var(--x) * 100% / 7) calc(var(--y) * 100% / 6)/800% 700% no-repeat,var(--hair2);box-shadow:0 0 0 1px var(--hair2);transition:box-shadow .25s ease}
 .kin-cell.here .kin-img{border-radius:6px;box-shadow:0 0 0 1px var(--hair),0 24px 46px -24px rgba(25,25,21,.55)}
 .kin-cell:hover .kin-img,.kin-cell:focus-visible .kin-img{box-shadow:0 0 0 1.5px var(--ox),0 14px 30px -18px rgba(25,25,21,.5)}
+
+/* ---------- Round 37: orbit, the hero; kin tucked away ----------
+   A wireframe sphere in hairlines, turning slowly; labels in Departure Mono like an engineering plate. */
+.wk-hero{display:grid;justify-items:center}
+.orb{display:block;width:min(640px,100%);height:auto;overflow:visible;touch-action:pan-y}
+.orb-rim{fill:none;stroke:var(--ink);stroke-opacity:.55;stroke-width:1;vector-effect:non-scaling-stroke}
+.orb-tick{stroke:var(--ink);stroke-width:1.4;vector-effect:non-scaling-stroke}
+.orb-wire path{fill:none;stroke:var(--ink);stroke-opacity:.1;stroke-width:1;vector-effect:non-scaling-stroke}
+.orb-ring{fill:none;stroke:var(--ink);stroke-opacity:.42;stroke-width:1;vector-effect:non-scaling-stroke;transition:stroke-opacity .3s ease,stroke .3s ease}
+.orb-ring.quiet{stroke-dasharray:2 5;stroke-opacity:.3}
+.orb-ring.on{stroke:var(--ox);stroke-opacity:.9}
+.orb-hub circle{fill:none;stroke:var(--ink);stroke-width:1;vector-effect:non-scaling-stroke}
+.orb-hub line{stroke:var(--ink);stroke-opacity:.6;stroke-width:1;vector-effect:non-scaling-stroke}
+.orb-hubl,.orb-corner{font:11px var(--mono);letter-spacing:.05em;text-transform:uppercase;fill:var(--ink3)}
+.orb-spoke{stroke:var(--ox);stroke-width:1;stroke-dasharray:1.5 4;opacity:0;vector-effect:non-scaling-stroke;transition:opacity .25s ease}
+.orb-spoke.on{opacity:.8}
+.orb-pt{cursor:pointer;outline:none;opacity:calc(.38 + var(--z,1) * .62)}
+.orb-hit{fill:transparent}
+.orb-dot{fill:var(--ink);transition:r .25s var(--e-dm),fill .2s ease}
+.orb-pt.glow .orb-dot{fill:var(--ox);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--ox) 60%,transparent))}
+.orb-pt.quiet .orb-dot{fill:var(--ground);stroke:var(--ink);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.orb-lbl{font:11px var(--mono);letter-spacing:.04em;fill:var(--ink);paint-order:stroke;stroke:var(--ground);stroke-width:4px;stroke-linejoin:round;pointer-events:none;transition:opacity .25s ease}
+.orb-pt.quiet .orb-lbl{font:italic 400 14px var(--voice);letter-spacing:0;fill:var(--ink2);opacity:0}
+.orb.focus .orb-pt:not(.on){opacity:.22}
+.orb-pt.on{opacity:1}
+.orb-pt.on .orb-dot{r:7;fill:var(--ox)}
+.orb-pt.on .orb-lbl,.orb-pt.quiet.on .orb-lbl{opacity:1;fill:var(--ink)}
+.orb-pt:focus-visible .orb-dot{stroke:var(--ox);stroke-width:2}
+.wk-hero>figcaption{width:min(640px,100%)}
+
+/* kin: tucked at the bottom, small, framed like a specimen grid */
+.wk-kin{margin-top:40px;border-top:1px solid var(--hair2);padding-top:14px}
+.wk-kin summary{list-style:none;cursor:pointer;font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink2);display:flex;gap:10px;align-items:baseline}
+.wk-kin summary::-webkit-details-marker{display:none}
+.wk-kin summary::before{content:'+';font:14px/1 var(--sans);color:var(--ink3);transition:rotate .4s var(--e-dm)}
+.wk-kin[open] summary::before{rotate:45deg}
+.wk-kin summary:hover{color:var(--ink)}
+.wk-kin .kin-wrap{margin-top:26px;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:36px}
+.wk-kin .kin{background-image:linear-gradient(var(--hair) 1px,transparent 1px),linear-gradient(90deg,var(--hair) 1px,transparent 1px);background-size:20% 20%;background-position:-1px -1px;box-shadow:inset 0 0 0 1px var(--hair)}
+.wk-kin .kin-cell{padding:5%}
+.wk-kin .kin-cell[data-ring="2"]{opacity:.7}
+.wk-kin .kin-img{border-radius:2px;box-shadow:none}
+.wk-kin .kin-cell.here .kin-img{box-shadow:0 0 0 1.5px var(--ink)}
+.wk-kin .kin-title{font-size:24px}
+@media (max-width:860px){.wk-kin .kin-wrap{grid-template-columns:1fr}}
+@media (max-width:760px){.orb-lbl{font-size:15px}.orb-corner,.orb-hubl{font-size:14px}.orb-pt.quiet .orb-lbl{font-size:18px}}
+/* the far side of the sphere is quieter, and its labels step back */
+.orb-pt.back .orb-lbl{opacity:.35}
+.orb-pt.back.on .orb-lbl{opacity:1}

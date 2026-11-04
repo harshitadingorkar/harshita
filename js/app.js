@@ -513,7 +513,7 @@ const WORK_ORDER = ['influence', 'github', 'sony', 'safe', 'hpe'];
 function renderIndex() { const ix = $('#index'); if (!ix._built) buildIndex(ix); }
 /* Kin: everything she keeps and makes, arranged by resemblance (after Charcuterie, David Aerne's visual Unicode explorer).
    One piece sits in the middle; around it, in rings, the 24 that look most like it, found with Apple's on-device image
-   model (data/kin.json); the pictures share one sheet (assets/kin.jpg, 15 across). Pick any of them and it moves to the middle, its own kin gather round, and you wander:
+   model (data/kin.json); only her own work and pictures, in one sheet (assets/kin.jpg, 8 across). Pick any of them and it moves to the middle, its own kin gather round, and you wander:
    from a deal map to a code review to a lamp someone saved on are.na. */
 let KIN = null;
 const kinLoad = () => KIN ? Promise.resolve(KIN) : fetch('data/kin.json').then(r => r.json()).then(d => (KIN = d));
@@ -538,7 +538,7 @@ function kinField() {
       let el = cells.get(i);
       if (!el) {
         el = h('button', { type: 'button', class: 'kin-cell entering', 'aria-label': label(i), onclick: () => { if (i === center) go(i); else { path.push(center); center = i; render(el); } } },
-          h('span', { class: 'kin-img', style: `--x:${i % 15};--y:${Math.floor(i / 15)}` }));
+          h('span', { class: 'kin-img', style: `--x:${i % 8};--y:${Math.floor(i / 8)}` }));
         el.addEventListener('pointerenter', () => { hover = i; caption(i); }); el.addEventListener('pointerleave', () => { if (hover === i) { hover = null; caption(center); } });
         el.addEventListener('focus', () => caption(i)); el.addEventListener('blur', () => caption(center));
         field.append(el); cells.set(i, el); place(el, k); el.style.transitionDelay = (RM ? 0 : 60 + SLOTS[k][2] * 70 + k * 6) + 'ms';
@@ -550,7 +550,66 @@ function kinField() {
     trail.replaceChildren(...(path.length ? [h('span', {}, `${path.length} step${path.length > 1 ? 's' : ''} from where you started`), h('button', { type: 'button', onclick: () => { path = []; center = 0; render(); } }, 'start over')] : [h('span', {}, 'after Charcuterie by David Aerne')]));
   };
   kinLoad().then(() => render()).catch(() => field.replaceChildren(h('p', { class: 'kin-hint' }, 'The field didn’t load. The work is below.')));
-  return h('div', { class: 'kin-wrap' }, field, h('div', { class: 'kin-side' }, h('p', { class: 'kin-lede' }, 'Everything I keep and make, arranged by how it looks. Pick anything to wander from there.'), cap, trail));
+  return h('div', { class: 'kin-wrap' }, field, h('div', { class: 'kin-side' }, h('p', { class: 'kin-lede' }, 'My work and pictures, arranged by how they look. Pick anything to wander from there.'), cap, trail));
+}
+/* Orbit: the hero. A wireframe sphere turning slowly, after an engineering diagram: the work travels on tilted
+   orbits round a small "now" at the centre. Product work rides the near orbits, labelled; the rest of her life rides
+   the outer one, quiet. The sphere leans toward the hand; touching a piece slows everything, darkens its orbit and
+   draws a dotted line to the centre; clicking opens it. Drawn every frame from a little 3D model, then projected. */
+function orbitHero() {
+  const NS = 'http://www.w3.org/2000/svg', el = (t, a = {}) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); return e; };
+  const S0 = 600, C = S0 / 2, R = 250;
+  const svg = el('svg', { viewBox: `0 0 ${S0} ${S0}`, class: 'orb', role: 'img', 'aria-label': 'My work as an orbit diagram: projects on tilted orbits round the present.' });
+  const g = el('g'), wire = el('g', { class: 'orb-wire' }), rings = el('g', { class: 'orb-rings' }), spokes = el('g', { class: 'orb-spokes' }), nodes = el('g', { class: 'orb-nodes' });
+  svg.append(el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, rings, spokes, nodes);
+  for (const [x1, y1, x2, y2] of [[C, C - R - 14, C, C - R + 2], [C, C + R - 2, C, C + R + 14], [C - R - 14, C, C - R + 2, C], [C + R - 2, C, C + R + 14, C]]) svg.append(el('line', { class: 'orb-tick', x1, y1, x2, y2 }));
+  const hub = el('g', { class: 'orb-hub' }); hub.append(el('circle', { cx: C, cy: C, r: 9 }), el('line', { x1: C - 18, y1: C, x2: C + 18, y2: C }), el('line', { x1: C, y1: C - 18, x2: C, y2: C + 18 }));
+  const hubL = el('text', { class: 'orb-hubl', x: C + 14, y: C + 24 }); hubL.textContent = 'now'; hub.append(hubL); g.append(hub);
+  // orbits: radius, tilt about x, tilt about z, speed; nodes sit on them by phase
+  const W = id => S.points.find(p => p.id === id);
+  const ORB = [
+    { r: 138, tx: .82, tz: -.3, v: .05, pts: [['influence', 0], ['github', 3.1]] },
+    { r: 206, tx: 1.02, tz: .5, v: -.035, pts: [['sony', .8], ['hpe', 2.9], ['safe', 5.0]] },
+    { r: 248, tx: .45, tz: -.95, v: .022, quiet: true, pts: [['theatre', .4], ['wobblefoot', 1.7], ['films', 2.9], ['arena', 4.1], ['door', 5.3]] },
+  ];
+  const rot = (x, y, z, ax, ay, az) => { let c = Math.cos(ax), s = Math.sin(ax); [y, z] = [y * c - z * s, y * s + z * c]; c = Math.cos(ay); s = Math.sin(ay); [x, z] = [x * c + z * s, -x * s + z * c]; c = Math.cos(az); s = Math.sin(az); [x, y] = [x * c - y * s, x * s + y * c]; return [x, y, z]; };
+  const meridians = [0, 1, 2].map(() => { const p = el('path'); wire.append(p); return p; });
+  const lats = [-.55, 0, .55].map(() => { const p = el('path'); wire.append(p); return p; });
+  ORB.forEach(o => { o.path = el('path', { class: 'orb-ring' + (o.quiet ? ' quiet' : '') }); rings.append(o.path);
+    o.nodes = o.pts.map(([id, ph]) => { const p = W(id); if (!p) return null;
+      const n = el('g', { class: 'orb-pt' + (o.quiet ? ' quiet' : '') + (GLOW.includes(id) ? ' glow' : ''), tabindex: 0, role: 'button', 'aria-label': p.title });
+      n.append(el('circle', { class: 'orb-hit', r: 18 }), el('circle', { class: 'orb-dot', r: o.quiet ? 3.5 : 5 }));
+      const t = el('text', { class: 'orb-lbl', y: -11, 'text-anchor': 'middle' }); t.textContent = o.quiet ? p.title : p.title.toUpperCase(); n.append(t);
+      const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
+      n.addEventListener('pointerenter', () => { focus = { n, o, sp }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on'); });
+      n.addEventListener('pointerleave', () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); });
+      n.addEventListener('click', () => ready.then(() => open(p, n.getBoundingClientRect())));
+      n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); n.dispatchEvent(new MouseEvent('click')); } });
+      nodes.append(n); return { n, ph, sp }; }).filter(Boolean); });
+  let t = 0, last = 0, speed = 1, lean = [0, 0], want = [0, 0], focus = null, raf = 0, seen = true;
+  const ring = (rr, tx, tz, ay, steps = 96) => { let d = ''; for (let i = 0; i <= steps; i++) { const a = i / steps * Math.PI * 2; const [x, y] = rot(Math.cos(a) * rr, Math.sin(a) * rr, 0, tx + lean[1], ay, tz); d += (i ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } return d; };
+  const frame = now => {
+    raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+    speed += ((focus ? .12 : 1) - speed) * .06; t += dt * speed; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] - lean[1]) * .05;
+    const spin = t * .08 + lean[0];
+    meridians.forEach((p, i) => p.setAttribute('d', ring(R, Math.PI / 2, 0, spin + i * Math.PI / 3)));
+    lats.forEach((p, i) => { const y0 = [-.55, 0, .55][i] * R, rr = Math.sqrt(R * R - y0 * y0); let d = ''; for (let k = 0; k <= 72; k++) { const a = k / 72 * Math.PI * 2; let [x, y, z] = rot(Math.cos(a) * rr, y0, Math.sin(a) * rr, lean[1] * .6 - .32, 0, 0); d += (k ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } p.setAttribute('d', d); });
+    ORB.forEach(o => { o.path.setAttribute('d', ring(o.r, o.tx, o.tz, spin * .4));
+      o.nodes.forEach(q => { const a = q.ph + t * o.v * 6; const [x, y, z] = rot(Math.cos(a) * o.r, Math.sin(a) * o.r, 0, o.tx + lean[1], spin * .4, o.tz);
+        q.n.setAttribute('transform', `translate(${(C + x).toFixed(1)} ${(C + y).toFixed(1)})`); q.n.style.setProperty('--z', ((z / o.r + 1) / 2).toFixed(2));
+        // labels lean outward, away from the centre, so they never pile up on the hub; near the rim they turn inward to stay on the page
+        const L = q.n.lastChild, edge = Math.abs(x) > R * .45, right = edge ? x < 0 : x >= 0; L.setAttribute('text-anchor', right ? 'start' : 'end'); L.setAttribute('x', right ? 11 : -11); L.setAttribute('y', y < 0 ? -7 : 15); q.n.classList.toggle('back', z < -o.r * .25);
+        q.sp.setAttribute('x1', C); q.sp.setAttribute('y1', C); q.sp.setAttribute('x2', (C + x).toFixed(1)); q.sp.setAttribute('y2', (C + y).toFixed(1)); q.sp.classList.toggle('on', focus?.n === q.n); }); });
+    if (seen && !document.hidden) raf = requestAnimationFrame(frame);
+  };
+  svg.addEventListener('pointermove', e => { const r = svg.getBoundingClientRect(); want = [((e.clientX - r.left) / r.width - .5) * .5, ((e.clientY - r.top) / r.height - .5) * .35]; }, { passive: true });
+  svg.addEventListener('pointerleave', () => { want = [0, 0]; });
+  // only turn while it's on screen
+  new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
+  if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
+  const corner = (cls, txt) => { const x = el('text', { class: 'orb-corner ' + cls }); x.textContent = txt; return x; };
+  const tl = corner('tl', 'HARSHITA SHYALE · WORK'), br = corner('br', 'SEATTLE 47.61N 122.33W'); tl.setAttribute('x', 8); tl.setAttribute('y', 18); br.setAttribute('x', S0 - 8); br.setAttribute('y', S0 - 10); br.setAttribute('text-anchor', 'end'); svg.append(tl, br);
+  return svg;
 }
 function buildIndex(ix) {
   ix._built = true;
@@ -565,10 +624,12 @@ function buildIndex(ix) {
     h('header', { class: 'wk-head' },
       h('p', { class: 'wk-kick' }, P.kicker),
       h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
-    h('figure', { class: 'wk-hero' }, kinField(), h('figcaption', {}, h('span', {}, 'Or see it all laid out on two axes:'), toMap('Explore the map →'))),
+    h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one. Touch any of it.'), toMap('Explore the map →'))),
     h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
     h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'),
-      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map. ', toMap('Go play →'))),
+      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map. ', toMap('Go play →')),
+      // tucked away: everything I keep and make, arranged by resemblance; built only when opened
+      (() => { const d = h('details', { class: 'wk-kin' }, h('summary', {}, 'Everything I keep and make, by resemblance')); d.addEventListener('toggle', () => { if (d.open && !d._built) { d._built = true; d.append(kinField()); } }, { once: false }); return d; })()),
     h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch'))));
 }
 const views = $('#views');
