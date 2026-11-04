@@ -513,7 +513,7 @@ const WORK_ORDER = ['influence', 'github', 'sony', 'safe', 'hpe'];
 function renderIndex() { const ix = $('#index'); if (!ix._built) buildIndex(ix); }
 /* Kin: everything she keeps and makes, arranged by resemblance (after Charcuterie, David Aerne's visual Unicode explorer).
    One piece sits in the middle; around it, in rings, the 24 that look most like it, found with Apple's on-device image
-   model (data/kin.json). Pick any of them and it moves to the middle, its own kin gather round, and you wander:
+   model (data/kin.json); the pictures share one sheet (assets/kin.jpg, 15 across). Pick any of them and it moves to the middle, its own kin gather round, and you wander:
    from a deal map to a code review to a lamp someone saved on are.na. */
 let KIN = null;
 const kinLoad = () => KIN ? Promise.resolve(KIN) : fetch('data/kin.json').then(r => r.json()).then(d => (KIN = d));
@@ -538,7 +538,7 @@ function kinField() {
       let el = cells.get(i);
       if (!el) {
         el = h('button', { type: 'button', class: 'kin-cell entering', 'aria-label': label(i), onclick: () => { if (i === center) go(i); else { path.push(center); center = i; render(el); } } },
-          h('img', { src: A('kin/' + String(i).padStart(3, '0') + '.jpg'), alt: '', loading: 'eager', decoding: 'async' }));
+          h('span', { class: 'kin-img', style: `--x:${i % 15};--y:${Math.floor(i / 15)}` }));
         el.addEventListener('pointerenter', () => { hover = i; caption(i); }); el.addEventListener('pointerleave', () => { if (hover === i) { hover = null; caption(center); } });
         el.addEventListener('focus', () => caption(i)); el.addEventListener('blur', () => caption(center));
         field.append(el); cells.set(i, el); place(el, k); el.style.transitionDelay = (RM ? 0 : 60 + SLOTS[k][2] * 70 + k * 6) + 'ms';
