@@ -1710,3 +1710,6 @@ body.show-index .mw-a{font:15px/1 var(--sans);letter-spacing:-.01em}
 .wk-hero{width:100vw;margin-left:calc(50% - 50vw)}
 .wk-lede{left:max(28px,env(safe-area-inset-left,0px))}
 @media (max-width:760px){.wk-lede{left:20px;right:20px}.wk-hero .orb{width:calc(100vw - 40px)}}
+/* the dots are plotted, one after another, each fading in exactly where it sits */
+.arriving .pt{animation:plot .5s ease calc(var(--ad,0ms) + .35s + var(--i,0) * 120ms) both}
+@keyframes plot{from{opacity:0}}
