@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /.artifact/
+Disallow: /scripts/
+Disallow: /_shot.html
+
+Sitemap: https://harshitashyale.com/sitemap.xml

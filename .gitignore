@@ -1,2 +1,5 @@
 .vercel
 .artifact/
+
+# iCloud placeholders for files evicted from this Mac
+*.icloud

@@ -27,7 +27,7 @@ The site reads `data/overrides.json` when each page loads. You can use **Reset**
 A private Claude artifact mirrors this site: https://claude.ai/artifact/W7QyHL9qk37zaCD6dpKH1o
 
 1. Open the mirror, leave comments on the things you want changed, and send them to Claude.
-2. Claude makes the changes here, pushes to `main` (GitHub Pages publishes https://harshitadingorkar.github.io/harshita/), and republishes the mirror so it matches.
+2. Claude makes the changes here, pushes to `main` (GitHub Pages publishes https://harshitashyale.com/), and republishes the mirror so it matches.
 
 To rebuild the mirror's page and file lists by hand: `python3 scripts/artifact-page.py` (writes `.artifact/`, which git ignores).
 The mirror can't reach outside services, so the live weather and the live Are.na refresh fall back to the saved data there.
