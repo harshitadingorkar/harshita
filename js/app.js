@@ -511,41 +511,46 @@ if (soundBtn) {
 const qOrder = { tr: 0, tl: 1, br: 2, bl: 3 };
 const WORK_ORDER = ['influence', 'github', 'sony', 'safe', 'hpe'];
 function renderIndex() { const ix = $('#index'); if (!ix._built) buildIndex(ix); }
-/* The living map: every point of the real map, drawn small. Dots drift into place from the crossing, breathe,
-   lean toward the hand, and touching one names it and draws faint lines to the work it shares a theme with.
-   Clicking a dot opens it; the caption below goes to the full map. */
-function livingMap() {
-  const NS = 'http://www.w3.org/2000/svg', el = (t, a = {}) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); return e; };
-  // a phone gets a taller field, so the type stays readable at thumb size
-  const tall = mobile(), W = tall ? 600 : 1000, H = tall ? 660 : 600, cx = W / 2, cy = H / 2, sx = tall ? 250 : 430, sy = tall ? 280 : 250;
-  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'lm', role: 'img', 'aria-label': 'A miniature of the map of my work: work at the top, wonder at the bottom, gather on the left, make on the right.' });
-  const links = el('g', { class: 'lm-links' }), dots = el('g', { class: 'lm-dots' });
-  const m = tall ? 14 : 40;
-  svg.append(el('line', { class: 'lm-ax h', x1: m, y1: cy, x2: W - m, y2: cy }), el('line', { class: 'lm-ax v', x1: cx, y1: 24, x2: cx, y2: H - 24 }));
-  for (const [t, x, y, anc] of [['work', cx + 10, 40, 'start'], ['wonder', cx + 10, H - 30, 'start'], ['gather', m, cy - 12, 'start'], ['make', W - m, cy - 12, 'end']]) { const tx = el('text', { class: 'lm-axl', x, y, 'text-anchor': anc }); tx.textContent = t; svg.append(tx); }
-  const pts = S.points.map(p => ({ p, x: cx + p.x * sx, y: cy - p.y * sy }));
-  pts.forEach((q, i) => {
-    const g = el('g', { class: 'lm-pt t-' + q.p.type + (GLOW.includes(q.p.id) ? ' glow' : ''), tabindex: 0, role: 'button', 'aria-label': q.p.title, style: `--i:${i};--d:${Math.min(1, Math.hypot(q.p.x, q.p.y) / 1.2).toFixed(3)};--bx:${(Math.sin(i * 7.3) * 3).toFixed(1)}px;--by:${(Math.cos(i * 4.1) * 3).toFixed(1)}px;--bt:${(5 + (i % 4) * .7).toFixed(1)}s` });
-    g.setAttribute('transform', `translate(${q.x} ${q.y})`);
-    const lean = el('g', { class: 'lm-lean' }), body = el('g', { class: 'lm-body' });
-    const shape = q.p.type === 'making' ? el('path', { d: 'M0 -8 L8 6 L-8 6 Z' }) : el('circle', { r: q.p.type === 'collections' || q.p.kind === 'door' ? 6 : 7.5 });
-    const right = q.p.x > (tall ? .05 : .45), below = tall && q.p.id === 'safe', label = el('text', { class: 'lm-lbl', x: below ? 0 : right ? -14 : 14, y: below ? 26 : 5, 'text-anchor': below ? 'middle' : right ? 'end' : 'start' }); label.textContent = q.p.title;
-    body.append(el('circle', { class: 'lm-hit', r: 20 }), shape, label); lean.append(body); g.append(lean); dots.append(g); q.g = g; q.lean = lean;
-    const show = on => { g.classList.toggle('on', on); svg.classList.toggle('focus', on); links.replaceChildren(); if (!on) return;
-      pts.filter(o => o !== q && o.p.tags.some(t => q.p.tags.includes(t))).forEach(o => { const l = el('line', { x1: q.x, y1: q.y, x2: o.x, y2: o.y }); links.append(l); o.g.classList.add('kin'); }); };
-    g.addEventListener('pointerenter', () => show(true)); g.addEventListener('pointerleave', () => { show(false); $$('.kin', svg).forEach(k => k.classList.remove('kin')); });
-    g.addEventListener('focus', () => show(true)); g.addEventListener('blur', () => { show(false); $$('.kin', svg).forEach(k => k.classList.remove('kin')); });
-    g.addEventListener('click', e => { e.stopPropagation(); ready.then(() => open(q.p, g.getBoundingClientRect())); });
-    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); g.click(); } });
-  });
-  svg.append(links, dots);
-  // the hand: dots within reach lean toward it a few units, like iron filings near a magnet
-  let raf = 0, hx = -1e4, hy = -1e4;
-  const lean = () => { raf = 0; pts.forEach(q => { const dx = hx - q.x, dy = hy - q.y, d = Math.hypot(dx, dy), k = d < 170 ? (1 - d / 170) * 14 / Math.max(d, 1) : 0; q.lean.style.transform = `translate(${(dx * k).toFixed(1)}px,${(dy * k).toFixed(1)}px)`; }); };
-  const move = e => { const r = svg.getBoundingClientRect(); hx = (e.clientX - r.left) / r.width * W; hy = (e.clientY - r.top) / r.height * H; if (!raf && !RM) raf = requestAnimationFrame(lean); };
-  svg.addEventListener('pointermove', move, { passive: true });
-  svg.addEventListener('pointerleave', () => { hx = hy = -1e4; if (!raf) raf = requestAnimationFrame(lean); });
-  return svg;
+/* Kin: everything she keeps and makes, arranged by resemblance (after Charcuterie, David Aerne's visual Unicode explorer).
+   One piece sits in the middle; around it, in rings, the 24 that look most like it, found with Apple's on-device image
+   model (data/kin.json). Pick any of them and it moves to the middle, its own kin gather round, and you wander:
+   from a deal map to a code review to a lamp someone saved on are.na. */
+let KIN = null;
+const kinLoad = () => KIN ? Promise.resolve(KIN) : fetch('data/kin.json').then(r => r.json()).then(d => (KIN = d));
+// 25 slots in a 5×5 field: the middle, then the inner ring, then the outer ring, each ring walked clockwise from the top
+const SLOTS = (() => { const s = []; for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) s.push([x, y, Math.max(Math.abs(x), Math.abs(y)), Math.atan2(x, -y)]); return s.sort((a, b) => a[2] - b[2] || ((a[3] + 7) % 7) - ((b[3] + 7) % 7)); })();
+function kinField() {
+  const field = h('div', { class: 'kin', role: 'group', 'aria-label': 'Everything I keep and make, arranged by resemblance' });
+  const cap = h('div', { class: 'kin-cap', 'aria-live': 'polite' });
+  const trail = h('p', { class: 'kin-trail' });
+  const cells = new Map(); let center = 0, path = [], hover = null;
+  const label = i => [KIN[i].t, KIN[i].s].join(' · ');
+  const go = i => { const o = KIN[i].o || ''; if (o.startsWith('point:')) { const p = S.points.find(x => x.id === o.slice(6)); if (p) ready.then(() => open(p, null)); } else if (o.startsWith('page:')) { body.classList.add('collection-leaving'); setTimeout(() => { location.href = o.slice(5); }, 300); } };
+  const caption = i => { const x = KIN[i], here = i === center;
+    cap.replaceChildren(h('p', { class: 'kin-src' }, here ? x.s : 'looks like · ' + x.s), h('p', { class: 'kin-title' }, x.t),
+      here ? h('button', { type: 'button', class: 'kin-open', onclick: () => go(i) }, KIN[i].o?.startsWith('point:') ? 'Open the case →' : 'Go there →') : h('p', { class: 'kin-hint' }, 'Pick it to wander from there.')); };
+  const place = (el, k) => { const [x, y, ring] = SLOTS[k], sc = ring === 0 ? 1 : ring === 1 ? .84 : .6;
+    el.style.transform = `translate(${x * 100}%,${y * 100}%) scale(${sc})`; el.style.setProperty('--ring', ring); el.dataset.ring = ring; };
+  const render = (from) => {
+    const order = [center, ...KIN[center].n.slice(0, 24)], keep = new Set(order);
+    cells.forEach((el, i) => { if (!keep.has(i)) { cells.delete(i); el.classList.add('leaving'); setTimeout(() => el.remove(), RM ? 0 : 420); } });
+    order.forEach((i, k) => {
+      let el = cells.get(i);
+      if (!el) {
+        el = h('button', { type: 'button', class: 'kin-cell entering', 'aria-label': label(i), onclick: () => { if (i === center) go(i); else { path.push(center); center = i; render(el); } } },
+          h('img', { src: A('kin/' + String(i).padStart(3, '0') + '.jpg'), alt: '', loading: 'eager', decoding: 'async' }));
+        el.addEventListener('pointerenter', () => { hover = i; caption(i); }); el.addEventListener('pointerleave', () => { if (hover === i) { hover = null; caption(center); } });
+        el.addEventListener('focus', () => caption(i)); el.addEventListener('blur', () => caption(center));
+        field.append(el); cells.set(i, el); place(el, k); el.style.transitionDelay = (RM ? 0 : 60 + SLOTS[k][2] * 70 + k * 6) + 'ms';
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('entering')));
+      } else { el.style.transitionDelay = (RM ? 0 : SLOTS[k][2] * 30) + 'ms'; place(el, k); }
+      el.classList.toggle('here', k === 0); el.setAttribute('aria-current', k === 0 ? 'true' : 'false');
+    });
+    caption(center);
+    trail.replaceChildren(...(path.length ? [h('span', {}, `${path.length} step${path.length > 1 ? 's' : ''} from where you started`), h('button', { type: 'button', onclick: () => { path = []; center = 0; render(); } }, 'start over')] : [h('span', {}, 'after Charcuterie by David Aerne')]));
+  };
+  kinLoad().then(() => render()).catch(() => field.replaceChildren(h('p', { class: 'kin-hint' }, 'The field didn’t load. The work is below.')));
+  return h('div', { class: 'kin-wrap' }, field, h('div', { class: 'kin-side' }, h('p', { class: 'kin-lede' }, 'Everything I keep and make, arranged by how it looks. Pick anything to wander from there.'), cap, trail));
 }
 function buildIndex(ix) {
   ix._built = true;
@@ -559,14 +564,12 @@ function buildIndex(ix) {
   ix.replaceChildren(h('div', { class: 'wk' },
     h('header', { class: 'wk-head' },
       h('p', { class: 'wk-kick' }, P.kicker),
-      h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft')),
-      h('p', { class: 'wk-sub' }, 'I started as a software engineer, and I still build what I design.')),
-    h('figure', { class: 'wk-hero' }, livingMap(),
-      h('figcaption', {}, h('span', {}, 'Everything I keep and make, on two axes. Touch a dot.'), toMap('Explore the full map →'))),
-    h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Product design'), h('div', { class: 'wk-grid' }, work.map(card))),
+      h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
+    h('figure', { class: 'wk-hero' }, kinField(), h('figcaption', {}, h('span', {}, 'Or see it all laid out on two axes:'), toMap('Explore the map →'))),
+    h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
     h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'),
       h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map. ', toMap('Go play →'))),
-    h('footer', { class: 'wk-foot' }, h('p', {}, 'Hiring for a product designer who builds?'), contactMenu('Get in touch'))));
+    h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch'))));
 }
 const views = $('#views');
 /* the menu: the word you're on wears Averia, a soft inked italic. Hover lends it to another word,

@@ -103,13 +103,12 @@ window.SITE = {
   bio: [
     'Product designer at <b>Salesloft</b>, designing agentic AI for sellers and revenue teams.',
     'Before that, I’ve worked with <b>Hewlett Packard Enterprise</b>, <b>Nutanix</b>, <b>GitHub</b> and <b>Sony</b>.',
-    'I started as a software engineer, and I still build what I design.',
     'Off the clock: theatre, films, and collections of things worth keeping.',
   ],
   // The about page, read.cv-shaped: a few lines in her voice, pictures, then work and school as plain rows.
   // Every string here can be rewritten in edit mode.
   profile: {
-    kicker: 'Seattle · product designer',
+    kicker: 'Seattle · design engineer',
     lede: 'I design agentic AI that works alongside sellers and revenue teams, at Salesloft.',
     about: [
       'I started as an engineer building machine learning systems, then moved to design to work on the part I cared about most: how people meet them. I still build what I design.',
