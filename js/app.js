@@ -506,37 +506,67 @@ if (soundBtn) {
   soundBtn.addEventListener('animationend', e => { if (e.animationName === 'sb-ring') soundBtn.classList.remove('ping'); });
 }
 
-/* list: andrew trousdale's index card, toggled like dmcg */
+/* work: the page for someone who wants to hire her. Who she is in two lines, a living miniature of the map,
+   then product design only, as large cards that open their cases, and an invitation to go play on the map. */
 const qOrder = { tr: 0, tl: 1, br: 2, bl: 3 };
-const SEC = [['work','work (start here)'],['collections','collections'],['making','making'],['writing','writing']].filter(([type]) => S.points.some(p => p.type === type));
-const typeGlyph = type => h('i',{class:'g type-shape '+type,'data-type':type,'aria-hidden':'true'});
-function renderIndex() { const ix = $('#index'); if (!ix._built) buildIndex(ix); $$('.pt-row', ix).forEach(r => r.classList.toggle('mute', !!active && !matches(r._p,active))); }
-/* On a phone the list is a feed you scroll with a thumb: the picture, what kind of work, who it was for, then its line in Averia. */
-function buildFeed(ix) {
-  const card = p => { const src = thumbSrc(p), r = h('button', { class: 'f-card pt-row', onclick: e => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect()) },
-    src ? h('img', { src, alt: p.alt || '', loading: 'lazy' }) : null,
-    h('p', { class: 'f-tags' }, p.tags.map(t => h('span', {}, t))),
-    h('p', { class: 'f-org' }, [p.title, p.org !== p.title ? p.org : null, p.year].filter(Boolean).join(' · ')),
-    h('h3', {}, p.line)); r._p = p; return r; };
-  const sec = (title, note, pts) => h('section', { class: 'f-sec' }, h('header', { class: 'f-head' }, h('p', { class: 'lab' }, note), h('h2', {}, title)), pts.map(card));
-  ix.replaceChildren(h('div', { class: 'feed' },
-    sec('Work.', S.axes.work.def, S.points.filter(p => p.type === 'work')),
-    sec('Kept & made.', S.quads.bl.note, S.points.filter(p => p.type !== 'work'))));
+const WORK_ORDER = ['influence', 'github', 'sony', 'safe', 'hpe'];
+function renderIndex() { const ix = $('#index'); if (!ix._built) buildIndex(ix); }
+/* The living map: every point of the real map, drawn small. Dots drift into place from the crossing, breathe,
+   lean toward the hand, and touching one names it and draws faint lines to the work it shares a theme with.
+   Clicking a dot opens it; the caption below goes to the full map. */
+function livingMap() {
+  const NS = 'http://www.w3.org/2000/svg', el = (t, a = {}) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); return e; };
+  // a phone gets a taller field, so the type stays readable at thumb size
+  const tall = mobile(), W = tall ? 600 : 1000, H = tall ? 660 : 600, cx = W / 2, cy = H / 2, sx = tall ? 250 : 430, sy = tall ? 280 : 250;
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'lm', role: 'img', 'aria-label': 'A miniature of the map of my work: work at the top, wonder at the bottom, gather on the left, make on the right.' });
+  const links = el('g', { class: 'lm-links' }), dots = el('g', { class: 'lm-dots' });
+  const m = tall ? 14 : 40;
+  svg.append(el('line', { class: 'lm-ax h', x1: m, y1: cy, x2: W - m, y2: cy }), el('line', { class: 'lm-ax v', x1: cx, y1: 24, x2: cx, y2: H - 24 }));
+  for (const [t, x, y, anc] of [['work', cx + 10, 40, 'start'], ['wonder', cx + 10, H - 30, 'start'], ['gather', m, cy - 12, 'start'], ['make', W - m, cy - 12, 'end']]) { const tx = el('text', { class: 'lm-axl', x, y, 'text-anchor': anc }); tx.textContent = t; svg.append(tx); }
+  const pts = S.points.map(p => ({ p, x: cx + p.x * sx, y: cy - p.y * sy }));
+  pts.forEach((q, i) => {
+    const g = el('g', { class: 'lm-pt t-' + q.p.type + (GLOW.includes(q.p.id) ? ' glow' : ''), tabindex: 0, role: 'button', 'aria-label': q.p.title, style: `--i:${i};--d:${Math.min(1, Math.hypot(q.p.x, q.p.y) / 1.2).toFixed(3)};--bx:${(Math.sin(i * 7.3) * 3).toFixed(1)}px;--by:${(Math.cos(i * 4.1) * 3).toFixed(1)}px;--bt:${(5 + (i % 4) * .7).toFixed(1)}s` });
+    g.setAttribute('transform', `translate(${q.x} ${q.y})`);
+    const lean = el('g', { class: 'lm-lean' }), body = el('g', { class: 'lm-body' });
+    const shape = q.p.type === 'making' ? el('path', { d: 'M0 -8 L8 6 L-8 6 Z' }) : el('circle', { r: q.p.type === 'collections' || q.p.kind === 'door' ? 6 : 7.5 });
+    const right = q.p.x > (tall ? .05 : .45), below = tall && q.p.id === 'safe', label = el('text', { class: 'lm-lbl', x: below ? 0 : right ? -14 : 14, y: below ? 26 : 5, 'text-anchor': below ? 'middle' : right ? 'end' : 'start' }); label.textContent = q.p.title;
+    body.append(el('circle', { class: 'lm-hit', r: 20 }), shape, label); lean.append(body); g.append(lean); dots.append(g); q.g = g; q.lean = lean;
+    const show = on => { g.classList.toggle('on', on); svg.classList.toggle('focus', on); links.replaceChildren(); if (!on) return;
+      pts.filter(o => o !== q && o.p.tags.some(t => q.p.tags.includes(t))).forEach(o => { const l = el('line', { x1: q.x, y1: q.y, x2: o.x, y2: o.y }); links.append(l); o.g.classList.add('kin'); }); };
+    g.addEventListener('pointerenter', () => show(true)); g.addEventListener('pointerleave', () => { show(false); $$('.kin', svg).forEach(k => k.classList.remove('kin')); });
+    g.addEventListener('focus', () => show(true)); g.addEventListener('blur', () => { show(false); $$('.kin', svg).forEach(k => k.classList.remove('kin')); });
+    g.addEventListener('click', e => { e.stopPropagation(); ready.then(() => open(q.p, g.getBoundingClientRect())); });
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); g.click(); } });
+  });
+  svg.append(links, dots);
+  // the hand: dots within reach lean toward it a few units, like iron filings near a magnet
+  let raf = 0, hx = -1e4, hy = -1e4;
+  const lean = () => { raf = 0; pts.forEach(q => { const dx = hx - q.x, dy = hy - q.y, d = Math.hypot(dx, dy), k = d < 170 ? (1 - d / 170) * 14 / Math.max(d, 1) : 0; q.lean.style.transform = `translate(${(dx * k).toFixed(1)}px,${(dy * k).toFixed(1)}px)`; }); };
+  const move = e => { const r = svg.getBoundingClientRect(); hx = (e.clientX - r.left) / r.width * W; hy = (e.clientY - r.top) / r.height * H; if (!raf && !RM) raf = requestAnimationFrame(lean); };
+  svg.addEventListener('pointermove', move, { passive: true });
+  svg.addEventListener('pointerleave', () => { hx = hy = -1e4; if (!raf) raf = requestAnimationFrame(lean); });
+  return svg;
 }
 function buildIndex(ix) {
   ix._built = true;
-  if (mobile()) return buildFeed(ix);
-  const stage = h('div', { class: 'istage', 'aria-hidden': 'true' },h('p',{class:'stage-empty'},'hover a line to see it'));
-  let stageToken=0;
-  const show = p => { if (stage._p === p) return; stage._p = p; $('.stage-empty',stage)?.remove(); const token=++stageToken,c=plateFor(p),caption=h('figcaption',{},h('b',{},`${p.org} — ${p.title}`),h('span',{'data-point-id':p.id,'data-point-field':'line'},p.line)); const f=c?h('figure',{class:'ifig'},c,caption):null;if(!f)return;stage.append(f);const imgs=$$('img',f);Promise.all(imgs.map(img=>img.decode?.().catch(()=>{}))).then(()=>{if(token!==stageToken)return;requestAnimationFrame(()=>f.classList.add('on'));setTimeout(()=>{if(token===stageToken)$$('.ifig',stage).filter(x=>x!==f).forEach(x=>x.remove());},460);}); };
-  const acc = (key, label, type, rows, count, open) => { const sec = h('section', { class: 'iacc' + (open ? ' open' : '') }); const head = h('button', { class: 'ihead', 'aria-expanded': String(!!open), onclick: () => { const o = !sec.classList.contains('open'); sec.classList.toggle('open', o); head.setAttribute('aria-expanded', String(o)); } }, type?typeGlyph(type):h('i',{class:'g dash'}), h('span', { class: 'il' }, label), count != null ? h('sup', {}, String(count)) : null, h('span', { class: 'plus', 'aria-hidden': 'true' }, '+')); sec.append(head, h('div', { class: 'icontent' }, h('div', {}, rows))); return sec; };
-  const card = h('div', { class: 'icard' },
-    h('div', { class: 'ihd' }, h('span', {}, 'index')),
-    h('div', { class: 'ibio' }, S.bio.map(t => h('p', { html: t }))),
-    SEC.map(([type,label], si) => { const pts = S.points.filter(p => p.type === type); return acc(type, label, type, pts.map((p, n) => { const r = h('button', { class: 'irow pt-row', style: '--i:' + n, onmouseenter: () => show(p), onfocus: () => show(p), onclick: e => { const im = $('.ifig.on img, .ifig.on .tiles', stage); open(p, (stage._p === p && im ? im : e.currentTarget).getBoundingClientRect()); } }, typeGlyph(type), h('span', { class: 'rt' }, p.title), h('span', { class: 'rs' }, [p.org, p.year].filter(Boolean).join(' · ')),h('span',{class:'row-arrow','aria-hidden':'true'},'→')); r._p = p; return r; }), pts.length, si===0); }),
-    acc('exp', 'experience', null, S.experience.map(([org, role, year], n) => h('div', { class: 'irow', style: '--i:' + n }, h('i',{class:'g dash'}),h('span', { class: 'rt' }, org), h('span', { class: 'rs' }, role+' · '+year)))),
-    acc('contact', 'contact', null, [[S.person.email, 'mailto:' + S.person.email, 'email'], ['linkedin ↗', S.person.linkedin, 'linkedin.com/in/harshita-shyale'], ['résumé ↗', S.person.resume, 'pdf'], ['instagram ↗', 'https://www.instagram.com/ashlime_soda/', '@ashlime_soda']].map(([t, u, s], n) => h('a', { class: 'irow', style: '--i:' + n, href: u, target: u.startsWith('mailto') ? null : '_blank', rel: 'noopener' }, h('i', { class: 'g dash' }), h('span', { class: 'rt' }, t), h('span', { class: 'rs' }, s)))));
-  ix.replaceChildren(stage, card);
+  const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
+  const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), onclick: e => ready.then(() => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect())) },
+    h('span', { class: 'wk-img' }, src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' }) : null),
+    h('span', { class: 'wk-meta' }, [p.org, p.year].filter(Boolean).join(' · ')),
+    h('span', { class: 'wk-title' }, p.title),
+    h('span', { class: 'wk-line' }, p.line)); r._p = p; return r; };
+  const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
+  ix.replaceChildren(h('div', { class: 'wk' },
+    h('header', { class: 'wk-head' },
+      h('p', { class: 'wk-kick' }, P.kicker),
+      h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft')),
+      h('p', { class: 'wk-sub' }, 'I started as a software engineer, and I still build what I design.')),
+    h('figure', { class: 'wk-hero' }, livingMap(),
+      h('figcaption', {}, h('span', {}, 'Everything I keep and make, on two axes. Touch a dot.'), toMap('Explore the full map →'))),
+    h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Product design'), h('div', { class: 'wk-grid' }, work.map(card))),
+    h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'),
+      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map. ', toMap('Go play →'))),
+    h('footer', { class: 'wk-foot' }, h('p', {}, 'Hiring for a product designer who builds?'), contactMenu('Get in touch'))));
 }
 const views = $('#views');
 /* the menu: the word you're on wears Averia, a soft inked italic. Hover lends it to another word,
@@ -561,88 +591,10 @@ function placePill() {
     { transform: `translateX(${to[0]}px) scaleY(1)`, width: to[1] + 'px' }
   ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
 }
-const indexMotion = { animations: [], clones: [], timers: [], phase: null, token: 0 };
-const indexGlyph = row => {
-  const section = row.closest('.iacc');
-  return section && section.classList.contains('open') ? $('.g', row) : $('.ihead .g', section);
-};
+const indexMotion = { timers: [], phase: null };
 function cancelIndexMotion() {
-  indexMotion.token++;
-  indexMotion.animations.forEach(animation => { try { animation.cancel(); } catch {} });
-  indexMotion.clones.forEach(clone => clone.remove());
-  indexMotion.timers.forEach(timer => clearTimeout(timer));
-  indexMotion.animations = []; indexMotion.clones = []; indexMotion.timers = []; indexMotion.phase = null;
-  body.classList.remove('index-entering', 'index-leaving', 'index-labels-in', 'index-crossfade', 'index-crossfade-entering', 'index-crossfade-leaving');
-  $$('.glyph-landed,.map-dot-landed').forEach(el => el.classList.remove('glyph-landed', 'map-dot-landed'));
-  const card = $('.icard', $('#index')); if (card) card.style.clipPath = '';
-}
-function readIndexRects(ix) {
-  const rows = new Map($$('.pt-row', ix).map(row => [row._p, { row, glyph: indexGlyph(row) }]));
-  const entries = $$('.pt').map(point => {
-    const source = point.querySelector('.dot').getBoundingClientRect(), target = rows.get(point._p);
-    return target && target.glyph ? { point, row: target.row, glyph: target.glyph, source, target: target.glyph.getBoundingClientRect() } : null;
-  }).filter(Boolean);
-  [...$$('.pt .lbl'), ...$$('.axis,.alabel,.qlabel,.mark'), ...$$('.irow,.ihead .g,.icard,.ifig', ix)].forEach(el => el.getBoundingClientRect());
-  return entries;
-}
-function flyDots(entries, reverse, token) {
-  const ordered = [...entries].sort((a, b) => (reverse ? a.target.top - b.target.top : a.target.top - b.target.top) || a.target.left - b.target.left);
-  const duration = reverse ? 420 : 420;
-  ordered.forEach((entry, order) => {
-    const from = reverse ? entry.target : entry.source, to = reverse ? entry.source : entry.target;
-    const dx = to.left + to.width / 2 - from.left - from.width / 2, dy = to.top + to.height / 2 - from.top - from.height / 2;
-    const clone = h('i', { class: 'flydot', style: `left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px` });
-    body.append(clone); indexMotion.clones.push(clone);
-    const animation = clone.animate([
-      { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 },
-      { transform: `translate3d(${dx * .5}px,${dy * .5 - 40}px,0) scale(1.3)`, opacity: 1, offset: .5 },
-      { transform: `translate3d(${dx}px,${dy}px,0) scale(.8)`, opacity: 0 }
-    ], { duration, delay: order * 26, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'both' });
-    indexMotion.animations.push(animation);
-    animation.onfinish = () => {
-      if (indexMotion.token !== token) return;
-      clone.remove();
-      if (reverse) entry.point.querySelector('.dot').classList.add('map-dot-landed');
-      else entry.glyph.classList.add('glyph-landed');
-    };
-  });
-  return ordered.length ? (ordered.length - 1) * 26 + duration : 0;
-}
-function flyToList() {
-  if (RM || mobile()) return;
-  const ix = $('#index'); renderIndex();
-  const entries = readIndexRects(ix), token = ++indexMotion.token;
-  indexMotion.phase = 'in';
-  hidePlate(); pill.classList.remove('on');
-  body.classList.add('show-index', 'index-entering');
-  const card = $('.icard', ix);
-  if (card) {
-    const animation = card.animate([{ clipPath: 'inset(0 0 100% 0 round 6px)' }, { clipPath: 'inset(0 round 6px)' }], { duration: 600, delay: 120, easing: 'cubic-bezier(.77,0,.175,1)', fill: 'both' });
-    indexMotion.animations.push(animation);
-  }
-  const fig = $('.ifig', ix);
-  if (fig) {
-    fig.classList.remove('on');
-    indexMotion.timers.push(setTimeout(() => { if (indexMotion.token === token) fig.classList.add('on'); }, 450));
-  }
-  const landing = flyDots(entries, false, token);
-  indexMotion.timers.push(setTimeout(() => { if (indexMotion.token === token) { body.classList.remove('index-entering'); indexMotion.phase = 'list'; } }, landing + 180));
-}
-function flyToMap() {
-  if (RM || mobile()) return;
-  const ix = $('#index'), entries = readIndexRects(ix), token = ++indexMotion.token;
-  indexMotion.phase = 'out'; body.classList.add('index-leaving');
-  const card = $('.icard', ix);
-  if (card) {
-    const animation = card.animate([{ clipPath: 'inset(0 round 6px)' }, { clipPath: 'inset(0 0 100% 0 round 6px)' }], { duration: 450, easing: 'cubic-bezier(.77,0,.175,1)', fill: 'both' });
-    indexMotion.animations.push(animation);
-  }
-  const landing = flyDots(entries, true, token);
-  indexMotion.timers.push(setTimeout(() => { if (indexMotion.token === token) body.classList.add('index-labels-in'); }, landing + 20));
-  indexMotion.timers.push(setTimeout(() => {
-    if (indexMotion.token !== token) return;
-    body.classList.remove('show-index', 'index-leaving', 'index-labels-in'); indexMotion.phase = null;
-  }, landing + 260));
+  indexMotion.timers.forEach(timer => clearTimeout(timer)); indexMotion.timers = []; indexMotion.phase = null;
+  body.classList.remove('index-crossfade', 'index-crossfade-entering', 'index-crossfade-leaving');
 }
 function crossfadeIndex(on) {
   renderIndex(); indexMotion.phase = on ? 'crossfade-in' : 'crossfade-out';
@@ -655,18 +607,12 @@ function toggleIndex(on) {
   const moving = !!indexMotion.phase;
   if (!moving && on === body.classList.contains('show-index')) return;
   cancelIndexMotion();
-  $$('button', views).forEach(b => b.classList.toggle('on', (b.dataset.v === 'list') === on)); placePill();
+  $$('button', views).forEach(b => b.classList.toggle('on', (b.dataset.v === 'work') === on)); placePill();
   hidePlate(); pill.classList.remove('on');
-  if (on) {
-    body.classList.remove('show-index');
-    if (RM || mobile()) crossfadeIndex(true);
-    else flyToList();
-  } else if (body.classList.contains('show-index')) {
-    if (RM || mobile()) crossfadeIndex(false);
-    else flyToMap();
-  }
+  if (on) { body.classList.remove('show-index'); crossfadeIndex(true); }
+  else if (body.classList.contains('show-index')) crossfadeIndex(false);
 }
-$$('button', views).forEach(b => b.onclick = () => { const list = b.dataset.v === 'list'; if (list !== body.classList.contains('show-index')) window.portfolioSound?.steps(!list); toggleIndex(list); });
+$$('button', views).forEach(b => b.onclick = () => { const list = b.dataset.v === 'work'; if (list !== body.classList.contains('show-index')) window.portfolioSound?.steps(!list); toggleIndex(list); });
 
 /* ---------- lights out ---------- */
 // The other theme spreads out from the switch as a widening circle; the sun folds its rays and takes a bite to become a moon.
@@ -690,6 +636,7 @@ $('#home').onclick = e => { e.preventDefault(); ready.then(openProfile); };
 /* boot */
 plane.addEventListener('click', e => { if (!e.target.closest('.pt,.mark,button,a') && active) setFilter(null); });
 buildPlane(); renderIndex(); document.fonts && document.fonts.ready.then(layout);
+if (mobile()) { $$('button', views).forEach(b => b.classList.toggle('on', b.dataset.v === 'work')); body.classList.add('show-index'); requestAnimationFrame(placePill); }
 window.refreshPortfolio = () => { buildPlane(); renderIndex(); layout(); };
 let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); $('#index')._built = false; renderIndex(); } else layout(); });
 const intro = $('#intro');

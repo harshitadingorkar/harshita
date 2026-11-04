@@ -1499,3 +1499,73 @@ body.introing #home{visibility:visible}
 @media (max-width:760px){.cs-moments.peek{grid-template-columns:1fr;width:auto;margin-left:0;translate:none}}
 .cs-moments.peek{margin-left:calc((100% - min(1000px, 100vw - 48px)) / 2);translate:none}
 @media (max-width:760px){.cs-moments.peek{margin-left:0}}
+
+/* ---------- Round 35: work, the page for people who want to hire her ----------
+   A plain scroll: two lines, the living map, product design as large cards, an invitation to the map, a way to get in touch. */
+#index{overflow-y:auto;overflow-x:hidden;background:var(--ground);overscroll-behavior:contain}
+body.show-index .istage,body.show-index .icard{display:none}
+.wk{max-width:1040px;margin:0 auto;padding:150px max(24px,env(safe-area-inset-right,0px)) 120px max(24px,env(safe-area-inset-left,0px))}
+.wk-head{max-width:720px;display:grid;gap:14px}
+.wk-kick{margin:0;font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink3)}
+.wk-lede{margin:0;font:400 clamp(32px,4.6vw,52px)/1.08 var(--voice);letter-spacing:-.022em;color:var(--ink);text-wrap:balance}
+.wk-sub{margin:0;font:italic 400 19px/1.4 var(--voice);color:var(--ink2)}
+.wk-hero{margin:56px 0 0}
+.wk-hero figcaption{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-top:10px;font:13px/1.4 var(--sans);color:var(--ink3)}
+.wk-tomap{padding:0;font:11px/1 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--ink3);transition:text-decoration-color .16s ease,color .16s ease}
+.wk-tomap:hover{color:var(--ox);text-decoration-color:currentColor}
+
+/* the living map */
+.lm{display:block;width:100%;height:auto;overflow:visible;touch-action:pan-y}
+.lm-ax{stroke:var(--ink);stroke-opacity:.32;stroke-width:1;vector-effect:non-scaling-stroke}
+.lm-axl{font:11px var(--mono);letter-spacing:.04em;text-transform:uppercase;fill:var(--ink3)}
+.lm-links line{stroke:var(--ox);stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 4;vector-effect:non-scaling-stroke;animation:lm-draw .6s var(--e-dm) both}
+@keyframes lm-draw{from{stroke-opacity:0}}
+.lm-pt{cursor:pointer;outline:none}
+.lm-lean{transition:transform .9s var(--e-dm)}
+.lm-body{animation:lm-in 1.1s var(--e-dm) calc(.15s + var(--d) * .7s) both,lm-breathe var(--bt) ease-in-out calc(1.4s + var(--i) * -.6s) infinite}
+@keyframes lm-in{from{opacity:0;transform:translate(calc(var(--d) * -40px),calc(var(--d) * 20px)) scale(.3)}}
+@keyframes lm-breathe{0%,100%{translate:0 0}50%{translate:var(--bx) var(--by)}}
+.lm-hit{fill:transparent}
+.lm-pt circle:not(.lm-hit),.lm-pt path{fill:var(--ink);transition:fill .2s ease,transform .3s var(--e-dm);transform-box:fill-box;transform-origin:center}
+.lm-pt.t-collections circle:not(.lm-hit),.lm-pt[aria-label="The door’s open"] circle:not(.lm-hit){fill:transparent;stroke:var(--ink);stroke-width:1.6}
+.lm-pt.glow circle:not(.lm-hit){fill:var(--ox);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--ox) 55%,transparent))}
+.lm-lbl{font:14px var(--sans);fill:var(--ink);opacity:0;transition:opacity .2s ease;pointer-events:none}
+.lm-pt.t-work .lm-lbl{opacity:.62}
+.lm.focus .lm-pt:not(.on):not(.kin) .lm-body{opacity:.25;transition:opacity .25s ease}
+.lm-pt.on .lm-lbl,.lm-pt.kin .lm-lbl{opacity:1}
+.lm-pt.on circle:not(.lm-hit),.lm-pt.on path{transform:scale(1.35)}
+.lm-pt.on.t-work circle:not(.lm-hit){fill:var(--ox)}
+@media (prefers-reduced-motion:reduce){.lm-body{animation:none}.lm-lean{transition:none}}
+
+/* product design */
+.wk-sec{margin-top:96px}
+.wk-lab{margin:0 0 22px;padding-bottom:10px;border-bottom:1px solid var(--hair2);font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink3)}
+.wk-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px 28px}
+.wk-card{display:grid;gap:8px;align-content:start;padding:0;text-align:left;cursor:pointer;color:var(--ink)}
+.wk-card.lead{grid-column:1/-1}
+.wk-img{display:block;overflow:hidden;border-radius:10px;background:var(--hair2);box-shadow:0 0 0 1px var(--hair2),0 34px 70px -44px rgba(25,25,21,.45);margin-bottom:8px}
+.wk-img img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;transition:scale 1.1s var(--e-dm)}
+.wk-card.lead .wk-img img{aspect-ratio:16/9}
+.wk-card:hover .wk-img img,.wk-card:focus-visible .wk-img img{scale:1.025}
+.wk-meta{font:11px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink3)}
+.wk-title{font:400 26px/1.15 var(--voice);letter-spacing:-.012em;transition:color .2s ease}
+.wk-card.lead .wk-title{font-size:32px}
+.wk-card:hover .wk-title{color:var(--ox)}
+.wk-line{max-width:520px;font:15px/1.55 var(--sans);color:var(--ink2);text-wrap:pretty}
+.wk-offline{margin:0;font:16px/1.6 var(--sans);color:var(--ink2)}
+.wk-foot{margin-top:96px;padding-top:28px;border-top:1px solid var(--hair2);display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.wk-foot p{margin:0;font:italic 400 22px/1.3 var(--voice)}
+.wk-foot .pf-act{font:11px/1 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--ink3)}
+.wk-foot .pf-menu{right:0;left:auto;top:auto;bottom:calc(100% + 10px)}
+@media (max-width:760px){
+  .wk{padding-top:92px}
+  .wk-hero{margin:36px -10px 0}
+  .lm-lbl{font-size:22px}.lm-axl{font-size:18px}
+  .wk-grid{grid-template-columns:1fr;gap:44px}
+  .wk-card.lead .wk-title,.wk-title{font-size:25px}
+  .wk-sec{margin-top:64px}
+}
+/* on the work page the headline says it all, so the bar keeps only the name and the switch, over a soft backdrop */
+body.show-index .b-intro{display:none}
+body.show-index .band{background:linear-gradient(var(--ground) 70%,color-mix(in srgb,var(--ground) 0%,transparent));padding-bottom:22px}
+@media (max-width:760px){.lm-lbl{font-size:17px}.lm-axl{font-size:13px}.lm-pt circle:not(.lm-hit){r:7}}
