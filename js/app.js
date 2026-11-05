@@ -607,29 +607,21 @@ function orbitHero() {
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
-  const corner = (cls, txt) => { const x = el('text', { class: 'orb-corner ' + cls }); x.textContent = txt; return x; };
-  const tl = corner('tl', 'HARSHITA SHYALE · WORK'), br = corner('br', 'SEATTLE 47.61N 122.33W'); tl.setAttribute('x', 8); tl.setAttribute('y', 18); br.setAttribute('x', S0 - 8); br.setAttribute('y', S0 - 10); br.setAttribute('text-anchor', 'end'); svg.append(tl, br);
   return svg;
 }
 function buildIndex(ix) {
   ix._built = true;
-  const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
-  const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), onclick: e => ready.then(() => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect())) },
+  const work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
+  // the work, restrained: the drawing alone in the middle of the first screen, one line of who I am beneath it,
+  // then the pieces as pictures with their names, and a way to reach me. Everything else lives on the map.
+  const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), 'aria-label': p.title + ', ' + p.line, onclick: e => ready.then(() => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect())) },
     h('span', { class: 'wk-img' }, src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' }) : null),
-    h('span', { class: 'wk-meta' }, [p.org, p.year].filter(Boolean).join(' · ')),
-    h('span', { class: 'wk-title' }, p.title),
-    h('span', { class: 'wk-line' }, p.line)); r._p = p; return r; };
-  const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
+    h('span', { class: 'wk-cap' }, h('span', { class: 'wk-title' }, p.title), h('span', { class: 'wk-meta' }, [p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org, p.year].filter(Boolean).join(' · ')))); r._p = p; return r; };
   ix.replaceChildren(h('div', { class: 'wk' },
-    h('header', { class: 'wk-head' },
-      h('p', { class: 'wk-kick' }, P.kicker),
-      h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
-    h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one.'), toMap('Explore the map →'))),
-    h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
-    h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'),
-      // the resemblance field (kinField) rests until there's more work to arrange
-      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →'))),
-    h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch'))));
+    h('section', { class: 'wk-stage' }, h('figure', { class: 'wk-hero' }, orbitHero()),
+      h('h1', { class: 'wk-line1' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
+    h('section', { class: 'wk-sec' }, h('div', { class: 'wk-grid' }, work.map(card))),
+    h('footer', { class: 'wk-foot' }, contactMenu('Get in touch'))));
 }
 const views = $('#views');
 // back from a wall the page may come out of the browser's cache mid-departure; clear the blur

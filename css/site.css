@@ -1649,3 +1649,27 @@ body.show-index .band{background:linear-gradient(var(--ground) 70%,color-mix(in 
 #cursor.down i{scale:1.2}
 #cursor.paper .ring{border-color:#211D18}
 @media (prefers-reduced-motion:reduce){#cursor .x,#cursor .ring,#cursor i{transition:none}}
+
+/* ---------- Round 40: the work, with restraint ----------
+   The drawing alone, centred in the first screen; one line of who I am at its foot; the pieces as pictures with
+   their names; a way to reach me. No kicker, no caption, no corner text, no sign-off. */
+.wk{padding-top:0}
+.wk-stage{position:relative;min-height:100svh;display:grid;place-items:center;padding:96px 0 112px}
+.wk-stage .wk-hero{margin:0;width:100%}
+.wk-stage .orb{width:min(620px,100%,calc(100svh - 240px))}
+.wk-line1{position:absolute;left:0;right:0;bottom:44px;margin:0 auto;max-width:34em;text-align:center;font:400 15px/1.5 var(--sans);letter-spacing:0;color:var(--ink2);text-wrap:balance}
+.wk-sec{margin-top:24px}
+.wk-grid{gap:72px 32px}
+.wk-cap{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-top:6px}
+.wk-title{font-size:22px}
+.wk-card.lead .wk-title{font-size:24px}
+.wk-meta{white-space:nowrap}
+.wk-foot{margin-top:120px;padding-top:24px;justify-content:flex-start}
+@media (max-width:760px){
+  .wk-stage{min-height:auto;padding:104px 0 40px;display:grid;gap:28px}
+  .wk-stage .orb{width:100%}
+  .wk-line1{position:static;font-size:15px}
+  .wk-cap{flex-direction:column;gap:4px}
+  .wk-title,.wk-card.lead .wk-title{font-size:21px}
+  .wk-grid{gap:48px}
+}
