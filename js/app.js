@@ -624,15 +624,16 @@ function buildIndex(ix) {
     h('header', { class: 'wk-head' },
       h('p', { class: 'wk-kick' }, P.kicker),
       h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
-    h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one. Touch any of it.'), toMap('Explore the map →'))),
+    h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one.'), toMap('Explore the map →'))),
     h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
     h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'),
-      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map. ', toMap('Go play →')),
-      // tucked away: everything I keep and make, arranged by resemblance; built only when opened
-      (() => { const d = h('details', { class: 'wk-kin' }, h('summary', {}, 'Everything I keep and make, by resemblance')); d.addEventListener('toggle', () => { if (d.open && !d._built) { d._built = true; d.append(kinField()); } }, { once: false }); return d; })()),
+      // the resemblance field (kinField) rests until there's more work to arrange
+      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →'))),
     h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch'))));
 }
 const views = $('#views');
+// back from a wall the page may come out of the browser's cache mid-departure; clear the blur
+addEventListener('pageshow', e => { if (e.persisted) body.classList.remove('collection-leaving'); });
 /* the menu: the word you're on wears Averia, a soft inked italic. Hover lends it to another word,
    letter by letter, and it comes home when you leave. Every other link only fades. */
 const menu = $('.b-menu');
@@ -668,7 +669,7 @@ function crossfadeIndex(on) {
   indexMotion.timers.push(setTimeout(() => { body.classList.remove('index-crossfade', 'index-crossfade-entering', 'index-crossfade-leaving'); indexMotion.phase = on ? 'list' : null; }, 260));
 }
 function toggleIndex(on) {
-  history.replaceState(null, '', on ? location.pathname + location.search : '#map');
+  history.replaceState(null, '', on ? '#work' : location.pathname + location.search);
   const moving = !!indexMotion.phase;
   if (!moving && on === body.classList.contains('show-index')) return;
   cancelIndexMotion();
@@ -701,9 +702,9 @@ $('#home').onclick = e => { e.preventDefault(); ready.then(openProfile); };
 /* boot */
 plane.addEventListener('click', e => { if (!e.target.closest('.pt,.mark,button,a') && active) setFilter(null); });
 buildPlane(); renderIndex(); document.fonts && document.fonts.ready.then(layout);
-// people arrive on the work; the map is a click away, and remembered in the address as #map
-const startOnMap = location.hash === '#map';
-if (!startOnMap) { $$('button', views).forEach(b => b.classList.toggle('on', b.dataset.v === 'work')); body.classList.add('show-index'); requestAnimationFrame(placePill); }
+// people arrive on the map; the work has its own address, #work (harshitashyale.com/work for the CV)
+const startOnWork = location.hash === '#work';
+if (startOnWork) { $$('button', views).forEach(b => b.classList.toggle('on', b.dataset.v === 'work')); body.classList.add('show-index'); requestAnimationFrame(placePill); }
 window.refreshPortfolio = () => { buildPlane(); renderIndex(); layout(); };
 let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); $('#index')._built = false; renderIndex(); } else layout(); });
 const intro = $('#intro');
@@ -716,7 +717,7 @@ const skipIntro = e => {
   introActive = false; introTimers.forEach(clearTimeout); clearTimeout(arrivalTimer); unlistenIntro();
   body.classList.remove('introing', 'arriving'); intro.remove();
 };
-if (sessionStorage.getItem('seen') || RM || !startOnMap) { intro.remove(); arrive(0); }
+if (sessionStorage.getItem('seen') || RM || startOnWork) { intro.remove(); if (!sessionStorage.getItem('seen')) { sessionStorage.setItem('seen', 1); arrive(0); } }
 else {
   /* The opening: one line, set right where the axes cross. It gathers out of a soft blur, holds a breath,
      then parts from the middle outward like mist, and in the same breath the axes draw out from that point

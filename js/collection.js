@@ -8,9 +8,9 @@ const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const pageId = new URLSearchParams(location.search).get('c') || 'arena';
 const pages = {
   arena: { title:'Collection', sub:'kept in curations on are.na', what:'Things I keep: images, references and small artifacts I come back to. Gathered on are.na, arranged here by curation. All rights remain with the original creators.' },
-  films: { title:'Films', sub:'watched lately, rated honestly', what:'Everything I’ve watched lately, rated honestly. I was the first Harshita on Letterboxd, so the username is just harshita.' },
+  films: { title:'Films', sub:'watched lately, rated honestly', what:'I’m a joyous, gleeful AMC A-lister. This is everything I’ve watched lately, logged on Letterboxd. I like to believe that a lot of what I consume shows up in the work that I do. A flex I share as a fun fact sometimes is that I was the first Harshita on Letterboxd, so the username is just harshita.' },
   clay: { title:'Clay', sub:'made slowly, by hand', what:'Things I make with my hands, and the pieces I keep for reference.', meditation:'Clay won’t be hurried. It dries when it dries, and it remembers every press of the thumb. Hand-building has no undo, only the next small decision. It’s the slowest thing I do, and the one that makes the rest make sense.', meditation2:'New pieces, and the ones that survive the kiln, go up on Instagram.' },
-  odds: { title:'Odds & ends', sub:'patterns in the ordinary', what:'Photographs of patterns in the ordinary, and how we move through everyday spaces.' },
+  odds: { title:'Odds & ends', sub:'patterns in the ordinary', what:'Visual note-taking done as pictures I take of patterns in the ordinary, and how we move through everyday spaces.' },
   theatre: { title:'Theatre', sub:'', what:'' }
 };
 /* Theatre: a wall of stills, one cluster per play. The panel tells the whole story once and only changes
@@ -25,7 +25,7 @@ const THEATRE = {
   ],
   aspects:{ banner:2, poster:2.197, tr1:1.449, tr2:1.618, tr3:1.699, tr4:.887, tr5:1.321, tr6:.797, mime:1.501, monkey:1, lullaby:1.501, sips1:.912, 'sips-video':.5625, sips2:1.778, sips3:1.333 },
   intro:[
-    ['Before design, there was theatre. I led ', ['CARV','http://carvenglish.wordpress.com/'], ', the theatre company at my college in Bangalore, acted in sold-out original plays, and co-wrote and directed ', ['TRRAAMMToBB','#trraammtobb'], ', which won Best Play and Best Director at IITM in 2020.'],
+    ['Before I got into design, there was theatre. I led ', ['CARV','http://carvenglish.wordpress.com/'], ', the theatre company at my college in Bangalore, acted in sold-out original plays, and co-wrote and directed ', ['TRRAAMMToBB','#trraammtobb'], ', which won Best Play and Best Director at IITM in 2020.'],
     ['In Seattle I started ', ['Scripts & Sips','#scripts-and-sips'], ', a casual line-reading series where anyone can pick up a script and read a part out loud.']
   ],
   trraammtobb:{ kicker:'co-written & directed · 2020', title:'The Reasonably Remarkable, Adequately Amusing, Marvelously Mundane Tale of Bryan the Bard', ask:'What happens to the characters in the stories we abandon?', body:'A playwright who never finishes a play is cornered by the characters he left behind. The only way out of their world is to help them find their purpose, and somewhere along the way he finds his.', award:'Best Play · Best Director · IITM 2020' },
@@ -493,7 +493,10 @@ $('#drawer-handle').addEventListener('click',()=>{
 sidebar.addEventListener('pointerdown',event=>{if(window.innerWidth>760)return;drawerStartY=event.clientY;});
 sidebar.addEventListener('pointerup',event=>{if(window.innerWidth>760||drawerStartY===null)return;const delta=event.clientY-drawerStartY;drawerStartY=null;if(delta<-35)document.body.classList.add('drawer-open');else if(delta>35)closeDrawers();renderSidebar();});
 $('#back-map').addEventListener('click',event=>{
-  event.preventDefault();document.body.classList.add('leaving-map');setTimeout(()=>location.href='index.html',350);
+  event.preventDefault();
+  let fromSite=false;try{fromSite=new URL(document.referrer).origin===location.origin&&history.length>1;}catch{}
+  if(fromSite)return history.back();
+  document.body.classList.add('leaving-map');setTimeout(()=>location.href='index.html',350);
 });
 document.body.classList.add('is-ready');
 boot();

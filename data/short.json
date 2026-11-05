@@ -80,7 +80,7 @@
   "learned": "Experts don’t need complex data made simpler. They need it made legible. This was my first design project after engineering, and the one that made me a designer."
  },
  "github": {
-  "facts": "GitHub × University of Washington · Jan–Mar 2024 · product designer & researcher · 3 designers, 1 senior researcher, 1 PM",
+  "facts": "GitHub · Jan–Mar 2024 · product designer & researcher · 3 designers, 1 senior researcher, 1 PM",
   "q": "How might we improve code review for better collaboration among developers?",
   "problem": "In early 2024 GitHub was beta-testing a more “accessible” code review with floating comments. In usability tests it scored lower than the design it was replacing.",
   "numbers": [
@@ -135,7 +135,7 @@
     ]
    }
   ],
-  "learned": "“Accessible” on paper isn’t accessible in practice. You have to watch how people actually work: two monitors, long threads, colour blindness. The study shaped GitHub’s roadmap for the feature.",
+  "learned": "“Accessible” on paper isn’t always accessible in practice. What accessibility could mean can be understood by learning how people actually work: two monitors, long threads, colour blindness.",
   "closing": {
    "img": "assets/cases/github/21.jpg",
    "cap": "How a few seconds saved per comment ripple out across GitHub."

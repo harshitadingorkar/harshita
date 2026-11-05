@@ -5,6 +5,9 @@
   const day = d => new Date(d + 'T12:00');
   const fmt = (d, o) => day(d).toLocaleDateString('en-US', o).toLowerCase();
   let entries = [], kind = '';
+  // the way home steps back when you came from the site, so the map is as you left it
+  const home = document.querySelector('nav.top a');
+  home && home.addEventListener('click', e => { try { if (new URL(document.referrer).origin === location.origin && history.length > 1) { e.preventDefault(); history.back(); } } catch {} });
   const render = () => {
     const rows = $('#rows'), list = entries.filter(e => !kind || e.type === kind);
     rows.replaceChildren(); $('#empty').hidden = list.length > 0;
