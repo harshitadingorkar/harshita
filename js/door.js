@@ -18,18 +18,32 @@
     btn.textContent = fmt(at, { month: 'long', day: 'numeric', year: 'numeric' });
     pick.replaceChildren(...versions.map(v => { const b = h('button', v === at ? 'on' : '', fmt(v, { month: 'short', day: 'numeric' }) + (v === versions[0] ? ', today’s' : '')); b.type = 'button'; b.setAttribute('aria-pressed', String(v === at)); b.onclick = () => { at = v; history.replaceState(null, '', v === versions[0] ? location.pathname : '#' + v); version(); render(); }; return b; }));
   };
-  // a small fan of pictures that peeks out from under the line; reach for it and it rises, pick one and it opens large
+  // a small fan of pictures that peeks out from under the line; reach for it and it opens out so every picture is whole,
+  // each one floating on the page at its own pace; pick one and it grows out of its place in the fan
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fan = pics => {
     const f = h('div', 'pile'); let rung = false;
-    pics.forEach((m, j) => { const b = h('button', null, Object.assign(h('img'), { src: '../' + m.src, alt: m.alt, loading: 'lazy' })); b.type = 'button'; b.setAttribute('aria-label', 'Open picture' + (m.alt ? ': ' + m.alt : '')); b.style.cssText = `--i:${j};--r:${((j * 37) % 11 - 5) * .9}deg`; b.onclick = () => look(m); f.append(b); });
-    f.addEventListener('mouseenter', () => { if (!rung) { rung = true; SND()?.flick(); } });
+    pics.slice(0, 4).forEach((m, j) => { const b = h('button', null, Object.assign(h('img'), { src: '../' + m.src, alt: m.alt, loading: 'lazy' })); b.type = 'button'; b.setAttribute('aria-label', 'Open picture' + (m.alt ? ': ' + m.alt : '')); b.style.cssText = `--i:${j};--r:${((j * 37) % 11 - 5) * .9}deg;--d:${(5.2 + (j * 1.7) % 2.4).toFixed(2)}s`; b.onclick = () => look(m, b.querySelector('img')); f.append(b); });
+    // spread them as far as the column allows, so none is hidden behind another
+    const spread = () => { const n = f.children.length, w = f.clientWidth; f.style.setProperty('--gap', (n > 1 ? Math.min(14, (w - n * 122) / (n - 1)) : 0) + 'px'); };
+    f.addEventListener('mouseenter', () => { spread(); if (!rung) { rung = true; SND()?.flick(); } });
+    f.addEventListener('focusin', spread);
     f.addEventListener('mouseleave', () => { rung = false; });
     return f;
   };
   const box = h('div', 'look'); box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); document.body.append(box);
-  let back = null;
-  const shut = () => { if (box.hidden) return; box.classList.remove('on'); SND()?.pat(); setTimeout(() => { box.hidden = true; }, 220); back && back.focus(); };
-  const look = m => { back = document.activeElement; const img = Object.assign(h('img'), { src: '../' + m.src, alt: m.alt }); box.replaceChildren(img, m.alt ? h('p', null, m.alt) : null); box.setAttribute('aria-label', m.alt || 'Picture'); box.hidden = false; requestAnimationFrame(() => box.classList.add('on')); SND()?.stamp(); box.tabIndex = -1; box.focus(); };
+  let back = null, from = null;
+  // the open picture travels from the thumbnail to the middle of the page, and back again when you let it go
+  const fly = (el, r, out) => { if (RM || !r) return Promise.resolve(); const e = el.getBoundingClientRect(), dx = r.left + r.width / 2 - (e.left + e.width / 2), dy = r.top + r.height / 2 - (e.top + e.height / 2), k = r.width / e.width;
+    const a = [{ transform: `translate(${dx}px,${dy}px) scale(${k}) rotate(-3deg)` }, { transform: 'none' }]; return el.animate(out ? a.reverse() : a, { duration: out ? 380 : 620, easing: out ? 'cubic-bezier(.5,0,.75,0)' : 'cubic-bezier(.16,1.2,.3,1)', fill: 'both' }).finished; };
+  const shut = () => { if (box.hidden || box.classList.contains('closing')) return; box.classList.add('closing'); box.classList.remove('on'); SND()?.pat();
+    const fig = box.querySelector('figure'), r = from && from.isConnected ? from.getBoundingClientRect() : null;
+    Promise.all([fly(fig, r, true), new Promise(t => setTimeout(t, 380))]).then(() => { box.hidden = true; box.classList.remove('closing'); }); back && back.focus(); };
+  const look = (m, thumb) => { back = document.activeElement; from = thumb;
+    const fig = h('figure', null, h('div', 'breathe', Object.assign(h('img'), { src: '../' + m.src, alt: m.alt }))); box.replaceChildren(fig, m.alt ? h('p', null, m.alt) : null);
+    box.setAttribute('aria-label', m.alt || 'Picture'); box.hidden = false; box.classList.add('on'); SND()?.stamp(); box.tabIndex = -1; box.focus();
+    const img = fig.querySelector('img'), go = () => fly(fig, thumb.getBoundingClientRect(), false);
+    img.complete ? go() : img.addEventListener('load', go, { once: true }); };
   box.onclick = shut; addEventListener('keydown', e => { if (e.key === 'Escape') shut(); });
   const render = () => {
     const now = entries.filter(e => e.date <= at), groups = new Map();
@@ -62,7 +76,7 @@
     fetch('../data/films.json').then(r => r.json()).catch(() => []),
     fetch('../data/arena.json').then(r => r.json()).catch(() => []),
   ]).then(([d, f, ar]) => {
-    kept = ar.flatMap(c => c.blocks.filter(b => b.image && b.image.local).map(b => ({ date: (b.connected_at || b.created_at || '').slice(0, 10), src: b.image.local, alt: b.title && !/^[0-9A-F-]{20,}$/i.test(b.title) ? b.title : '', ch: { slug: c.slug, title: c.title, url: c.url } }))).sort((a, b) => b.date.localeCompare(a.date));
+    kept = ar.flatMap(c => c.blocks.filter(b => b.image && b.image.local).map(b => ({ date: (b.connected_at || b.created_at || '').slice(0, 10), src: b.image.local, alt: b.title && !/^[0-9A-F-]{20,}$/i.test(b.title) && !/\.(png|jpe?g|webp|gif|heic)$/i.test(b.title) ? b.title : '', ch: { slug: c.slug, title: c.title, url: c.url } }))).sort((a, b) => b.date.localeCompare(a.date));
     entries = d.slice().sort((a, b) => b.date.localeCompare(a.date));
     films = f.filter(x => x.watchedDate).sort((a, b) => b.watchedDate.localeCompare(a.watchedDate));
     versions = [...new Set(entries.map(e => e.date))];
