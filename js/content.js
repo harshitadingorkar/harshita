@@ -115,6 +115,8 @@ window.SITE = {
       'Off the clock: films, music, lists, and pictures of silly things.',
       'The door’s open: what I’m working on now.',
     ],
+    // two more prints from the same album, tucked behind the first
+    photos: [['kid-box.jpg', 'Harshita as a small child, peering out of a cardboard box.'], ['kid-cap.jpg', 'Harshita as a child on a pavement in a cap with ears, making bunny ears with her hands.']],
     photo: ['about-kid.jpg', 'Harshita as a small child in a blue dress, sprawled across a big office chair like she owns it.', 'already in the big chair'],
     work: [
       { when: '2025 — now', role: 'Product designer', org: 'Salesloft', href: 'https://www.salesloft.com/', where: 'Seattle', point: 'influence', pile: ['cases/salesloft/deal-map-screens.jpg', 'cases/salesloft/moments/02-stances-shift.jpg', 'cases/salesloft/moments/03-new-exec.jpg', 'cases/salesloft/moments/04-path-to-yes.jpg', 'cases/salesloft/moments/05-approve.jpg'],

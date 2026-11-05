@@ -1793,3 +1793,23 @@ body.show-index .band{padding-top:14px}
   .wk-c.bl .wk-lede{font-size:22px;line-height:1.25}
 }
 .wk-index{margin:0;font:italic 400 15px/1.4 var(--voice);color:var(--ink2)}
+
+/* ---------- Round 48: the drawing larger and centred; a slit of sky at rest; prints on the about page ---------- */
+@media (min-width:761px){
+  .wk-stage{padding:84px 0 84px}
+  .wk-stage .orb{width:min(760px,100%,calc(100svh - 140px))}
+}
+.orb-idle image{opacity:0;transition:opacity 1.6s ease}
+.orb-idle image.on{opacity:.78}
+.orb-idle{transition:opacity .4s ease}
+.orb.focus .orb-idle{opacity:0}
+.orb-flat{stroke-opacity:.7}
+/* the about page: the blue-chair print on top, two more from the album tucked behind; they fan out a little on a touch */
+.pf-kid{isolation:isolate}
+.pf-kid .pf-kid-top{position:relative;z-index:2}
+.pf-kid .pf-kid-back{position:absolute;left:0;top:0;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:2px;box-shadow:0 8px 18px -12px rgba(0,0,0,.5);transition:rotate .5s var(--e-dm),translate .5s var(--e-dm)}
+.pf-kid .pf-kid-back.b0{rotate:7deg;translate:6px -4px;z-index:1}
+.pf-kid .pf-kid-back.b1{rotate:-6deg;translate:-5px 3px;z-index:0}
+.pf-kid:hover .pf-kid-back.b0{rotate:12deg;translate:34px -10px}
+.pf-kid:hover .pf-kid-back.b1{rotate:-11deg;translate:-22px 14px}
+@media (prefers-reduced-motion:reduce){.pf-kid .pf-kid-back{transition:none}}

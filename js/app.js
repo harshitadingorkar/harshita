@@ -399,7 +399,7 @@ function openProfile() {
   openSheet(null, null, null, h('div', { class: 'pf' },
     h('header', { class: 'pf-head' },
       h('div', { class: 'pf-acts' }, cv, contact),
-      h('figure', { class: 'pf-kid' }, h('img', { src: A(P.photo[0]), alt: P.photo[1] }), h('figcaption', ed('profile.photo.2'), P.photo[2])),
+      h('figure', { class: 'pf-kid' }, ...(P.photos || []).map(([f, alt], i) => h('img', { class: 'pf-kid-back b' + i, src: A(f), alt, loading: 'lazy' })), h('img', { class: 'pf-kid-top', src: A(P.photo[0]), alt: P.photo[1] }), h('figcaption', ed('profile.photo.2'), P.photo[2])),
       h('p', { class: 'mono', ...ed('profile.kicker') }, P.kicker),
       h('h2', { class: 's-title' }, S.person.name),
       h('p', { class: 'case-line', ...ed('profile.lede') }, P.lede)),
@@ -583,7 +583,13 @@ function orbitHero() {
   for (const [x1, y1, x2, y2] of [[C, C - R - 14, C, C - R + 2], [C, C + R - 2, C, C + R + 14], [C - R - 14, C, C - R + 2, C], [C + R - 2, C, C + R + 14, C]]) plate.append(el('line', { class: 'orb-tick', x1, y1, x2, y2 }));
   plate.append(txt('orb-axis', C + 8, C - R - 6, 'work'), txt('orb-axis', C + 8, C + R + 14, 'wonder'), txt('orb-axis', C - R - 8, C - 7, 'gather', { 'text-anchor': 'end' }), txt('orb-axis', C + R + 8, C - 7, 'make'));
   // a small flat system round the centre, like the plate's inner ellipses
-  const flats = [[118, 22, .5], [58, 11, -.9]].map(([rx, ry, v]) => { inner.append(el('ellipse', { class: 'orb-flat', cx: C, cy: C, rx, ry })); return { rx, ry, v, dots: [0, Math.PI].map(ph => { const c = el('circle', { class: 'orb-fdot', r: 2.6 }); inner.append(c); return { c, ph }; }) }; });
+  // at rest, the wider flat orbit is a slit of sky: a few of my pictures pass slowly through it
+  const slit = el('clipPath', { id: 'orb-slit' }); slit.append(el('ellipse', { cx: C, cy: C, rx: 118, ry: 26 })); defs.append(slit);
+  const idle = el('g', { class: 'orb-idle', 'clip-path': 'url(#orb-slit)' }), IDLE = ['wobblefoot', 'hpe', 'arena'];
+  const frames = IDLE.map((id, i) => { const im = el('image', { href: A('whim/' + id + '.jpg'), x: C - 130, y: C - 90, width: 260, height: 180, preserveAspectRatio: 'xMidYMid slice', class: i ? '' : 'on' }); idle.append(im); return im; });
+  inner.append(idle);
+  let shown = 0; if (!RM) setInterval(() => { if (document.hidden) return; frames[shown].classList.remove('on'); shown = (shown + 1) % frames.length; frames[shown].classList.add('on'); }, 4200);
+  const flats = [[118, 26, .5], [58, 13, -.9]].map(([rx, ry, v]) => { inner.append(el('ellipse', { class: 'orb-flat', cx: C, cy: C, rx, ry })); return { rx, ry, v, dots: [0, Math.PI].map(ph => { const c = el('circle', { class: 'orb-fdot', r: 2.6 }); inner.append(c); return { c, ph }; }) }; });
   // the centre is me: it opens the about page
   const hub = el('g', { class: 'orb-hub', tabindex: 0, role: 'button', 'aria-label': 'About Harshita' });
   hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 22 }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 9 }), el('line', { x1: C - 18, y1: C, x2: C + 18, y2: C }), el('line', { x1: C, y1: C - 18, x2: C, y2: C + 18 }));
