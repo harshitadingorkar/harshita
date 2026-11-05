@@ -620,41 +620,39 @@ const PLAY = [
 const ART = ['theatre', 'wobblefoot', 'odds'];
 function buildIndex(ix) {
   ix._built = true;
-  const work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean), art = ART.map(id => S.points.find(p => p.id === id)).filter(Boolean);
+  if (!$('.wk-name')) body.append(wkName());
+  const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean), art = ART.map(id => S.points.find(p => p.id === id)).filter(Boolean);
   const org = p => p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org;
-  // the work: the drawing in the middle of the first screen, then the pieces in three plain groups (work, playground, art).
-  // Who I am stays in a bar at the foot of the screen, and its top line follows whatever you're looking at.
-  const card = (p, i, small) => { const src = p.still || p.img, lead = i === 0 && !small;
-    const media = lead && p.video && !RM ? h('video', { src: A(p.video), poster: A(src), muted: '', loop: '', playsinline: '', autoplay: '', preload: 'metadata', 'aria-hidden': 'true' }) : src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 && !small ? 'eager' : 'lazy' }) : null;
-    const r = h('button', { type: 'button', class: 'wk-card pt-row' + (lead ? ' lead' : '') + (small ? ' small' : ''), 'aria-label': p.title + ', ' + p.line, onclick: e => p.go ? p.go() : ready.then(() => open(p, (e.currentTarget.querySelector('img,video') || e.currentTarget).getBoundingClientRect())) },
-      h('span', { class: 'wk-img' }, media),
-      h('span', { class: 'wk-cap' }, h('span', { class: 'wk-title' }, p.title), h('span', { class: 'wk-meta' }, [small ? p.org || p.meta : org(p), small ? '' : p.year].filter(Boolean).join(' · '))));
-    r._p = p; return r; };
-  const group = (name, note, list, small) => h('section', { class: 'wk-sec' + (small ? ' small' : '') }, h('h2', { class: 'wk-h' }, name, h('span', {}, note)), h('div', { class: 'wk-grid' + (small ? ' three' : '') }, list.map((p, i) => card(p, i, small))));
-  ix.replaceChildren(h('div', { class: 'wk' },
-    h('section', { class: 'wk-stage' }, h('figure', { class: 'wk-hero' }, orbitHero())),
-    group('Work', 'product design, research and engineering', work),
-    group('Playground', 'things I make for myself', PLAY, true),
-    group('Art', 'theatre, clay and pictures', art, true)));
-  ix.append(wkBar(ix));
+  const go = p => e => p.go ? p.go() : ready.then(() => open(p, (e.currentTarget.querySelector('img,video') || e.currentTarget).getBoundingClientRect()));
+  const jump = id => e => { e.preventDefault(); const t = ix.querySelector('#wk-' + id); if (t) ix.scrollTo({ top: t.offsetTop - 70, behavior: RM ? 'auto' : 'smooth' }); };
+  // the top, read like a CV: about, the index of pieces, where I've worked and studied, how to reach me
+  const col = (name, ...kids) => h('div', { class: 'wk-col' }, h('p', { class: 'wk-k' }, name), ...kids);
+  const rowsOf = list => h('ul', { class: 'wk-list' }, list.map(r => h('li', {}, h('b', {}, r.org), h('span', {}, r.role), h('span', {}, r.when))));
+  const email = h('button', { type: 'button', class: 'wk-mail' }, 'Email');
+  email.onclick = () => { const a = S.person.email, done = () => { email.textContent = 'copied ' + a; setTimeout(() => { email.textContent = 'Email'; }, 1800); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
+  const top = h('header', { class: 'wk-top' },
+    col('About', h('p', {}, P.lede), h('p', {}, P.about[0])),
+    col('Work', h('ul', { class: 'wk-idx' }, work.map(p => h('li', {}, h('a', { href: '#wk-' + p.id, onclick: jump(p.id) }, p.title))), h('li', { class: 'gap' }, h('a', { href: '#wk-playground', onclick: jump('playground') }, 'Playground')), h('li', {}, h('a', { href: '#wk-art', onclick: jump('art') }, 'Art')))),
+    col('Experience', rowsOf(P.work)),
+    col('Education', rowsOf(P.education)),
+    col('Contact', h('ul', { class: 'wk-idx' }, h('li', {}, email), h('li', {}, h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'CV')), h('li', {}, h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn')), h('li', {}, h('a', { href: S.person.arena, target: '_blank', rel: 'noopener' }, 'Are.na')), h('li', {}, h('a', { href: 'https://www.instagram.com/' + S.person.instagram + '/', target: '_blank', rel: 'noopener' }, 'Instagram')))));
+  // each piece: a plain row (piece, where, year) that holds at the top while its picture passes, the picture, one line
+  const piece = p => { const src = p.still || p.img;
+    const media = p.video && !RM ? h('video', { src: A(p.video), poster: A(src), muted: '', loop: '', playsinline: '', autoplay: '', preload: 'metadata', 'aria-hidden': 'true' }) : h('img', { src: A(src), alt: p.alt || p.title, loading: 'lazy' });
+    const b = h('button', { type: 'button', class: 'wk-media pt-row', 'aria-label': 'Open ' + p.title, onclick: go(p) }, media); b._p = p;
+    return h('article', { class: 'wk-piece', id: 'wk-' + p.id }, h('div', { class: 'wk-row' }, h('span', {}, p.title), h('span', {}, org(p)), h('span', {}, p.year)), b, h('p', { class: 'wk-say' }, p.line)); };
+  const small = p => { const b = h('button', { type: 'button', class: 'wk-tile pt-row', onclick: go(p) }, h('span', { class: 'wk-timg' }, h('img', { src: A(p.img), alt: p.alt || p.title, loading: 'lazy' })), h('span', { class: 'wk-tcap' }, h('b', {}, p.title), h('span', {}, p.org))); b._p = p; return b; };
+  const head = (id, cols) => h('div', { class: 'wk-row wk-hd', id: 'wk-' + id }, cols.map(c => h('span', {}, c)));
+  ix.replaceChildren(h('div', { class: 'wk' }, top,
+    head('work', ['Project', 'Where', 'Year']), ...work.map(piece),
+    head('playground', ['Playground', 'Things I make for myself', '']), h('div', { class: 'wk-tiles' }, PLAY.map(small)),
+    head('art', ['Art', 'Theatre, clay and pictures', '']), h('div', { class: 'wk-tiles' }, art.map(small)),
+    h('p', { class: 'wk-end' }, '© 2026 Harshita Shyale')));
 }
-// the bar at the foot of the work: whose work this is and how to reach her, and above it a line about the piece in view
-function wkBar(ix) {
-  const P = S.person, intro = P.intro.replace('{Salesloft}', 'Salesloft');
-  const ctx = h('p', { class: 'wkb-ctx', 'aria-live': 'polite' }, intro);
-  const mail = h('button', { type: 'button', class: 'wkb-mail', title: 'Copy the address' }, P.email);
-  mail.onclick = () => { const done = () => { mail.textContent = 'copied'; setTimeout(() => { mail.textContent = P.email; }, 1400); }; navigator.clipboard ? navigator.clipboard.writeText(P.email).then(done, () => { location.href = 'mailto:' + P.email; }) : (location.href = 'mailto:' + P.email); };
-  const bar = h('aside', { class: 'wk-bar', 'aria-label': 'Who this is' }, ctx,
-    h('div', { class: 'wkb-row' }, h('p', { class: 'wkb-who' }, h('b', {}, P.name), h('span', {}, 'Design engineer at Salesloft')),
-      h('nav', { class: 'wkb-links', 'aria-label': 'Contact' }, mail, h('a', { href: P.resume, target: '_blank', rel: 'noopener' }, 'CV'), h('a', { href: P.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn'))));
-  let shown = '';
-  const say = (key, nodes) => { if (key === shown) return; shown = key; ctx.classList.add('out'); setTimeout(() => { ctx.replaceChildren(...nodes); ctx.classList.remove('out'); }, 160); };
-  const seen = new Map();
-  const io = new IntersectionObserver(es => { es.forEach(e => seen.set(e.target, e.isIntersecting)); const on = [...seen].find(([, v]) => v);
-    if (!on) return say('intro', [intro]); const p = on[0]._p; say(p.id, [h('b', {}, p.title), ' ', h('span', { class: 'wkb-org' }, [p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org, p.year].filter(Boolean).join(', ')), ' ', p.line]); },
-    { root: ix, rootMargin: '-42% 0px -42% 0px' });
-  requestAnimationFrame(() => $$('.wk-card', ix).forEach(c => io.observe(c)));
-  return bar;
+// my name, very large, held at the foot of the screen behind the work; the orbit turns small between the two words
+function wkName() {
+  const mark = orbitHero(); mark.classList.add('tiny'); mark.removeAttribute('role'); mark.setAttribute('aria-hidden', 'true');
+  return h('div', { class: 'wk-name', 'aria-hidden': 'true' }, h('span', {}, 'Harshita'), h('i', { class: 'wk-mark' }, mark), h('span', {}, 'Shyale'));
 }
 const views = $('#views');
 // back from a wall the page may come out of the browser's cache mid-departure; clear the blur
