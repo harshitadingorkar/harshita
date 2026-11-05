@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Tell Bing, Yandex and the other IndexNow engines that pages changed, so they recrawl now instead of eventually.
 # usage: scripts/indexnow.sh            (every page in the sitemap)
-#        scripts/indexnow.sh door/      (just these paths)
+#        scripts/indexnow.sh now/      (just these paths)
 cd "$(dirname "$0")/.."
 KEY=$(ls [0-9a-f]*.txt | head -1 | sed 's/\.txt$//')
 HOST=harshitashyale.com

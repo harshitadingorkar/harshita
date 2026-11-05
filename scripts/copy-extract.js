@@ -3,7 +3,7 @@
 global.window = {};
 require('../js/content.js');
 const fs = require('fs'), S = window.SITE, short = JSON.parse(fs.readFileSync('data/short.json', 'utf8'));
-const col = fs.readFileSync('js/collection.js', 'utf8'), app = fs.readFileSync('js/app.js', 'utf8'), door = fs.readFileSync('door/index.html', 'utf8');
+const col = fs.readFileSync('js/collection.js', 'utf8'), app = fs.readFileSync('js/app.js', 'utf8'), door = fs.readFileSync('now/index.html', 'utf8');
 const pages = [], P = id => S.points.find(p => p.id === id);
 let cur;
 const page = (id, title, note) => { cur = { id, title, note, blocks: [] }; pages.push(cur); };

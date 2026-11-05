@@ -2,7 +2,7 @@
 # Run before committing: python3 scripts/stamp.py
 import re, time, pathlib
 v = time.strftime('%Y%m%d%H%M')
-for page in ['index.html', 'collection.html', 'door/index.html']:
+for page in ['index.html', 'collection.html', 'now/index.html']:
     p = pathlib.Path(page); s = p.read_text()
     s = re.sub(r'((?:src|href)="(?:\.\./)?(?:css|js)/[\w.-]+\.(?:css|js))(?:\?v=\d+)?"', rf'\1?v={v}"', s)
     p.write_text(s)
