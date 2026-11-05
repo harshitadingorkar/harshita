@@ -607,51 +607,29 @@ function orbitHero() {
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
+  const corner = (cls, txt) => { const x = el('text', { class: 'orb-corner ' + cls }); x.textContent = txt; return x; };
+  const tl = corner('tl', 'HARSHITA SHYALE · WORK'), br = corner('br', 'SAN FRANCISCO 37.77N 122.42W'); tl.setAttribute('x', 8); tl.setAttribute('y', 18); br.setAttribute('x', S0 - 8); br.setAttribute('y', S0 - 10); br.setAttribute('text-anchor', 'end'); svg.append(tl, br);
   return svg;
 }
-// Things made off the clock that aren't on the map as points of their own; they open like any piece.
-const PLAY = [
-  { id: 'steel-angadi', title: 'Steel Angadi', org: 'interactive art series', year: '2026', quad: 'br', tags: ['making'], kind: 'vault',
-    line: 'A series on the steel that ran our homes. No. 01 is my school dabba, and you can open it.', img: 'door/steel-angadi.jpg', images: ['door/steel-angadi.jpg', 'door/steel-angadi-plate.jpg'], alt: 'A three-tier steel dabba on a wooden school desk.' },
-  { id: 'apartment', title: 'Apartment', org: 'web app, a Kindle and an e-ink screen', year: '2026', quad: 'br', tags: ['making'], kind: 'vault',
-    line: 'A little building for me and a few close friends, where you can see whose light is on.', img: 'door/apartment.jpg', images: ['door/apartment.jpg', 'door/apartment-kindle.jpg'], alt: 'The Apartment building at night, two windows lit.' },
-  { id: 'this-site', title: 'This site', org: 'the map', year: '2026', line: 'A map of everything I keep and make: work at the top, wonder at the bottom. Every dot has a note.', img: 'play-map.jpg', alt: 'The map view of this site: dots on two axes, work and wonder, gather and make.', go: () => toggleIndex(false) },
-];
-const ART = ['theatre', 'wobblefoot', 'odds'];
 function buildIndex(ix) {
   ix._built = true;
-  if (!$('.wk-name')) body.append(wkName());
-  const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean), art = ART.map(id => S.points.find(p => p.id === id)).filter(Boolean);
-  const org = p => p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org;
-  const jump = id => e => { e.preventDefault(); const t = ix.querySelector('#wk-' + id); if (t) ix.scrollTo({ top: t.offsetTop - 70, behavior: RM ? 'auto' : 'smooth' }); };
-  // the first screen: a few words, a picture of a lamp I made, the index, how to reach me; my name across the foot
-  const col = (name, ...kids) => h('div', { class: 'wk-col' }, name ? h('p', { class: 'wk-k' }, name) : null, ...kids);
-  const email = h('button', { type: 'button', class: 'wk-mail' }, 'Email');
-  email.onclick = () => { const a = S.person.email, done = () => { email.textContent = 'copied'; setTimeout(() => { email.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
-  const link = (href, txt) => h('a', { href, target: '_blank', rel: 'noopener' }, txt);
-  const top = h('header', { class: 'wk-top' },
-    col('About', h('p', {}, P.lede)),
-    h('figure', { class: 'wk-pic' }, h('img', { src: A('lamp.jpg'), alt: 'A paper lamp with red dots, glowing, hung from an arc over the shelves at home.' })),
-    col('Work', h('ul', { class: 'wk-idx' }, work.map(p => h('li', {}, h('a', { href: '#wk-' + p.id, onclick: jump(p.id) }, p.title))), h('li', { class: 'gap' }, h('a', { href: '#wk-playground', onclick: jump('playground') }, 'Playground')), h('li', {}, h('a', { href: '#wk-art', onclick: jump('art') }, 'Art')))),
-    col('Contact', h('ul', { class: 'wk-idx' }, h('li', {}, email), h('li', {}, link(S.person.resume, 'CV')), h('li', {}, link(S.person.linkedin, 'LinkedIn')), h('li', {}, link(S.person.arena, 'Are.na')))));
-  // the rest, as it was: the pieces as pictures with their names, in three plain groups
-  const card = (p, i, small) => { const src = p.still || p.img, lead = i === 0 && !small;
-    const media = lead && p.video && !RM ? h('video', { src: A(p.video), poster: A(src), muted: '', loop: '', playsinline: '', autoplay: '', preload: 'metadata', 'aria-hidden': 'true' }) : src ? h('img', { src: A(src), alt: p.alt || p.title, loading: 'lazy' }) : null;
-    const r = h('button', { type: 'button', class: 'wk-card pt-row' + (lead ? ' lead' : '') + (small ? ' small' : ''), id: small ? null : 'wk-' + p.id, 'aria-label': p.title + ', ' + p.line, onclick: e => p.go ? p.go() : ready.then(() => open(p, (e.currentTarget.querySelector('img,video') || e.currentTarget).getBoundingClientRect())) },
-      h('span', { class: 'wk-img' }, media),
-      h('span', { class: 'wk-cap' }, h('span', { class: 'wk-title' }, p.title), h('span', { class: 'wk-meta' }, [small ? p.org : org(p), small ? '' : p.year].filter(Boolean).join(' · '))),
-      small ? null : h('span', { class: 'wk-line' }, p.line));
-    r._p = p; return r; };
-  const group = (id, name, note, list, small) => h('section', { class: 'wk-sec' + (small ? ' small' : ''), id: 'wk-' + id }, h('h2', { class: 'wk-h' }, name, h('span', {}, note)), h('div', { class: 'wk-grid' + (small ? ' three' : '') }, list.map((p, i) => card(p, i, small))));
-  ix.replaceChildren(h('div', { class: 'wk' }, top,
-    group('work', 'Work', 'product design, research and engineering', work),
-    group('playground', 'Playground', 'things I make for myself', PLAY, true),
-    group('art', 'Art', 'theatre, clay and pictures', art, true)));
-}
-// my name, very large, held at the foot of the screen behind the work; the orbit turns small between the two words
-function wkName() {
-  const mark = orbitHero(); mark.classList.add('tiny'); mark.removeAttribute('role'); mark.setAttribute('aria-hidden', 'true');
-  return h('div', { class: 'wk-name', 'aria-hidden': 'true' }, h('span', {}, 'Harshita'), h('i', { class: 'wk-mark' }, mark), h('span', {}, 'Shyale'));
+  const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
+  const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), onclick: e => ready.then(() => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect())) },
+    h('span', { class: 'wk-img' }, src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' }) : null),
+    h('span', { class: 'wk-meta' }, [p.org, p.year].filter(Boolean).join(' · ')),
+    h('span', { class: 'wk-title' }, p.title),
+    h('span', { class: 'wk-line' }, p.line)); r._p = p; return r; };
+  const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
+  ix.replaceChildren(h('div', { class: 'wk' },
+    h('header', { class: 'wk-head' },
+      h('p', { class: 'wk-kick' }, P.kicker),
+      h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
+    h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one.'), toMap('Explore the map →'))),
+    h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
+    h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'),
+      // the resemblance field (kinField) rests until there's more work to arrange
+      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →'))),
+    h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch'))));
 }
 const views = $('#views');
 // back from a wall the page may come out of the browser's cache mid-departure; clear the blur
