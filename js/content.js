@@ -8,7 +8,7 @@ window.SITE = {
     // the opening, after raghavsharma.work: what I'm on now, how I usually work, before
     now: 'Currently designing agentic AI for sellers and revenue teams at Salesloft.',
     usually: 'Usually in enterprise AI, from the first sketch to the code.',
-    before: 'Before that, an engineer at HPE and Nutanix, with client work for GitHub and Sony.',
+    before: 'Previously worked at HPE and Nutanix, and with GitHub and Sony.',
     email: 'harshitashyale@gmail.com',
     linkedin: 'https://www.linkedin.com/in/harshita-shyale',
     salesloft: 'https://www.salesloft.com/',
