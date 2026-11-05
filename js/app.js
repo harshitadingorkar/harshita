@@ -16,10 +16,19 @@ window.PORTFOLIO_READY = ready;
 
 /* ---------- chrome ---------- */
 
-// Under her name, three voices: the name in mono, what she does in plain words, and what the map is, said aside in Averia.
-const introLines = () => { const [pre, post] = S.person.intro.split('{Salesloft}'); return [h('p', { class: 'i-do' }, pre, h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), post), h('p', { class: 'i-index' }, S.person.index)]; };
+// The same few things sit in the top bar on the map and on the work, so nothing moves when you switch: my name and what I
+// do (it reads product designer too, on a touch), the line about my work (it opens the about page), a line about the site,
+// and email, CV and LinkedIn by the switch.
+const contactLinks = () => { const m = h('button', { type: 'button', class: 'c-mail' }, 'Email');
+  m.onclick = () => { const a = S.person.email, done = () => { m.textContent = 'Copied'; setTimeout(() => { m.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
+  return h('p', { class: 'c-links' }, m, h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'CV'), h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn')); };
+const introLines = () => [
+  h('p', { class: 'i-do' }, h('button', { type: 'button', class: 'i-about', onclick: () => ready.then(openProfile) }, S.person.intro.replace('{Salesloft}', 'Salesloft'), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
+  h('p', { class: 'i-index' }, S.person.index)];
 $('#intro-lines').replaceChildren(...introLines());
-$('#statement').replaceChildren(...introLines());
+$('#statement').replaceChildren(...introLines(), contactLinks());
+$('.b-role').replaceChildren(h('span', {}, 'Design engineer'), h('span', { 'aria-hidden': 'true' }, 'Product designer'));
+$('.b-menu').prepend(contactLinks());
 
 const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
@@ -639,11 +648,8 @@ function orbitHero() {
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
-  // the plate's corners: whose this is, a tally of what's on it, a scale bar, where
-  const work = ORB.slice(0, 2).reduce((n, o) => n + o.nodes.length, 0), rest = ORB[2].nodes.length;
-  svg.append(txt('orb-corner', 8, 18, 'Harshita Shyale · design engineer'), txt('orb-corner', S0 - 8, 18, 'I'.repeat(work) + '  ' + 'I'.repeat(rest), { 'text-anchor': 'end', class: 'orb-corner tally' }),
-    el('path', { class: 'orb-bars', d: `M8 ${S0 - 14} h26 v-5 h22 v5 M64 ${S0 - 12} h20 M84 ${S0 - 16} h16` }),
-    txt('orb-corner', S0 - 8, S0 - 10, 'San Francisco 37.77N 122.42W', { 'text-anchor': 'end' }));
+  // one corner note: where
+  svg.append(txt('orb-corner', S0 - 8, S0 - 10, 'San Francisco 37.77N 122.42W', { 'text-anchor': 'end' }));
   return svg;
 }
 function buildIndex(ix) {
@@ -655,8 +661,6 @@ function buildIndex(ix) {
     h('span', { class: 'wk-title' }, p.title),
     h('span', { class: 'wk-line' }, p.line)); r._p = p; return r; };
   const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
-  const email = h('button', { type: 'button', class: 'wk-mail' }, 'Email');
-  email.onclick = () => { const a = S.person.email, done = () => { email.textContent = 'Copied'; setTimeout(() => { email.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
   const out = (href, txt) => h('a', { href, target: '_blank', rel: 'noopener' }, txt);
   const lately = h('dl', { class: 'wk-lately' });
   // the first screen: the drawing alone in the middle; the line about my work at the foot (it opens the about page), and how to reach me beside it
@@ -664,9 +668,9 @@ function buildIndex(ix) {
     h('section', { class: 'wk-stage' },
       h('figure', { class: 'wk-hero' }, orbitHero()),
       h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', onclick: () => ready.then(openProfile) }, S.person.intro.replace('{Salesloft}', 'Salesloft'), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b'))))),
-      h('div', { class: 'wk-c br' }, h('p', { class: 'wk-links' }, email, out(S.person.resume, 'CV'), out(S.person.linkedin, 'LinkedIn')))),
-    h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
-    h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'), lately,
+      h('div', { class: 'wk-c br' }, contactLinks())),
+    h('section', { class: 'wk-sec' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), h('div', { class: 'wk-grid' }, work.map(card))),
+    h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Off the clock'), lately,
       // the resemblance field (kinField) rests until there's more work to arrange
       h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →')))));
   // what I'm watching and keeping lately, from Letterboxd and Are.na
