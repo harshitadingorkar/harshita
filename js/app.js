@@ -609,19 +609,52 @@ function orbitHero() {
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
   return svg;
 }
+// Things made off the clock that aren't on the map as points of their own; they open like any piece.
+const PLAY = [
+  { id: 'steel-angadi', title: 'Steel Angadi', org: 'interactive art series', year: '2026', quad: 'br', tags: ['making'], kind: 'vault',
+    line: 'A series on the steel that ran our homes. No. 01 is my school dabba, and you can open it.', img: 'door/steel-angadi.jpg', images: ['door/steel-angadi.jpg', 'door/steel-angadi-plate.jpg'], alt: 'A three-tier steel dabba on a wooden school desk.' },
+  { id: 'apartment', title: 'Apartment', org: 'web app, a Kindle and an e-ink screen', year: '2026', quad: 'br', tags: ['making'], kind: 'vault',
+    line: 'A little building for me and a few close friends, where you can see whose light is on.', img: 'door/apartment.jpg', images: ['door/apartment.jpg', 'door/apartment-kindle.jpg'], alt: 'The Apartment building at night, two windows lit.' },
+  { id: 'this-site', title: 'This site', org: 'the map', year: '2026', line: 'A map of everything I keep and make: work at the top, wonder at the bottom. Every dot has a note.', img: 'play-map.jpg', alt: 'The map view of this site: dots on two axes, work and wonder, gather and make.', go: () => toggleIndex(false) },
+];
+const ART = ['theatre', 'wobblefoot', 'odds'];
 function buildIndex(ix) {
   ix._built = true;
-  const work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
-  // the work, restrained: the drawing alone in the middle of the first screen, one line of who I am beneath it,
-  // then the pieces as pictures with their names, and a way to reach me. Everything else lives on the map.
-  const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), 'aria-label': p.title + ', ' + p.line, onclick: e => ready.then(() => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect())) },
-    h('span', { class: 'wk-img' }, src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' }) : null),
-    h('span', { class: 'wk-cap' }, h('span', { class: 'wk-title' }, p.title), h('span', { class: 'wk-meta' }, [p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org, p.year].filter(Boolean).join(' · ')))); r._p = p; return r; };
+  const work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean), art = ART.map(id => S.points.find(p => p.id === id)).filter(Boolean);
+  const org = p => p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org;
+  // the work: the drawing in the middle of the first screen, then the pieces in three plain groups (work, playground, art).
+  // Who I am stays in a bar at the foot of the screen, and its top line follows whatever you're looking at.
+  const card = (p, i, small) => { const src = p.still || p.img, lead = i === 0 && !small;
+    const media = lead && p.video && !RM ? h('video', { src: A(p.video), poster: A(src), muted: '', loop: '', playsinline: '', autoplay: '', preload: 'metadata', 'aria-hidden': 'true' }) : src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 && !small ? 'eager' : 'lazy' }) : null;
+    const r = h('button', { type: 'button', class: 'wk-card pt-row' + (lead ? ' lead' : '') + (small ? ' small' : ''), 'aria-label': p.title + ', ' + p.line, onclick: e => p.go ? p.go() : ready.then(() => open(p, (e.currentTarget.querySelector('img,video') || e.currentTarget).getBoundingClientRect())) },
+      h('span', { class: 'wk-img' }, media),
+      h('span', { class: 'wk-cap' }, h('span', { class: 'wk-title' }, p.title), h('span', { class: 'wk-meta' }, [small ? p.org || p.meta : org(p), small ? '' : p.year].filter(Boolean).join(' · '))));
+    r._p = p; return r; };
+  const group = (name, note, list, small) => h('section', { class: 'wk-sec' + (small ? ' small' : '') }, h('h2', { class: 'wk-h' }, name, h('span', {}, note)), h('div', { class: 'wk-grid' + (small ? ' three' : '') }, list.map((p, i) => card(p, i, small))));
   ix.replaceChildren(h('div', { class: 'wk' },
-    h('section', { class: 'wk-stage' }, h('figure', { class: 'wk-hero' }, orbitHero()),
-      h('h1', { class: 'wk-line1' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
-    h('section', { class: 'wk-sec' }, h('div', { class: 'wk-grid' }, work.map(card))),
-    h('footer', { class: 'wk-foot' }, contactMenu('Get in touch'))));
+    h('section', { class: 'wk-stage' }, h('figure', { class: 'wk-hero' }, orbitHero())),
+    group('Work', 'product design, research and engineering', work),
+    group('Playground', 'things I make for myself', PLAY, true),
+    group('Art', 'theatre, clay and pictures', art, true)));
+  ix.append(wkBar(ix));
+}
+// the bar at the foot of the work: whose work this is and how to reach her, and above it a line about the piece in view
+function wkBar(ix) {
+  const P = S.person, intro = P.intro.replace('{Salesloft}', 'Salesloft');
+  const ctx = h('p', { class: 'wkb-ctx', 'aria-live': 'polite' }, intro);
+  const mail = h('button', { type: 'button', class: 'wkb-mail', title: 'Copy the address' }, P.email);
+  mail.onclick = () => { const done = () => { mail.textContent = 'copied'; setTimeout(() => { mail.textContent = P.email; }, 1400); }; navigator.clipboard ? navigator.clipboard.writeText(P.email).then(done, () => { location.href = 'mailto:' + P.email; }) : (location.href = 'mailto:' + P.email); };
+  const bar = h('aside', { class: 'wk-bar', 'aria-label': 'Who this is' }, ctx,
+    h('div', { class: 'wkb-row' }, h('p', { class: 'wkb-who' }, h('b', {}, P.name), h('span', {}, 'Design engineer at Salesloft')),
+      h('nav', { class: 'wkb-links', 'aria-label': 'Contact' }, mail, h('a', { href: P.resume, target: '_blank', rel: 'noopener' }, 'CV'), h('a', { href: P.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn'))));
+  let shown = '';
+  const say = (key, nodes) => { if (key === shown) return; shown = key; ctx.classList.add('out'); setTimeout(() => { ctx.replaceChildren(...nodes); ctx.classList.remove('out'); }, 160); };
+  const seen = new Map();
+  const io = new IntersectionObserver(es => { es.forEach(e => seen.set(e.target, e.isIntersecting)); const on = [...seen].find(([, v]) => v);
+    if (!on) return say('intro', [intro]); const p = on[0]._p; say(p.id, [h('b', {}, p.title), ' ', h('span', { class: 'wkb-org' }, [p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org, p.year].filter(Boolean).join(', ')), ' ', p.line]); },
+    { root: ix, rootMargin: '-42% 0px -42% 0px' });
+  requestAnimationFrame(() => $$('.wk-card', ix).forEach(c => io.observe(c)));
+  return bar;
 }
 const views = $('#views');
 // back from a wall the page may come out of the browser's cache mid-departure; clear the blur

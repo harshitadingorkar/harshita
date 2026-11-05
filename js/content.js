@@ -6,7 +6,7 @@ window.SITE = {
     intro: 'I design agentic AI that works alongside sellers and revenue teams, at {Salesloft}.',
     index: 'A personal index of work, and the curiosities that feed it.',
     now: 'Designing how sellers work alongside AI, at Salesloft. I started as a software engineer, and I still build what I design.',
-    email: 'hello@harshitashyale.com',
+    email: 'harshitashyale@gmail.com',
     linkedin: 'https://www.linkedin.com/in/harshita-shyale',
     salesloft: 'https://www.salesloft.com/',
     resume: 'assets/harshita-shyale-cv.pdf',
