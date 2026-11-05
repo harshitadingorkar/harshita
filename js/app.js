@@ -23,10 +23,11 @@ const contactLinks = () => { const m = h('button', { type: 'button', class: 'c-m
   m.onclick = () => { const a = S.person.email, done = () => { m.textContent = 'Copied'; setTimeout(() => { m.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
   return h('p', { class: 'c-links' }, m, h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'CV'), h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn')); };
 const introLines = () => [
-  h('p', { class: 'i-do' }, h('button', { type: 'button', class: 'i-about', onclick: () => ready.then(openProfile) }, S.person.now, h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
+  h('p', { class: 'i-do' }, h('button', { type: 'button', class: 'i-about', 'aria-label': S.person.now + ' About me', onclick: () => ready.then(openProfile) }, wisp(S.person.now), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
   h('p', { class: 'i-index' }, S.person.index)];
 $('#intro-lines').replaceChildren(...introLines());
 $('#statement').replaceChildren(...introLines(), contactLinks());
+$('#s-index').textContent = S.person.index;
 $('.b-role').replaceChildren(h('span', {}, 'Design engineer'), h('span', { 'aria-hidden': 'true' }, 'Product designer'));
 $('.b-menu').prepend(contactLinks());
 
@@ -509,9 +510,18 @@ function drag(el, bounds) {
 
 const svgEl = markup => { const t = document.createElement('div'); t.innerHTML = markup; return t.firstElementChild; };
 
+
+// Two small drawn switches instead of words. Sound: a little speaker whose waves ripple out while it plays and fold
+// into a sleeping z when it's quiet. Lights: a sun whose rays turn slowly; switched off, the rays draw in and a bite
+// slides across to leave a moon with one star.
+const NSI = 'http://www.w3.org/2000/svg';
+const iconSvg = inner => { const s = document.createElementNS(NSI, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = inner; return s; };
+const SOUND_ICON = '<path class="spk" d="M4 9.5h3l4-3.5v12l-4-3.5H4z"/><path class="wv w1" d="M14 9.5q1.6 2.5 0 5"/><path class="wv w2" d="M16.6 7.6q3 4.4 0 8.8"/><path class="wv w3" d="M19.2 5.6q4.4 6.4 0 12.8"/><path class="zz" d="M15 8h3l-3 3.4h3M19 12.6h2.2l-2.2 2.6h2.2"/>';
+const LIGHT_ICON = '<g class="rays">' + Array.from({ length: 8 }, (_, i) => `<line x1="12" y1="2.6" x2="12" y2="5" transform="rotate(${i * 45} 12 12)"/>`).join('') + '</g><mask id="bite"><rect width="24" height="24" fill="#fff"/><circle class="bite" cx="16" cy="9" r="5" fill="#000"/></mask><circle class="orbc" cx="12" cy="12" r="5" mask="url(#bite)"/><path class="star" d="M19 15.6l.5 1.2 1.2.5-1.2.5-.5 1.2-.5-1.2-1.2-.5 1.2-.5z"/>';
 const soundBtn = $('#soundBtn');
 if (soundBtn) {
-  const show = () => { const v = !!window.portfolioSound?.on(); soundBtn.setAttribute('aria-pressed', String(v)); soundBtn.textContent = v ? 'sound on' : 'sound off'; };
+  soundBtn.replaceChildren(iconSvg(SOUND_ICON)); soundBtn.classList.add('ico');
+  const show = () => { const v = !!window.portfolioSound?.on(); soundBtn.setAttribute('aria-pressed', String(v)); soundBtn.setAttribute('aria-label', v ? 'Sound on' : 'Sound off'); soundBtn.title = v ? 'sound on' : 'sound off'; };
   // turning it on: the cone gives a thump, the waves draw out one by one, and a ring carries on past them
   show(); soundBtn.onclick = () => { window.portfolioSound?.set(!window.portfolioSound.on()); show(); soundBtn.classList.remove('ping'); void soundBtn.offsetWidth; soundBtn.classList.add('ping'); };
   soundBtn.addEventListener('animationend', e => { if (e.animationName === 'sb-ring') soundBtn.classList.remove('ping'); });
@@ -590,7 +600,7 @@ function orbitHero() {
   const hub = el('g', { class: 'orb-hub', tabindex: 0, role: 'button', 'aria-label': 'About Harshita' });
   // at the very centre, me: a small round portrait, crossed by the plate's lines
   const face = el('clipPath', { id: 'orb-face' }); face.append(el('circle', { cx: C, cy: C, r: 21 })); defs.append(face);
-  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 26 }), el('image', { class: 'orb-me', href: A('me.jpg') + '?h', x: C - 21, y: C - 21, width: 42, height: 42, 'clip-path': 'url(#orb-face)' }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 21 }), el('line', { x1: C - 30, y1: C, x2: C - 23, y2: C }), el('line', { x1: C + 23, y1: C, x2: C + 30, y2: C }), el('line', { x1: C, y1: C - 30, x2: C, y2: C - 23 }), el('line', { x1: C, y1: C + 23, x2: C, y2: C + 30 }));
+  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 26 }), el('image', { class: 'orb-me', href: A('me.jpg') + '?h2', x: C - 21, y: C - 21, width: 42, height: 42, 'clip-path': 'url(#orb-face)' }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 21 }), el('line', { x1: C - 30, y1: C, x2: C - 23, y2: C }), el('line', { x1: C + 23, y1: C, x2: C + 30, y2: C }), el('line', { x1: C, y1: C - 30, x2: C, y2: C - 23 }), el('line', { x1: C, y1: C + 23, x2: C, y2: C + 30 }));
   const hubL = txt('orb-hubl', C + 26, C + 34, 'me'); hub.append(hubL); g.append(hub);
   hub.addEventListener('pointerenter', () => { hubL.textContent = 'about me →'; svg.classList.add('on-hub'); });
   hub.addEventListener('pointerleave', () => { hubL.textContent = 'me'; svg.classList.remove('on-hub'); });
@@ -632,7 +642,7 @@ function orbitHero() {
   const ring = (rr, tx, tz, ay, steps = 96) => { let d = ''; for (let i = 0; i <= steps; i++) { const a = i / steps * Math.PI * 2; const [x, y] = rot(Math.cos(a) * rr, Math.sin(a) * rr, 0, tx + lean[1], ay, tz); d += (i ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } return d; };
   const frame = now => {
     raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
-    speed += ((focus ? .12 : 1) - speed) * .06; t += dt * speed; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] - lean[1]) * .05;
+    speed += ((focus ? .12 : 1) - speed) * .06; t += dt * speed * .6; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] - lean[1]) * .05;
     const spin = t * .08 + lean[0];
     meridians.forEach((p, i) => p.setAttribute('d', ring(R, Math.PI / 2, 0, spin + i * Math.PI / 3)));
     lats.forEach((p, i) => { const y0 = [-.55, 0, .55][i] * R, rr = Math.sqrt(R * R - y0 * y0); let d = ''; for (let k = 0; k <= 72; k++) { const a = k / 72 * Math.PI * 2; let [x, y] = rot(Math.cos(a) * rr, y0, Math.sin(a) * rr, lean[1] * .6 - .32, 0, 0); d += (k ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } p.setAttribute('d', d); });
@@ -668,6 +678,8 @@ function orbitHero() {
   svg.append(txt('orb-corner', S0 - 8, S0 - 10, 'San Francisco 37.77N 122.42W', { 'text-anchor': 'end' }));
   return svg;
 }
+// a line that changes face on a touch: each word lifts away as a soft wisp and settles back in Averia, one after another
+function wisp(text) { return h('span', { class: 'wisp', 'aria-hidden': 'true' }, ...text.split(' ').flatMap((w, i, a) => [h('span', { class: 'wd', style: '--i:' + i }, h('span', { class: 'a' }, w), h('span', { class: 'b' }, w)), i < a.length - 1 ? ' ' : ''])); }
 function buildIndex(ix) {
   ix._built = true;
   const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
@@ -683,8 +695,8 @@ function buildIndex(ix) {
   ix.replaceChildren(h('div', { class: 'wk' },
     h('section', { class: 'wk-stage' },
       h('figure', { class: 'wk-hero' }, orbitHero()),
-      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', onclick: () => ready.then(openProfile) }, S.person.now, h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
-        h('p', { class: 'wk-usual' }, S.person.usually), h('p', { class: 'wk-before' }, S.person.before), h('p', { class: 'wk-index' }, S.person.index)),
+      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', 'aria-label': S.person.now + ' About me', onclick: () => ready.then(openProfile) }, wisp(S.person.now), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
+        h('p', { class: 'wk-before' }, S.person.before)),
       h('div', { class: 'wk-c br' }, contactLinks())),
     h('section', { class: 'wk-sec' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), h('div', { class: 'wk-grid' }, work.map(card))),
     h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Off the clock'), lately,
@@ -753,7 +765,8 @@ $$('button', views).forEach(b => b.onclick = () => { const list = b.dataset.v ==
 /* ---------- lights out ---------- */
 // The other theme spreads out from the switch as a widening circle; the sun folds its rays and takes a bite to become a moon.
 const themeBtn = $('#themeBtn'), docEl = document.documentElement;
-const markTheme = t => { themeBtn.setAttribute('aria-pressed', t === 'dark'); themeBtn.textContent = t === 'dark' ? 'lights off' : 'lights on'; };
+if (themeBtn) { themeBtn.replaceChildren(iconSvg(LIGHT_ICON)); themeBtn.classList.add('ico'); }
+const markTheme = t => { themeBtn.setAttribute('aria-pressed', t === 'dark'); const l = t === 'dark' ? 'Lights off' : 'Lights on'; themeBtn.setAttribute('aria-label', l); themeBtn.title = l.toLowerCase(); };
 if (themeBtn) {
   markTheme(docEl.dataset.theme);
   themeBtn.onclick = () => {
