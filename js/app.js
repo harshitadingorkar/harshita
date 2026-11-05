@@ -562,8 +562,9 @@ function orbitHero() {
   const svg = el('svg', { viewBox: `0 0 ${S0} ${S0}`, class: 'orb', role: 'img', 'aria-label': 'My work as an orbit diagram: projects on tilted orbits round the present.' });
   const g = el('g'), wire = el('g', { class: 'orb-wire' }), rings = el('g', { class: 'orb-rings' }), spokes = el('g', { class: 'orb-spokes' }), nodes = el('g', { class: 'orb-nodes' });
   svg.append(el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, rings, spokes, nodes);
+  for (const [x1, y1, x2, y2] of [[C, C - R - 14, C, C - R + 2], [C, C + R - 2, C, C + R + 14], [C - R - 14, C, C - R + 2, C], [C + R - 2, C, C + R + 14, C]]) svg.append(el('line', { class: 'orb-tick', x1, y1, x2, y2 }));
   const hub = el('g', { class: 'orb-hub' }); hub.append(el('circle', { cx: C, cy: C, r: 9 }), el('line', { x1: C - 18, y1: C, x2: C + 18, y2: C }), el('line', { x1: C, y1: C - 18, x2: C, y2: C + 18 }));
-  g.append(hub);
+  const hubL = el('text', { class: 'orb-hubl', x: C + 14, y: C + 24 }); hubL.textContent = 'now'; hub.append(hubL); g.append(hub);
   // orbits: radius, tilt about x, tilt about z, speed; nodes sit on them by phase
   const W = id => S.points.find(p => p.id === id);
   const ORB = [
@@ -576,9 +577,9 @@ function orbitHero() {
   const lats = [-.55, 0, .55].map(() => { const p = el('path'); wire.append(p); return p; });
   ORB.forEach(o => { o.path = el('path', { class: 'orb-ring' + (o.quiet ? ' quiet' : '') }); rings.append(o.path);
     o.nodes = o.pts.map(([id, ph]) => { const p = W(id); if (!p) return null;
-      const n = el('g', { class: 'orb-pt' + (o.quiet ? ' quiet' : ''), tabindex: 0, role: 'button', 'aria-label': p.title });
+      const n = el('g', { class: 'orb-pt' + (o.quiet ? ' quiet' : '') + (GLOW.includes(id) ? ' glow' : ''), tabindex: 0, role: 'button', 'aria-label': p.title });
       n.append(el('circle', { class: 'orb-hit', r: 18 }), el('circle', { class: 'orb-dot', r: o.quiet ? 3.5 : 5 }));
-      const t = el('text', { class: 'orb-lbl', y: -11, 'text-anchor': 'middle' }); t.textContent = p.title; n.append(t);
+      const t = el('text', { class: 'orb-lbl', y: -11, 'text-anchor': 'middle' }); t.textContent = o.quiet ? p.title : p.title.toUpperCase(); n.append(t);
       const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
       n.addEventListener('pointerenter', () => { focus = { n, o, sp }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on'); });
       n.addEventListener('pointerleave', () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); });
@@ -606,25 +607,30 @@ function orbitHero() {
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
+  const corner = (cls, txt) => { const x = el('text', { class: 'orb-corner ' + cls }); x.textContent = txt; return x; };
+  const tl = corner('tl', 'HARSHITA SHYALE · WORK'), br = corner('br', 'SEATTLE 47.61N 122.33W'); tl.setAttribute('x', 8); tl.setAttribute('y', 18); br.setAttribute('x', S0 - 8); br.setAttribute('y', S0 - 10); br.setAttribute('text-anchor', 'end'); svg.append(tl, br);
   return svg;
 }
 function buildIndex(ix) {
   ix._built = true;
-  const work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
+  const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
   const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), onclick: e => ready.then(() => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect())) },
     h('span', { class: 'wk-img' }, src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' }) : null),
-    h('span', { class: 'wk-row' }, h('span', { class: 'wk-title' }, p.title), h('span', { class: 'wk-meta' }, [p.org, p.year].filter(Boolean).join(', '))),
+    h('span', { class: 'wk-meta' }, [p.org, p.year].filter(Boolean).join(' · ')),
+    h('span', { class: 'wk-title' }, p.title),
     h('span', { class: 'wk-line' }, p.line)); r._p = p; return r; };
-  const toMap = label => h('button', { type: 'button', class: 'wk-link', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
+  const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
   ix.replaceChildren(h('div', { class: 'wk' },
-    h('section', { class: 'wk-hero' }, orbitHero(),
-      h('p', { class: 'wk-lede' }, 'Design engineer at ', h('a', { href: S.person.salesloft, target: '_blank', rel: 'noopener' }, 'Salesloft'), ', working on agentic AI for revenue teams.')),
-    h('section', { class: 'wk-sec' }, h('h2', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
-    h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Elsewhere'),
-      h('p', { class: 'wk-offline' }, 'Theatre, ceramics, film and the things I collect are on the ', toMap('map'), '.'),
-      // tucked away, built only when opened
-      (() => { const d = h('details', { class: 'wk-kin' }, h('summary', {}, 'Archive, arranged by resemblance')); d.addEventListener('toggle', () => { if (d.open && !d._built) { d._built = true; d.append(kinField()); } }); return d; })()),
-    h('footer', { class: 'wk-foot' }, h('span', {}, 'Harshita Shyale'), contactMenu('Contact'))));
+    h('header', { class: 'wk-head' },
+      h('p', { class: 'wk-kick' }, P.kicker),
+      h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
+    h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one. Touch any of it.'), toMap('Explore the map →'))),
+    h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
+    h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'),
+      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map. ', toMap('Go play →')),
+      // tucked away: everything I keep and make, arranged by resemblance; built only when opened
+      (() => { const d = h('details', { class: 'wk-kin' }, h('summary', {}, 'Everything I keep and make, by resemblance')); d.addEventListener('toggle', () => { if (d.open && !d._built) { d._built = true; d.append(kinField()); } }, { once: false }); return d; })()),
+    h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch'))));
 }
 const views = $('#views');
 /* the menu: the word you're on wears Averia, a soft inked italic. Hover lends it to another word,

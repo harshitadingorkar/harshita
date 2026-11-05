@@ -1,10 +1,11 @@
-// The cursor: one small ink dot, exactly under the hand. It grows a little over anything you can
-// click and hides over text fields. Mice and trackpads only; touch keeps its own.
+// The cursor: a plotting mark. At rest it's a small crosshair, the kind used to place a point on a chart.
+// Over anything you can click, its arms step back and a ring closes round the point, as if the map
+// were registering it. Hidden over text fields. Mice and trackpads only; touch keeps its own.
 (() => {
   if (!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
   const root = document.createElement('div');
   root.id = 'cursor'; root.setAttribute('aria-hidden', 'true'); root.dataset.shape = 'dot';
-  root.innerHTML = '<i></i>';
+  root.innerHTML = '<b class="x h"></b><b class="x v"></b><i></i><span class="ring"></span>';
   document.body.append(root);
 
   let live = false;
