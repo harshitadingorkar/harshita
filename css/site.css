@@ -1813,3 +1813,32 @@ body.show-index .band{padding-top:14px}
 .pf-kid:hover .pf-kid-back.b0{rotate:12deg;translate:34px -10px}
 .pf-kid:hover .pf-kid-back.b1{rotate:-11deg;translate:-22px 14px}
 @media (prefers-reduced-motion:reduce){.pf-kid .pf-kid-back{transition:none}}
+
+/* ---------- Round 49: one plate for everything ----------
+   The plate is the language: hairlines, dotted guides, ticks, mono notes, Averia for the voice, oxblood once, my
+   pictures inside shapes. The map wears the same furniture as the drawing; the drawing's centre is me. */
+.orb-me{pointer-events:none}
+.orb-hub .orb-core{fill:none;stroke:var(--ink);stroke-width:1;transition:stroke .2s ease,stroke-width .2s ease}
+.orb-hub:hover .orb-core,.orb-hub:focus-visible .orb-core{r:21;fill:none;stroke:var(--ox);stroke-width:2}
+.orb-hub:hover .orb-me{filter:saturate(1.15)}
+.orb.focus .orb-me{opacity:.35;transition:opacity .3s ease}
+.m-plate{position:absolute;inset:0;pointer-events:none}
+.m-tick{position:absolute;background:var(--ink)}
+.m-tick.t,.m-tick.b{left:var(--cx);width:1.5px;height:14px;margin-left:-.75px}
+.m-tick.t{top:calc(var(--mT) - 7px)}.m-tick.b{bottom:57px}
+.m-tick.l,.m-tick.r{top:var(--cy);height:1.5px;width:14px;margin-top:-.75px}
+.m-tick.l{left:calc(var(--edge) - 7px)}.m-tick.r{right:calc(var(--edge) - 7px)}
+.m-hub{position:absolute;left:var(--cx);top:var(--cy);width:16px;height:16px;margin:-8px 0 0 -8px;border:1px solid var(--ink);border-radius:50%;background:var(--ground)}
+.m-hub::before,.m-hub::after{content:'';position:absolute;background:var(--ink);opacity:.6}
+.m-hub::before{left:50%;top:-6px;bottom:-6px;width:1px}
+.m-hub::after{top:50%;left:-6px;right:-6px;height:1px}
+.m-where{position:absolute;right:var(--edge);bottom:70px;font:11px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)}
+.arriving .m-plate{animation:fadeIn 1.2s ease calc(var(--ad,0ms) + .6s) both}
+body.show-index .m-plate{opacity:0}
+/* the opening at the foot of the work, set like raghavsharma.work: three short lines, then the index in Averia */
+.wk-c.bl{gap:6px}
+.wk-c.bl .wk-lede{font:400 15px/1.45 var(--sans);letter-spacing:0;color:var(--ink);margin:0}
+.wk-usual{margin:0;color:var(--ink)}
+.wk-before{margin:0;color:var(--ink2)}
+.wk-c.bl .wk-index{margin-top:6px}
+@media (max-width:760px){.wk-c.bl .wk-lede{font:400 24px/1.25 var(--voice);letter-spacing:-.012em}}

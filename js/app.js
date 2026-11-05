@@ -23,7 +23,7 @@ const contactLinks = () => { const m = h('button', { type: 'button', class: 'c-m
   m.onclick = () => { const a = S.person.email, done = () => { m.textContent = 'Copied'; setTimeout(() => { m.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
   return h('p', { class: 'c-links' }, m, h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'CV'), h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn')); };
 const introLines = () => [
-  h('p', { class: 'i-do' }, h('button', { type: 'button', class: 'i-about', onclick: () => ready.then(openProfile) }, S.person.intro.replace('{Salesloft}', 'Salesloft'), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
+  h('p', { class: 'i-do' }, h('button', { type: 'button', class: 'i-about', onclick: () => ready.then(openProfile) }, S.person.now, h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
   h('p', { class: 'i-index' }, S.person.index)];
 $('#intro-lines').replaceChildren(...introLines());
 $('#statement').replaceChildren(...introLines(), contactLinks());
@@ -74,6 +74,8 @@ function buildPlane() {
   plane.innerHTML = '';
   if (mobile()) return buildMobile();
   plane.append(h('div', { class: 'axis h' }), h('div', { class: 'axis v' }));
+  // the same plate as the drawing on the work: ticks at the axis ends, a ring where they cross, and where
+  plane.append(h('div', { class: 'm-plate', 'aria-hidden': 'true' }, ...['t', 'b', 'l', 'r'].map(k => h('i', { class: 'm-tick ' + k })), h('i', { class: 'm-hub' }), h('span', { class: 'm-where' }, 'San Francisco 37.77N 122.42W')));
   for (const [side, w] of [['top', 'work'], ['bottom', 'wonder'], ['left', 'gather'], ['right', 'make']]) plane.append(h('div', { class: 'alabel ' + side, tabindex: 0, 'aria-label': w }, wearWord(w)));
   for (const [q, d] of Object.entries(S.quads)) {
     const label=h('div', { class: 'qlabel q-' + q }, h('span',{class:'quad-name'},d.name),h('small',{},d.key));
@@ -583,17 +585,13 @@ function orbitHero() {
   for (const [x1, y1, x2, y2] of [[C, C - R - 14, C, C - R + 2], [C, C + R - 2, C, C + R + 14], [C - R - 14, C, C - R + 2, C], [C + R - 2, C, C + R + 14, C]]) plate.append(el('line', { class: 'orb-tick', x1, y1, x2, y2 }));
   plate.append(txt('orb-axis', C + 8, C - R - 6, 'work'), txt('orb-axis', C + 8, C + R + 14, 'wonder'), txt('orb-axis', C - R - 8, C - 7, 'gather', { 'text-anchor': 'end' }), txt('orb-axis', C + R + 8, C - 7, 'make'));
   // a small flat system round the centre, like the plate's inner ellipses
-  // at rest, the wider flat orbit is a slit of sky: a few of my pictures pass slowly through it
-  const slit = el('clipPath', { id: 'orb-slit' }); slit.append(el('ellipse', { cx: C, cy: C, rx: 118, ry: 26 })); defs.append(slit);
-  const idle = el('g', { class: 'orb-idle', 'clip-path': 'url(#orb-slit)' }), IDLE = ['wobblefoot', 'hpe', 'arena'];
-  const frames = IDLE.map((id, i) => { const im = el('image', { href: A('whim/' + id + '.jpg'), x: C - 130, y: C - 90, width: 260, height: 180, preserveAspectRatio: 'xMidYMid slice', class: i ? '' : 'on' }); idle.append(im); return im; });
-  inner.append(idle);
-  let shown = 0; if (!RM) setInterval(() => { if (document.hidden) return; frames[shown].classList.remove('on'); shown = (shown + 1) % frames.length; frames[shown].classList.add('on'); }, 4200);
-  const flats = [[118, 26, .5], [58, 13, -.9]].map(([rx, ry, v]) => { inner.append(el('ellipse', { class: 'orb-flat', cx: C, cy: C, rx, ry })); return { rx, ry, v, dots: [0, Math.PI].map(ph => { const c = el('circle', { class: 'orb-fdot', r: 2.6 }); inner.append(c); return { c, ph }; }) }; });
+  const flats = [[118, 22, .5], [62, 11, -.9]].map(([rx, ry, v]) => { inner.append(el('ellipse', { class: 'orb-flat', cx: C, cy: C, rx, ry })); return { rx, ry, v, dots: [0, Math.PI].map(ph => { const c = el('circle', { class: 'orb-fdot', r: 2.6 }); inner.append(c); return { c, ph }; }) }; });
   // the centre is me: it opens the about page
   const hub = el('g', { class: 'orb-hub', tabindex: 0, role: 'button', 'aria-label': 'About Harshita' });
-  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 22 }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 9 }), el('line', { x1: C - 18, y1: C, x2: C + 18, y2: C }), el('line', { x1: C, y1: C - 18, x2: C, y2: C + 18 }));
-  const hubL = txt('orb-hubl', C + 14, C + 24, 'me'); hub.append(hubL); g.append(hub);
+  // at the very centre, me: a small round portrait, crossed by the plate's lines
+  const face = el('clipPath', { id: 'orb-face' }); face.append(el('circle', { cx: C, cy: C, r: 21 })); defs.append(face);
+  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 26 }), el('image', { class: 'orb-me', href: A('me.jpg'), x: C - 21, y: C - 21, width: 42, height: 42, 'clip-path': 'url(#orb-face)' }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 21 }), el('line', { x1: C - 30, y1: C, x2: C - 23, y2: C }), el('line', { x1: C + 23, y1: C, x2: C + 30, y2: C }), el('line', { x1: C, y1: C - 30, x2: C, y2: C - 23 }), el('line', { x1: C, y1: C + 23, x2: C, y2: C + 30 }));
+  const hubL = txt('orb-hubl', C + 26, C + 34, 'me'); hub.append(hubL); g.append(hub);
   hub.addEventListener('pointerenter', () => { hubL.textContent = 'about me →'; svg.classList.add('on-hub'); });
   hub.addEventListener('pointerleave', () => { hubL.textContent = 'me'; svg.classList.remove('on-hub'); });
   hub.addEventListener('click', e => { e.stopPropagation(); ready.then(openProfile); });
@@ -609,6 +607,8 @@ function orbitHero() {
   const meridians = [0, 1, 2].map(() => { const p = el('path'); wire.append(p); return p; });
   const lats = [-.55, 0, .55].map(() => { const p = el('path'); wire.append(p); return p; });
   let focus = null;
+  // on a phone nothing hovers, so the drawing shows itself: every few seconds it stills on the next piece and opens its window
+  const tour = { stops: [], i: -1, timer: 0, stop() { clearInterval(this.timer); this.timer = 0; } };
   ORB.forEach((o, k) => { o.path = el('path', { class: 'orb-ring' + (o.quiet ? ' quiet' : '') }); rings.append(o.path);
     const cp = el('clipPath', { id: 'orb-clip-' + k }); o.clip = el('path'); cp.append(o.clip); defs.append(cp); o.clipId = 'orb-clip-' + k;
     // an arrowhead on each orbit, pointing the way it turns
@@ -619,9 +619,12 @@ function orbitHero() {
       // two lines, like the plate's labels: the subject, and on touch the piece it came from
       const L = el('g', { class: 'orb-lblg' }); L.append(txt('orb-lbl', 0, 0, (TOPIC[id] || p.title).toUpperCase()), txt('orb-sub', 0, 12, p.title)); n.append(L);
       const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
-      n.addEventListener('pointerenter', () => { focus = { n, o, sp }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on');
-        winImg.setAttribute('href', A('whim/' + id + '.jpg')); win.setAttribute('clip-path', `url(#${o.clipId})`); win.classList.add('on'); });
-      n.addEventListener('pointerleave', () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); win.classList.remove('on'); });
+      const on = () => { if (focus && focus.n !== n) focus.off(); focus = { n, o, sp, off }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on');
+        winImg.setAttribute('href', A('whim/' + id + '.jpg')); win.setAttribute('clip-path', `url(#${o.clipId})`); win.classList.add('on'); };
+      const off = () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); win.classList.remove('on'); };
+      n.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') { tour.stop(); on(); } });
+      n.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') off(); });
+      tour.stops.push({ on, off });
       n.addEventListener('click', e => { e.stopPropagation(); ready.then(() => open(p, n.getBoundingClientRect())); });
       n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); n.dispatchEvent(new MouseEvent('click')); } });
       nodes.append(n); return { n, L, ph, sp }; }).filter(Boolean); });
@@ -658,6 +661,7 @@ function orbitHero() {
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
+  if (matchMedia('(hover: none)').matches && !RM) setTimeout(() => { tour.timer = setInterval(() => { if (document.hidden || !seen) return; const s = tour.stops; s[(tour.i + s.length) % s.length]?.off(); tour.i = (tour.i + 1) % s.length; s[tour.i].on(); }, 3600); }, 2400);
   // fetch the pictures ahead, so the window opens at once
   requestIdleCallback?.(() => Object.keys(TOPIC).forEach(id => { new Image().src = A('whim/' + id + '.jpg'); }));
   // one corner note: where
@@ -671,7 +675,7 @@ function buildIndex(ix) {
     h('span', { class: 'wk-img' }, src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' }) : null),
     h('span', { class: 'wk-meta' }, [p.org, p.year].filter(Boolean).join(' · ')),
     h('span', { class: 'wk-title' }, p.title),
-    h('span', { class: 'wk-line' }, p.line)); r._p = p; return r; };
+    h('span', { class: 'wk-line' }, p.card || p.line)); r._p = p; return r; };
   const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
   const out = (href, txt) => h('a', { href, target: '_blank', rel: 'noopener' }, txt);
   const lately = h('dl', { class: 'wk-lately' });
@@ -679,7 +683,8 @@ function buildIndex(ix) {
   ix.replaceChildren(h('div', { class: 'wk' },
     h('section', { class: 'wk-stage' },
       h('figure', { class: 'wk-hero' }, orbitHero()),
-      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', onclick: () => ready.then(openProfile) }, S.person.intro.replace('{Salesloft}', 'Salesloft'), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))), h('p', { class: 'wk-index' }, S.person.index)),
+      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', onclick: () => ready.then(openProfile) }, S.person.now, h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
+        h('p', { class: 'wk-usual' }, S.person.usually), h('p', { class: 'wk-before' }, S.person.before), h('p', { class: 'wk-index' }, S.person.index)),
       h('div', { class: 'wk-c br' }, contactLinks())),
     h('section', { class: 'wk-sec' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), h('div', { class: 'wk-grid' }, work.map(card))),
     h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Off the clock'), lately,

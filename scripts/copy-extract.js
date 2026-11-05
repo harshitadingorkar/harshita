@@ -13,13 +13,14 @@ const ui = (k, label, re) => { const m = app.match(re); if (m) b(k, label, m[1])
 
 page('work', 'Work page', 'The page recruiters land on.');
 b('profile.kicker', 'Small line above the headline', S.profile.kicker, 'line');
-b('person.intro', 'Headline', S.person.intro.replace('{Salesloft}', 'Salesloft'), 'title');
-ui('ui.orbitCaption', 'Caption under the drawing', /'(Product work on the near orbits[^']*)'/);
+b('person.now', 'Opening, what I’m on now', S.person.now, 'title');
+b('person.usually', 'Opening, how I usually work', S.person.usually, 'line');
+b('person.before', 'Opening, before', S.person.before, 'line');
+b('person.index', 'Line under the opening', S.person.index, 'line');
 ui('ui.selected', 'Section title', /h\('p', \{ class: 'wk-lab' \}, '(Selected work)'\)/);
-for (const id of ['influence', 'github', 'sony', 'safe', 'hpe']) b(`points.${id}.line`, `${P(id).title}, card line`, P(id).line);
+for (const id of ['influence', 'github', 'sony', 'safe', 'hpe']) b(`points.${id}.card`, `${P(id).title}, card (situation, my part, outcome)`, P(id).card || P(id).line);
 ui('ui.offClock', 'Off the clock line', /'(Theatre, films, clay, and collections[^']*)'/);
 ui('ui.kinSummary', 'Archive link', /h\('summary', \{\}, '([^']+)'\)/);
-ui('ui.footer', 'Sign-off', /h\('p', \{\}, '(Looking for a design engineer\?)'\)/);
 
 page('map', 'Map', 'The exploratory view, and the words that appear when you hover a dot.');
 b('person.index', 'Line under your name', S.person.index, 'line');
