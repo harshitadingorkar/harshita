@@ -556,15 +556,31 @@ function kinField() {
    orbits round a small "now" at the centre. Product work rides the near orbits, labelled; the rest of her life rides
    the outer one, quiet. The sphere leans toward the hand; touching a piece slows everything, darkens its orbit and
    draws a dotted line to the centre; clicking opens it. Drawn every frame from a little 3D model, then projected. */
+// what each piece is about, so the drawing reads as the subjects I've worked in, not only project names
+const TOPIC = { influence: 'Agentic AI', github: 'Dev tools research', sony: 'AI assistants', safe: 'Healthcare', hpe: 'ML observability',
+  theatre: 'Theatre', wobblefoot: 'Ceramics', films: 'Film', arena: 'Collecting', door: 'Working in the open' };
 function orbitHero() {
   const NS = 'http://www.w3.org/2000/svg', el = (t, a = {}) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); return e; };
+  const txt = (cls, x, y, s, a = {}) => { const e = el('text', { class: cls, x, y, ...a }); e.textContent = s; return e; };
   const S0 = 600, C = S0 / 2, R = 250;
-  const svg = el('svg', { viewBox: `0 0 ${S0} ${S0}`, class: 'orb', role: 'img', 'aria-label': 'My work as an orbit diagram: projects on tilted orbits round the present.' });
-  const g = el('g'), wire = el('g', { class: 'orb-wire' }), rings = el('g', { class: 'orb-rings' }), spokes = el('g', { class: 'orb-spokes' }), nodes = el('g', { class: 'orb-nodes' });
-  svg.append(el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, rings, spokes, nodes);
-  for (const [x1, y1, x2, y2] of [[C, C - R - 14, C, C - R + 2], [C, C + R - 2, C, C + R + 14], [C - R - 14, C, C - R + 2, C], [C + R - 2, C, C + R + 14, C]]) svg.append(el('line', { class: 'orb-tick', x1, y1, x2, y2 }));
-  const hub = el('g', { class: 'orb-hub' }); hub.append(el('circle', { cx: C, cy: C, r: 9 }), el('line', { x1: C - 18, y1: C, x2: C + 18, y2: C }), el('line', { x1: C, y1: C - 18, x2: C, y2: C + 18 }));
-  const hubL = el('text', { class: 'orb-hubl', x: C + 14, y: C + 24 }); hubL.textContent = 'now'; hub.append(hubL); g.append(hub);
+  const svg = el('svg', { viewBox: `0 0 ${S0} ${S0}`, class: 'orb', role: 'img', 'aria-label': 'The subjects I work in, drawn as an orbit diagram: product work on the near orbits, the rest of me on the outer one. Work at the top, wonder at the bottom, gather on the left, make on the right.' });
+  const plate = el('g', { class: 'orb-plate' }), g = el('g'), wire = el('g', { class: 'orb-wire' }), rings = el('g', { class: 'orb-rings' }), spokes = el('g', { class: 'orb-spokes' }), nodes = el('g', { class: 'orb-nodes' }), inner = el('g', { class: 'orb-inner' });
+  svg.append(plate, el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, inner, rings, spokes, nodes);
+  // the plate: dotted cross and diagonals, ticks, the map's two axes named at the rim
+  for (const [x1, y1, x2, y2] of [[C - R, C, C + R, C], [C, C - R, C, C + R]]) plate.append(el('line', { class: 'orb-dots', x1, y1, x2, y2 }));
+  const d = R * Math.SQRT1_2; for (const [x1, y1, x2, y2] of [[C - d, C - d, C + d, C + d], [C + d, C - d, C - d, C + d]]) plate.append(el('line', { class: 'orb-dots faint', x1, y1, x2, y2 }));
+  for (const [x1, y1, x2, y2] of [[C, C - R - 14, C, C - R + 2], [C, C + R - 2, C, C + R + 14], [C - R - 14, C, C - R + 2, C], [C + R - 2, C, C + R + 14, C]]) plate.append(el('line', { class: 'orb-tick', x1, y1, x2, y2 }));
+  plate.append(txt('orb-axis', C + 8, C - R - 6, 'work'), txt('orb-axis', C + 8, C + R + 14, 'wonder'), txt('orb-axis', C - R - 8, C - 7, 'gather', { 'text-anchor': 'end' }), txt('orb-axis', C + R + 8, C - 7, 'make'));
+  // a small flat system round the centre, like the plate's inner ellipses
+  const flats = [[118, 22, .5], [58, 11, -.9]].map(([rx, ry, v]) => { inner.append(el('ellipse', { class: 'orb-flat', cx: C, cy: C, rx, ry })); return { rx, ry, v, dots: [0, Math.PI].map(ph => { const c = el('circle', { class: 'orb-fdot', r: 2.6 }); inner.append(c); return { c, ph }; }) }; });
+  // the centre is me: it opens the about page
+  const hub = el('g', { class: 'orb-hub', tabindex: 0, role: 'button', 'aria-label': 'About Harshita' });
+  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 22 }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 9 }), el('line', { x1: C - 18, y1: C, x2: C + 18, y2: C }), el('line', { x1: C, y1: C - 18, x2: C, y2: C + 18 }));
+  const hubL = txt('orb-hubl', C + 14, C + 24, 'me'); hub.append(hubL); g.append(hub);
+  hub.addEventListener('pointerenter', () => { hubL.textContent = 'about me →'; svg.classList.add('on-hub'); });
+  hub.addEventListener('pointerleave', () => { hubL.textContent = 'me'; svg.classList.remove('on-hub'); });
+  hub.addEventListener('click', e => { e.stopPropagation(); ready.then(openProfile); });
+  hub.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ready.then(openProfile); } });
   // orbits: radius, tilt about x, tilt about z, speed; nodes sit on them by phase
   const W = id => S.points.find(p => p.id === id);
   const ORB = [
@@ -575,40 +591,59 @@ function orbitHero() {
   const rot = (x, y, z, ax, ay, az) => { let c = Math.cos(ax), s = Math.sin(ax); [y, z] = [y * c - z * s, y * s + z * c]; c = Math.cos(ay); s = Math.sin(ay); [x, z] = [x * c + z * s, -x * s + z * c]; c = Math.cos(az); s = Math.sin(az); [x, y] = [x * c - y * s, x * s + y * c]; return [x, y, z]; };
   const meridians = [0, 1, 2].map(() => { const p = el('path'); wire.append(p); return p; });
   const lats = [-.55, 0, .55].map(() => { const p = el('path'); wire.append(p); return p; });
+  let focus = null;
   ORB.forEach(o => { o.path = el('path', { class: 'orb-ring' + (o.quiet ? ' quiet' : '') }); rings.append(o.path);
+    // an arrowhead on each orbit, pointing the way it turns
+    o.arrow = el('path', { class: 'orb-arrow', d: 'M0 -4 L7 0 L0 4 Z' }); rings.append(o.arrow);
     o.nodes = o.pts.map(([id, ph]) => { const p = W(id); if (!p) return null;
-      const n = el('g', { class: 'orb-pt' + (o.quiet ? ' quiet' : '') + (GLOW.includes(id) ? ' glow' : ''), tabindex: 0, role: 'button', 'aria-label': p.title });
+      const n = el('g', { class: 'orb-pt' + (o.quiet ? ' quiet' : '') + (GLOW.includes(id) ? ' glow' : ''), tabindex: 0, role: 'button', 'aria-label': (TOPIC[id] || '') + ': ' + p.title });
       n.append(el('circle', { class: 'orb-hit', r: 18 }), el('circle', { class: 'orb-dot', r: o.quiet ? 3.5 : 5 }));
-      const t = el('text', { class: 'orb-lbl', y: -11, 'text-anchor': 'middle' }); t.textContent = o.quiet ? p.title : p.title.toUpperCase(); n.append(t);
+      // two lines, like the plate's labels: the subject, and on touch the piece it came from
+      const L = el('g', { class: 'orb-lblg' }); L.append(txt('orb-lbl', 0, 0, (TOPIC[id] || p.title).toUpperCase()), txt('orb-sub', 0, 12, p.title)); n.append(L);
       const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
       n.addEventListener('pointerenter', () => { focus = { n, o, sp }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on'); });
       n.addEventListener('pointerleave', () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); });
-      n.addEventListener('click', () => ready.then(() => open(p, n.getBoundingClientRect())));
+      n.addEventListener('click', e => { e.stopPropagation(); ready.then(() => open(p, n.getBoundingClientRect())); });
       n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); n.dispatchEvent(new MouseEvent('click')); } });
-      nodes.append(n); return { n, ph, sp }; }).filter(Boolean); });
-  let t = 0, last = 0, speed = 1, lean = [0, 0], want = [0, 0], focus = null, raf = 0, seen = true;
+      nodes.append(n); return { n, L, ph, sp }; }).filter(Boolean); });
+  let t = 0, last = 0, speed = 1, lean = [0, 0], want = [0, 0], raf = 0, seen = true;
   const ring = (rr, tx, tz, ay, steps = 96) => { let d = ''; for (let i = 0; i <= steps; i++) { const a = i / steps * Math.PI * 2; const [x, y] = rot(Math.cos(a) * rr, Math.sin(a) * rr, 0, tx + lean[1], ay, tz); d += (i ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } return d; };
   const frame = now => {
     raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
     speed += ((focus ? .12 : 1) - speed) * .06; t += dt * speed; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] - lean[1]) * .05;
     const spin = t * .08 + lean[0];
     meridians.forEach((p, i) => p.setAttribute('d', ring(R, Math.PI / 2, 0, spin + i * Math.PI / 3)));
-    lats.forEach((p, i) => { const y0 = [-.55, 0, .55][i] * R, rr = Math.sqrt(R * R - y0 * y0); let d = ''; for (let k = 0; k <= 72; k++) { const a = k / 72 * Math.PI * 2; let [x, y, z] = rot(Math.cos(a) * rr, y0, Math.sin(a) * rr, lean[1] * .6 - .32, 0, 0); d += (k ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } p.setAttribute('d', d); });
-    ORB.forEach(o => { o.path.setAttribute('d', ring(o.r, o.tx, o.tz, spin * .4));
-      o.nodes.forEach(q => { const a = q.ph + t * o.v * 6; const [x, y, z] = rot(Math.cos(a) * o.r, Math.sin(a) * o.r, 0, o.tx + lean[1], spin * .4, o.tz);
+    lats.forEach((p, i) => { const y0 = [-.55, 0, .55][i] * R, rr = Math.sqrt(R * R - y0 * y0); let d = ''; for (let k = 0; k <= 72; k++) { const a = k / 72 * Math.PI * 2; let [x, y] = rot(Math.cos(a) * rr, y0, Math.sin(a) * rr, lean[1] * .6 - .32, 0, 0); d += (k ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } p.setAttribute('d', d); });
+    flats.forEach(f => f.dots.forEach(q => { const a = q.ph + t * f.v; q.c.setAttribute('cx', (C + Math.cos(a) * f.rx).toFixed(1)); q.c.setAttribute('cy', (C + Math.sin(a) * f.ry).toFixed(1)); }));
+    ORB.forEach(o => { const ay = spin * .4, pos = a => rot(Math.cos(a) * o.r, Math.sin(a) * o.r, 0, o.tx + lean[1], ay, o.tz);
+      o.path.setAttribute('d', ring(o.r, o.tx, o.tz, ay));
+      const a0 = t * o.v * 6 + 1.6, [ax, ay2] = pos(a0), [bx, by] = pos(a0 + Math.sign(o.v) * .05);
+      o.arrow.setAttribute('transform', `translate(${(C + ax).toFixed(1)} ${(C + ay2).toFixed(1)}) rotate(${(Math.atan2(by - ay2, bx - ax) * 180 / Math.PI).toFixed(1)})`);
+      o.nodes.forEach(q => { const a = q.ph + t * o.v * 6; const [x, y, z] = pos(a);
         q.n.setAttribute('transform', `translate(${(C + x).toFixed(1)} ${(C + y).toFixed(1)})`); q.n.style.setProperty('--z', ((z / o.r + 1) / 2).toFixed(2));
         // labels lean outward, away from the centre, so they never pile up on the hub; near the rim they turn inward to stay on the page
-        const L = q.n.lastChild, edge = Math.abs(x) > R * .45, right = edge ? x < 0 : x >= 0; L.setAttribute('text-anchor', right ? 'start' : 'end'); L.setAttribute('x', right ? 11 : -11); L.setAttribute('y', y < 0 ? -7 : 15); q.n.classList.toggle('back', z < -o.r * .25);
+        const edge = Math.abs(x) > R * .45, right = edge ? x < 0 : x >= 0, anchor = right ? 'start' : 'end';
+        q.L.setAttribute('transform', `translate(${right ? 11 : -11} ${y < 0 ? -16 : 15})`); for (const c of q.L.children) c.setAttribute('text-anchor', anchor);
+        q.n.classList.toggle('back', z < -o.r * .25);
         q.sp.setAttribute('x1', C); q.sp.setAttribute('y1', C); q.sp.setAttribute('x2', (C + x).toFixed(1)); q.sp.setAttribute('y2', (C + y).toFixed(1)); q.sp.classList.toggle('on', focus?.n === q.n); }); });
     if (seen && !document.hidden) raf = requestAnimationFrame(frame);
   };
-  svg.addEventListener('pointermove', e => { const r = svg.getBoundingClientRect(); want = [((e.clientX - r.left) / r.width - .5) * .5, ((e.clientY - r.top) / r.height - .5) * .35]; }, { passive: true });
-  svg.addEventListener('pointerleave', () => { want = [0, 0]; });
+  // anywhere else on the drawing: a note follows the hand, and a click goes to the map
+  const hint = txt('orb-hint', 0, 0, 'explore the map →'); svg.append(hint);
+  const pt = e => { const r = svg.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * S0, (e.clientY - r.top) / r.height * S0, r]; };
+  const free = e => !e.target.closest('.orb-pt,.orb-hub');
+  svg.addEventListener('pointermove', e => { const [x, y, r] = pt(e); want = [((e.clientX - r.left) / r.width - .5) * .5, ((e.clientY - r.top) / r.height - .5) * .35];
+    const inside = Math.hypot(x - C, y - C) < R + 10 && free(e); svg.classList.toggle('maphint', inside); if (inside) hint.setAttribute('transform', `translate(${(x + 14).toFixed(1)} ${(y + 22).toFixed(1)})`); }, { passive: true });
+  svg.addEventListener('pointerleave', () => { want = [0, 0]; svg.classList.remove('maphint'); });
+  svg.addEventListener('click', e => { const [x, y] = pt(e); if (free(e) && Math.hypot(x - C, y - C) < R + 10) toggleIndex(false); });
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
-  const corner = (cls, txt) => { const x = el('text', { class: 'orb-corner ' + cls }); x.textContent = txt; return x; };
-  const tl = corner('tl', 'HARSHITA SHYALE · WORK'), br = corner('br', 'SAN FRANCISCO 37.77N 122.42W'); tl.setAttribute('x', 8); tl.setAttribute('y', 18); br.setAttribute('x', S0 - 8); br.setAttribute('y', S0 - 10); br.setAttribute('text-anchor', 'end'); svg.append(tl, br);
+  // the plate's corners: whose this is, a tally of what's on it, a scale bar, where
+  const work = ORB.slice(0, 2).reduce((n, o) => n + o.nodes.length, 0), rest = ORB[2].nodes.length;
+  svg.append(txt('orb-corner', 8, 18, 'Harshita Shyale · design engineer'), txt('orb-corner', S0 - 8, 18, 'I'.repeat(work) + '  ' + 'I'.repeat(rest), { 'text-anchor': 'end', class: 'orb-corner tally' }),
+    el('path', { class: 'orb-bars', d: `M8 ${S0 - 14} h26 v-5 h22 v5 M64 ${S0 - 12} h20 M84 ${S0 - 16} h16` }),
+    txt('orb-corner', S0 - 8, S0 - 10, 'San Francisco 37.77N 122.42W', { 'text-anchor': 'end' }));
   return svg;
 }
 function buildIndex(ix) {
@@ -620,29 +655,23 @@ function buildIndex(ix) {
     h('span', { class: 'wk-title' }, p.title),
     h('span', { class: 'wk-line' }, p.line)); r._p = p; return r; };
   const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
-  // small true details round the drawing, like notes in the corners of a plate
   const email = h('button', { type: 'button', class: 'wk-mail' }, 'Email');
   email.onclick = () => { const a = S.person.email, done = () => { email.textContent = 'Copied'; setTimeout(() => { email.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
   const out = (href, txt) => h('a', { href, target: '_blank', rel: 'noopener' }, txt);
-  const now = h('p', { class: 'wk-now' }), lately = h('dl', { class: 'wk-lately' });
+  const lately = h('dl', { class: 'wk-lately' });
+  // the first screen: the drawing alone in the middle; the line about my work at the foot (it opens the about page), and how to reach me beside it
   ix.replaceChildren(h('div', { class: 'wk' },
     h('section', { class: 'wk-stage' },
-      h('div', { class: 'wk-c tl' }, h('p', { class: 'wk-kick' }, P.kicker), h('p', {}, 'At Salesloft since 2025. Before that, HPE and Nutanix, and client work with GitHub and Sony.')),
-      h('div', { class: 'wk-c tr' }, h('p', { class: 'wk-kick' }, 'Now'), now, h('a', { class: 'wk-more', href: 'now/' }, 'More on the now page')),
-      h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one.'), toMap('Explore the map →'))),
-      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
-      h('div', { class: 'wk-c br' }, h('p', { class: 'wk-links' }, email, out(S.person.resume, 'CV'), out(S.person.linkedin, 'LinkedIn')), h('p', { class: 'wk-scroll' }, 'Scroll ↓ for work'))),
+      h('figure', { class: 'wk-hero' }, orbitHero()),
+      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', onclick: () => ready.then(openProfile) }, S.person.intro.replace('{Salesloft}', 'Salesloft'), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b'))))),
+      h('div', { class: 'wk-c br' }, h('p', { class: 'wk-links' }, email, out(S.person.resume, 'CV'), out(S.person.linkedin, 'LinkedIn')))),
     h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
     h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'), lately,
       // the resemblance field (kinField) rests until there's more work to arrange
-      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →'))),
-    h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch')),
-    h('p', { class: 'wk-colo' }, `Happy ${new Date().toLocaleDateString('en-US', { weekday: 'long' })} from San Francisco · © ${new Date().getFullYear()} Harshita Shyale · updated ${new Date(document.lastModified).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`)));
-  // what I'm on lately, from the now page, Letterboxd and Are.na
+      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →')))));
+  // what I'm watching and keeping lately, from Letterboxd and Are.na
   const row = (k, ...v) => [h('dt', {}, k), h('dd', {}, ...v)];
-  Promise.all([fetch('data/door.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => []), ready]).then(([door]) => {
-    const made = door.slice().sort((a, b) => b.date.localeCompare(a.date))[0];
-    if (made) now.textContent = made.text;
+  ready.then(() => {
     const films = (DATA.films || []).slice().sort((a, b) => (b.watched || '').localeCompare(a.watched || '')).slice(0, 3);
     const chans = (DATA.arena?.channels || []).map(c => ({ c, at: c.blocks.reduce((m, b) => (b.connected_at || '') > m ? b.connected_at : m, '') })).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 2);
     const list = (xs, f) => xs.flatMap((x, i) => [i ? (i === xs.length - 1 ? ' and ' : ', ') : '', f(x)]);
