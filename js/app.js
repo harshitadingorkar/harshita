@@ -574,7 +574,9 @@ function orbitHero() {
   const S0 = 600, C = S0 / 2, R = 250;
   const svg = el('svg', { viewBox: `0 0 ${S0} ${S0}`, class: 'orb', role: 'img', 'aria-label': 'The subjects I work in, drawn as an orbit diagram: product work on the near orbits, the rest of me on the outer one. Work at the top, wonder at the bottom, gather on the left, make on the right.' });
   const plate = el('g', { class: 'orb-plate' }), g = el('g'), wire = el('g', { class: 'orb-wire' }), rings = el('g', { class: 'orb-rings' }), spokes = el('g', { class: 'orb-spokes' }), nodes = el('g', { class: 'orb-nodes' }), inner = el('g', { class: 'orb-inner' });
-  svg.append(plate, el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, inner, rings, spokes, nodes);
+  // when a piece is touched and its orbit stills, the inside of that orbit opens like a window onto a picture of mine
+  const defs = el('defs'), win = el('g', { class: 'orb-win' }), winImg = el('image', { x: 0, y: 0, width: S0, height: S0, preserveAspectRatio: 'xMidYMid slice' }); win.append(winImg);
+  svg.append(defs, plate, el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, win, inner, rings, spokes, nodes);
   // the plate: dotted cross and diagonals, ticks, the map's two axes named at the rim
   for (const [x1, y1, x2, y2] of [[C - R, C, C + R, C], [C, C - R, C, C + R]]) plate.append(el('line', { class: 'orb-dots', x1, y1, x2, y2 }));
   const d = R * Math.SQRT1_2; for (const [x1, y1, x2, y2] of [[C - d, C - d, C + d, C + d], [C + d, C - d, C - d, C + d]]) plate.append(el('line', { class: 'orb-dots faint', x1, y1, x2, y2 }));
@@ -601,7 +603,8 @@ function orbitHero() {
   const meridians = [0, 1, 2].map(() => { const p = el('path'); wire.append(p); return p; });
   const lats = [-.55, 0, .55].map(() => { const p = el('path'); wire.append(p); return p; });
   let focus = null;
-  ORB.forEach(o => { o.path = el('path', { class: 'orb-ring' + (o.quiet ? ' quiet' : '') }); rings.append(o.path);
+  ORB.forEach((o, k) => { o.path = el('path', { class: 'orb-ring' + (o.quiet ? ' quiet' : '') }); rings.append(o.path);
+    const cp = el('clipPath', { id: 'orb-clip-' + k }); o.clip = el('path'); cp.append(o.clip); defs.append(cp); o.clipId = 'orb-clip-' + k;
     // an arrowhead on each orbit, pointing the way it turns
     o.arrow = el('path', { class: 'orb-arrow', d: 'M0 -4 L7 0 L0 4 Z' }); rings.append(o.arrow);
     o.nodes = o.pts.map(([id, ph]) => { const p = W(id); if (!p) return null;
@@ -610,8 +613,9 @@ function orbitHero() {
       // two lines, like the plate's labels: the subject, and on touch the piece it came from
       const L = el('g', { class: 'orb-lblg' }); L.append(txt('orb-lbl', 0, 0, (TOPIC[id] || p.title).toUpperCase()), txt('orb-sub', 0, 12, p.title)); n.append(L);
       const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
-      n.addEventListener('pointerenter', () => { focus = { n, o, sp }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on'); });
-      n.addEventListener('pointerleave', () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); });
+      n.addEventListener('pointerenter', () => { focus = { n, o, sp }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on');
+        winImg.setAttribute('href', A('whim/' + id + '.jpg')); win.setAttribute('clip-path', `url(#${o.clipId})`); win.classList.add('on'); });
+      n.addEventListener('pointerleave', () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); win.classList.remove('on'); });
       n.addEventListener('click', e => { e.stopPropagation(); ready.then(() => open(p, n.getBoundingClientRect())); });
       n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); n.dispatchEvent(new MouseEvent('click')); } });
       nodes.append(n); return { n, L, ph, sp }; }).filter(Boolean); });
@@ -625,7 +629,7 @@ function orbitHero() {
     lats.forEach((p, i) => { const y0 = [-.55, 0, .55][i] * R, rr = Math.sqrt(R * R - y0 * y0); let d = ''; for (let k = 0; k <= 72; k++) { const a = k / 72 * Math.PI * 2; let [x, y] = rot(Math.cos(a) * rr, y0, Math.sin(a) * rr, lean[1] * .6 - .32, 0, 0); d += (k ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } p.setAttribute('d', d); });
     flats.forEach(f => f.dots.forEach(q => { const a = q.ph + t * f.v; q.c.setAttribute('cx', (C + Math.cos(a) * f.rx).toFixed(1)); q.c.setAttribute('cy', (C + Math.sin(a) * f.ry).toFixed(1)); }));
     ORB.forEach(o => { const ay = spin * .4, pos = a => rot(Math.cos(a) * o.r, Math.sin(a) * o.r, 0, o.tx + lean[1], ay, o.tz);
-      o.path.setAttribute('d', ring(o.r, o.tx, o.tz, ay));
+      const rd = ring(o.r, o.tx, o.tz, ay); o.path.setAttribute('d', rd); if (focus?.o === o) o.clip.setAttribute('d', rd);
       const a0 = t * o.v * 6 + 1.6, [ax, ay2] = pos(a0), [bx, by] = pos(a0 + Math.sign(o.v) * .05);
       o.arrow.setAttribute('transform', `translate(${(C + ax).toFixed(1)} ${(C + ay2).toFixed(1)}) rotate(${(Math.atan2(by - ay2, bx - ax) * 180 / Math.PI).toFixed(1)})`);
       o.nodes.forEach(q => { const a = q.ph + t * o.v * 6; const [x, y, z] = pos(a);
@@ -648,6 +652,8 @@ function orbitHero() {
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
+  // fetch the pictures ahead, so the window opens at once
+  requestIdleCallback?.(() => Object.keys(TOPIC).forEach(id => { new Image().src = A('whim/' + id + '.jpg'); }));
   // one corner note: where
   svg.append(txt('orb-corner', S0 - 8, S0 - 10, 'San Francisco 37.77N 122.42W', { 'text-anchor': 'end' }));
   return svg;
@@ -667,7 +673,7 @@ function buildIndex(ix) {
   ix.replaceChildren(h('div', { class: 'wk' },
     h('section', { class: 'wk-stage' },
       h('figure', { class: 'wk-hero' }, orbitHero()),
-      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', onclick: () => ready.then(openProfile) }, S.person.intro.replace('{Salesloft}', 'Salesloft'), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b'))))),
+      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', onclick: () => ready.then(openProfile) }, S.person.intro.replace('{Salesloft}', 'Salesloft'), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))), h('p', { class: 'wk-index' }, S.person.index)),
       h('div', { class: 'wk-c br' }, contactLinks())),
     h('section', { class: 'wk-sec' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), h('div', { class: 'wk-grid' }, work.map(card))),
     h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Off the clock'), lately,

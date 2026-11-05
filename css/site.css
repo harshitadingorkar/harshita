@@ -1772,3 +1772,24 @@ body.show-index .band{padding-top:14px}
 .wk-line{font-size:16px;max-width:34em}
 @media (max-width:760px){.wk-lab{font-size:28px;margin-bottom:36px}.wk-grid{gap:64px}.wk-stage+.wk-sec,.wk-sec+.wk-sec{margin-top:96px}.wk-title,.wk-card.lead .wk-title{font-size:26px}}
 .b-role{text-transform:none;letter-spacing:0}
+
+/* ---------- Round 47: a window onto a picture, and lighter words ----------
+   Touch a piece: its orbit stills and the inside of that orbit opens onto one of my pictures, the rings drawn over it
+   like the line in a 19miles poster. On the work the headline and the index line sit at the foot, the bar keeps only
+   name, role and contact. What appears on a touch speaks in Averia. */
+.orb-win{opacity:0;transition:opacity .45s ease;pointer-events:none}
+.orb-win.on{opacity:1}
+.orb-win image{filter:saturate(1.08) contrast(1.02)}
+.orb-ring.on{stroke:var(--ink);stroke-opacity:1;stroke-width:1.8}
+.orb.focus .orb-wire path,.orb.focus .orb-dots,.orb.focus .orb-flat{stroke-opacity:.08}
+.orb-pt.on .orb-lbl{paint-order:stroke;stroke:var(--ground);stroke-width:5px}
+.orb-sub{font:italic 400 15px var(--voice)}
+.orb-hint{font:italic 400 15px var(--voice);letter-spacing:0;text-transform:none}
+.orb-hub:hover .orb-hubl,.orb-hub:focus-visible .orb-hubl{font:italic 400 15px var(--voice);letter-spacing:0;text-transform:none}
+.b-role span+span{font:italic 400 15px/1.3 var(--voice);color:var(--ink)}
+@media (min-width:761px){
+  body.show-index .b-intro{display:none}
+  .wk-c.bl{display:grid;bottom:40px}
+  .wk-c.bl .wk-lede{font-size:22px;line-height:1.25}
+}
+.wk-index{margin:0;font:italic 400 15px/1.4 var(--voice);color:var(--ink2)}
