@@ -590,7 +590,7 @@ function orbitHero() {
   const hub = el('g', { class: 'orb-hub', tabindex: 0, role: 'button', 'aria-label': 'About Harshita' });
   // at the very centre, me: a small round portrait, crossed by the plate's lines
   const face = el('clipPath', { id: 'orb-face' }); face.append(el('circle', { cx: C, cy: C, r: 21 })); defs.append(face);
-  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 26 }), el('image', { class: 'orb-me', href: A('me.jpg'), x: C - 21, y: C - 21, width: 42, height: 42, 'clip-path': 'url(#orb-face)' }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 21 }), el('line', { x1: C - 30, y1: C, x2: C - 23, y2: C }), el('line', { x1: C + 23, y1: C, x2: C + 30, y2: C }), el('line', { x1: C, y1: C - 30, x2: C, y2: C - 23 }), el('line', { x1: C, y1: C + 23, x2: C, y2: C + 30 }));
+  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 26 }), el('image', { class: 'orb-me', href: A('me.jpg') + '?h', x: C - 21, y: C - 21, width: 42, height: 42, 'clip-path': 'url(#orb-face)' }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 21 }), el('line', { x1: C - 30, y1: C, x2: C - 23, y2: C }), el('line', { x1: C + 23, y1: C, x2: C + 30, y2: C }), el('line', { x1: C, y1: C - 30, x2: C, y2: C - 23 }), el('line', { x1: C, y1: C + 23, x2: C, y2: C + 30 }));
   const hubL = txt('orb-hubl', C + 26, C + 34, 'me'); hub.append(hubL); g.append(hub);
   hub.addEventListener('pointerenter', () => { hubL.textContent = 'about me →'; svg.classList.add('on-hub'); });
   hub.addEventListener('pointerleave', () => { hubL.textContent = 'me'; svg.classList.remove('on-hub'); });
