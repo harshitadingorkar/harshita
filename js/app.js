@@ -620,16 +620,36 @@ function buildIndex(ix) {
     h('span', { class: 'wk-title' }, p.title),
     h('span', { class: 'wk-line' }, p.line)); r._p = p; return r; };
   const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
+  // small true details round the drawing, like notes in the corners of a plate
+  const email = h('button', { type: 'button', class: 'wk-mail' }, 'Email');
+  email.onclick = () => { const a = S.person.email, done = () => { email.textContent = 'Copied'; setTimeout(() => { email.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
+  const out = (href, txt) => h('a', { href, target: '_blank', rel: 'noopener' }, txt);
+  const now = h('p', { class: 'wk-now' }), lately = h('dl', { class: 'wk-lately' });
   ix.replaceChildren(h('div', { class: 'wk' },
-    h('header', { class: 'wk-head' },
-      h('p', { class: 'wk-kick' }, P.kicker),
-      h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
-    h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one.'), toMap('Explore the map →'))),
+    h('section', { class: 'wk-stage' },
+      h('div', { class: 'wk-c tl' }, h('p', { class: 'wk-kick' }, P.kicker), h('p', {}, 'At Salesloft since 2025. Before that, HPE and Nutanix, and client work with GitHub and Sony.')),
+      h('div', { class: 'wk-c tr' }, h('p', { class: 'wk-kick' }, 'Now'), now, h('a', { class: 'wk-more', href: 'now/' }, 'More on the now page')),
+      h('figure', { class: 'wk-hero' }, orbitHero(), h('figcaption', {}, h('span', {}, 'Product work on the near orbits, the rest of me on the outer one.'), toMap('Explore the map →'))),
+      h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, S.person.intro.replace('{Salesloft}', 'Salesloft'))),
+      h('div', { class: 'wk-c br' }, h('p', { class: 'wk-links' }, email, out(S.person.resume, 'CV'), out(S.person.linkedin, 'LinkedIn')), h('p', { class: 'wk-scroll' }, 'Scroll ↓ for work'))),
     h('section', { class: 'wk-sec' }, h('p', { class: 'wk-lab' }, 'Selected work'), h('div', { class: 'wk-grid' }, work.map(card))),
-    h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'),
+    h('section', { class: 'wk-sec wk-off' }, h('p', { class: 'wk-lab' }, 'Off the clock'), lately,
       // the resemblance field (kinField) rests until there's more work to arrange
       h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →'))),
-    h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch'))));
+    h('footer', { class: 'wk-foot' }, h('p', {}, 'Looking for a design engineer?'), contactMenu('Get in touch')),
+    h('p', { class: 'wk-colo' }, `Happy ${new Date().toLocaleDateString('en-US', { weekday: 'long' })} from San Francisco · © ${new Date().getFullYear()} Harshita Shyale · updated ${new Date(document.lastModified).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`)));
+  // what I'm on lately, from the now page, Letterboxd and Are.na
+  const row = (k, ...v) => [h('dt', {}, k), h('dd', {}, ...v)];
+  Promise.all([fetch('data/door.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => []), ready]).then(([door]) => {
+    const made = door.slice().sort((a, b) => b.date.localeCompare(a.date))[0];
+    if (made) now.textContent = made.text;
+    const films = (DATA.films || []).slice().sort((a, b) => (b.watched || '').localeCompare(a.watched || '')).slice(0, 3);
+    const chans = (DATA.arena?.channels || []).map(c => ({ c, at: c.blocks.reduce((m, b) => (b.connected_at || '') > m ? b.connected_at : m, '') })).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 2);
+    const list = (xs, f) => xs.flatMap((x, i) => [i ? (i === xs.length - 1 ? ' and ' : ', ') : '', f(x)]);
+    lately.replaceChildren(
+      ...(films.length ? row('Watching', ...list(films, f => out(f.link, f.title)), ', on ', out(S.person.letterboxd, 'Letterboxd'), '.') : []),
+      ...(chans.length ? row('Keeping', ...list(chans, ({ c }) => out(c.url, c.title)), ', on ', out(S.person.arena, 'Are.na'), '.') : []));
+  });
 }
 const views = $('#views');
 // back from a wall the page may come out of the browser's cache mid-departure; clear the blur

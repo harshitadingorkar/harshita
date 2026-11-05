@@ -1649,3 +1649,44 @@ body.show-index .band{background:linear-gradient(var(--ground) 70%,color-mix(in 
 #cursor.down i{scale:1.2}
 #cursor.paper .ring{border-color:#211D18}
 @media (prefers-reduced-motion:reduce){#cursor .x,#cursor .ring,#cursor i{transition:none}}
+
+/* ---------- Round 44: the orbit in the middle, details in the corners ----------
+   The drawing keeps its size and sits at the centre of the first screen; round it, like notes on a plate: who and where
+   (top left), what I'm on now (top right), the line about my work (bottom left), how to reach me (bottom right).
+   Further down, off the clock reads like a small table of what I'm watching and keeping; a dated line closes the page. */
+.wk{padding-top:0}
+.wk-stage{position:relative;width:100vw;margin-left:calc(50% - 50vw);min-height:100svh;display:grid;place-items:center;padding:96px 0 72px}
+.wk-stage .wk-hero{margin:0;width:100%}
+.wk-stage .orb{width:min(640px,100%,calc(100svh - 230px))}
+.wk-c{position:absolute;max-width:min(300px,24vw);display:grid;gap:8px;font:14px/1.5 var(--sans);color:var(--ink2)}
+.wk-c p{margin:0}
+.wk-c.tl{top:96px;left:max(36px,env(safe-area-inset-left,0px))}
+.wk-c.tr{top:96px;right:max(36px,env(safe-area-inset-right,0px))}
+.wk-c.bl{bottom:48px;left:max(36px,env(safe-area-inset-left,0px));max-width:min(360px,26vw)}
+.wk-c.br{bottom:48px;right:max(36px,env(safe-area-inset-right,0px));justify-items:end;text-align:right}
+.wk-c .wk-lede{font:400 clamp(22px,2vw,28px)/1.2 var(--voice);letter-spacing:-.015em;color:var(--ink);text-wrap:balance}
+.wk-now{color:var(--ink);text-wrap:pretty}
+.wk-more,.wk-links a,.wk-mail{padding:0;border:0;background:none;cursor:pointer;font:11px/1.6 var(--mono);letter-spacing:.03em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--ink3);transition:color .16s ease,text-decoration-color .16s ease}
+.wk-more:hover,.wk-links a:hover,.wk-mail:hover{color:var(--ox);text-decoration-color:currentColor}
+.wk-links{display:flex;gap:18px}
+.wk-scroll{font:11px/1.4 var(--mono);letter-spacing:.03em;text-transform:uppercase;color:var(--ink3)}
+.wk-stage+.wk-sec{margin-top:24px}
+.wk-lately{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px 24px;margin:0 0 22px;max-width:720px;font:16px/1.55 var(--sans)}
+.wk-lately dt{color:var(--ink3)}
+.wk-lately dd{margin:0;color:var(--ink)}
+.wk-lately a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--ink3)}
+.wk-lately a:hover{color:var(--ox);text-decoration-color:currentColor}
+.wk-colo{margin:28px 0 0;font:12px/1.5 var(--sans);color:var(--ink3)}
+@media (max-width:900px){
+  .wk-stage{display:flex;flex-direction:column;align-items:stretch;gap:28px;min-height:0;padding:96px max(20px,env(safe-area-inset-right,0px)) 40px max(20px,env(safe-area-inset-left,0px))}
+  .wk-c{position:static;max-width:none}
+  .wk-c.br{justify-items:start;text-align:left}
+  .wk-stage .wk-hero{order:2}.wk-c.tl{order:0}.wk-c.bl{order:1}.wk-c.tr{order:3}.wk-c.br{order:4}
+  .wk-stage .orb{width:100%}
+  .wk-scroll{display:none}
+  .wk-lately{grid-template-columns:1fr;gap:2px}
+  .wk-lately dd{margin-bottom:12px}
+}
+@media (max-width:900px){.wk-c.bl,.wk-c.tl,.wk-c.tr{max-width:none}.wk-c .wk-lede{font-size:26px}}
+.wk-offline .wk-tomap{margin-left:10px}
+@media (max-width:900px){.wk-c.tr{text-align:left;justify-items:start}}
