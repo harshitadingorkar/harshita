@@ -3,8 +3,104 @@
     "slug": "visual-note-taking",
     "title": "visual note-taking",
     "url": "https://www.are.na/harshita-shyale/visual-note-taking",
-    "count": 7,
+    "count": 11,
     "blocks": [
+      {
+        "id": 52122537,
+        "type": "Image",
+        "title": "F32EA4CA-1487-4F6E-AB64-2A1F770795FC",
+        "created_at": "2026-10-30T14:05:24Z",
+        "connected_at": "2026-10-30T14:05:24Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52122537",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzNy9vcmlnaW5hbF9iNzRiN2ExN2Q1NjZlYWM5OWRjMzRjMDlhMjRhYTZjNS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzNy9vcmlnaW5hbF9iNzRiN2ExN2Q1NjZlYWM5OWRjMzRjMDlhMjRhYTZjNS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52122537.jpg",
+          "width": 3024,
+          "height": 4032
+        }
+      },
+      {
+        "id": 52122536,
+        "type": "Image",
+        "title": "D87FE1B2-2DF3-474F-BFBA-97330415B00B",
+        "created_at": "2026-10-30T14:05:24Z",
+        "connected_at": "2026-10-30T14:05:24Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52122536",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzNi9vcmlnaW5hbF84NTBkYzRkZjczMGI1ZmY0NzY4M2E1NGYyNmMwZWE2OS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzNi9vcmlnaW5hbF84NTBkYzRkZjczMGI1ZmY0NzY4M2E1NGYyNmMwZWE2OS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52122536.jpg",
+          "width": 3024,
+          "height": 4032
+        }
+      },
+      {
+        "id": 52122535,
+        "type": "Image",
+        "title": "A39461AF-0584-42BF-A363-B40FFD49A014",
+        "created_at": "2026-10-30T14:05:24Z",
+        "connected_at": "2026-10-30T14:05:24Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52122535",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzNS9vcmlnaW5hbF81OGZiMDMwNTI3OWZmMTNiMmE4NTNkYWZhZGRmMWJkMC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzNS9vcmlnaW5hbF81OGZiMDMwNTI3OWZmMTNiMmE4NTNkYWZhZGRmMWJkMC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52122535.jpg",
+          "width": 4284,
+          "height": 5712
+        }
+      },
+      {
+        "id": 52122534,
+        "type": "Image",
+        "title": "F948FC64-2A8A-4B6C-AD42-3BC23E9063A2",
+        "created_at": "2026-10-30T14:05:24Z",
+        "connected_at": "2026-10-30T14:05:24Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52122534",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzNC9vcmlnaW5hbF9lOTAwZTY5NzY1ZTQxNTQwYzBiMjhlNjg1MTJhYjY3My5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzNC9vcmlnaW5hbF9lOTAwZTY5NzY1ZTQxNTQwYzBiMjhlNjg1MTJhYjY3My5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52122534.jpg",
+          "width": 3024,
+          "height": 4032
+        }
+      },
+      {
+        "id": 52122533,
+        "type": "Image",
+        "title": "65AAF2D7-E551-437E-9552-20B0D8F8BD76",
+        "created_at": "2026-10-30T14:05:24Z",
+        "connected_at": "2026-10-30T14:05:24Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52122533",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzMy9vcmlnaW5hbF84ZGNiNDNlZTdhM2I0YmVkY2UyMzgyNGJhYTdjNzc4Ny5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzMy9vcmlnaW5hbF84ZGNiNDNlZTdhM2I0YmVkY2UyMzgyNGJhYTdjNzc4Ny5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52122533.jpg",
+          "width": 3024,
+          "height": 4032
+        }
+      },
+      {
+        "id": 52122532,
+        "type": "Image",
+        "title": "9E3D619D-ED6A-4F8E-A5F8-CD75C01CDCEA",
+        "created_at": "2026-10-30T14:05:24Z",
+        "connected_at": "2026-10-30T14:05:24Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/52122532",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzMi9vcmlnaW5hbF8zZTA2OTY0Y2ViZmI3NTRjZDI2MDcxZmYzYWVlMjIxMC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI1MjEyMjUzMi9vcmlnaW5hbF8zZTA2OTY0Y2ViZmI3NTRjZDI2MDcxZmYzYWVlMjIxMC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/visual-note-taking/52122532.jpg",
+          "width": 3024,
+          "height": 4032
+        }
+      },
       {
         "id": 52099879,
         "type": "Image",
@@ -51,36 +147,6 @@
           "local": "data/img/arena/visual-note-taking/52091838.jpg",
           "width": 3024,
           "height": 4032
-        }
-      },
-      {
-        "id": 3293196,
-        "type": "Image",
-        "title": "Figure 7: Felix Gonzalez-Torres, Lovers, 1988",
-        "created_at": "2019-01-02T21:54:06Z",
-        "connected_at": "2026-10-29T04:00:53Z",
-        "source_url": "https://quietlunch.com/wp-content/uploads/2012/10/Felix-Gonzalez-Torres-3.jpg",
-        "block_url": "https://www.are.na/block/3293196",
-        "image": {
-          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIzMjkzMTk2L29yaWdpbmFsXzAwMTljMjYwZGFkMDk0ODgxOGFiNWIwZjE0MDU5M2M3LmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6NDAwLCJoZWlnaHQiOjQwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
-          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIzMjkzMTk2L29yaWdpbmFsXzAwMTljMjYwZGFkMDk0ODgxOGFiNWIwZjE0MDU5M2M3LmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6MTgwMCwiaGVpZ2h0IjoxODAwLCJmaXQiOiJpbnNpZGUiLCJ3aXRob3V0RW5sYXJnZW1lbnQiOnRydWV9LCJ3ZWJwIjp7InF1YWxpdHkiOjc1fSwianBlZyI6eyJxdWFsaXR5Ijo3NX0sInJvdGF0ZSI6bnVsbH19",
-          "local": "data/img/arena/visual-note-taking/3293196.jpg",
-          "width": 905,
-          "height": 1280
-        }
-      },
-      {
-        "id": 12439023,
-        "type": "Image",
-        "title": "bf5198c3a20f895cda3266e937cca425a9be471a.gifv",
-        "created_at": "2021-07-04T16:11:45Z",
-        "connected_at": "2026-01-29T16:30:36Z",
-        "source_url": "https://64.media.tumblr.com/3b41484ddbaaf8b8c22f8177bd867f4b/d5db0544fe468c94-23/s500x750/bf5198c3a20f895cda3266e937cca425a9be471a.gifv",
-        "block_url": "https://www.are.na/block/12439023",
-        "image": {
-          "thumb": "https://d2w9rnfcy7mm78.cloudfront.net/12439023/original_bc53faa5a17d27e1c24c93af5abbb013.gif?1625415108",
-          "display": "https://d2w9rnfcy7mm78.cloudfront.net/12439023/original_bc53faa5a17d27e1c24c93af5abbb013.gif?1625415108",
-          "local": "data/img/arena/visual-note-taking/12439023.jpg"
         }
       },
       {
@@ -447,8 +513,24 @@
     "slug": "exist-slowly",
     "title": "exist slowly",
     "url": "https://www.are.na/harshita-shyale/exist-slowly",
-    "count": 14,
+    "count": 15,
     "blocks": [
+      {
+        "id": 37473739,
+        "type": "Image",
+        "title": "image.png",
+        "created_at": "2025-06-16T17:07:47Z",
+        "connected_at": "2026-11-05T09:39:11Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/37473739",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIzNzQ3MzczOS9vcmlnaW5hbF85MWRmNTA2Y2EwODk2MGE4OWFjMTk3ODZmZDRhMjAzZi5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIzNzQ3MzczOS9vcmlnaW5hbF85MWRmNTA2Y2EwODk2MGE4OWFjMTk3ODZmZDRhMjAzZi5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/exist-slowly/37473739.jpg",
+          "width": 894,
+          "height": 338
+        }
+      },
       {
         "id": 52099879,
         "type": "Image",
@@ -2124,8 +2206,181 @@
     "slug": "keep-up-yvetfyqryzu",
     "title": "keep up",
     "url": "https://www.are.na/harshita-shyale/keep-up-yvetfyqryzu",
-    "count": 5,
-    "blocks": [],
+    "count": 9,
+    "blocks": [
+      {
+        "id": 42225051,
+        "type": "Image",
+        "title": "b9288b27-1720-4fc3-90a7-e910ae9dc1f9.jpg",
+        "created_at": "2025-12-31T16:34:11Z",
+        "connected_at": "2026-11-03T07:38:00Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/42225051",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0MjIyNTA1MS9vcmlnaW5hbF9hMjQ4NDI0MmMwYzQyMDI1MzM3ZDE1ZDQ4M2JiNzNkYi5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0MjIyNTA1MS9vcmlnaW5hbF9hMjQ4NDI0MmMwYzQyMDI1MzM3ZDE1ZDQ4M2JiNzNkYi5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/keep-up-yvetfyqryzu/42225051.jpg",
+          "width": 1179,
+          "height": 558
+        }
+      },
+      {
+        "id": 34197470,
+        "type": "Image",
+        "title": null,
+        "created_at": "2025-02-02T05:43:53Z",
+        "connected_at": "2026-11-03T07:37:36Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/34197470",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIzNDE5NzQ3MC9vcmlnaW5hbF81YjQ4NmJkZWJmYTU1YzQyMWZjMTkwYzEwOWQ1NDMyYS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIzNDE5NzQ3MC9vcmlnaW5hbF81YjQ4NmJkZWJmYTU1YzQyMWZjMTkwYzEwOWQ1NDMyYS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/keep-up-yvetfyqryzu/34197470.jpg",
+          "width": 1322,
+          "height": 532
+        }
+      }
+    ],
     "texts": []
+  },
+  {
+    "slug": "co-reading-annotations",
+    "title": "co-reading annotations",
+    "url": "https://www.are.na/harshita-shyale/co-reading-annotations",
+    "count": 17,
+    "blocks": [
+      {
+        "id": 39940315,
+        "type": "Image",
+        "title": "「Pines creados por ti」おしゃれまとめの人気アイデア｜Pinterest｜rocio¡ 💌 | ポスターデザイン, エディトリアルデザイン, グラフィックポスター",
+        "created_at": "2025-09-29T15:53:25Z",
+        "connected_at": "2026-11-05T10:22:20Z",
+        "source_url": "https://it.pinterest.com/pin/1477812374184307/",
+        "block_url": "https://www.are.na/block/39940315",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIzOTk0MDMxNS9vcmlnaW5hbF8zNDNmNjQzZDBkYTBmNjI0OWNlMTVhZjE2M2I3NTM1NC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIzOTk0MDMxNS9vcmlnaW5hbF8zNDNmNjQzZDBkYTBmNjI0OWNlMTVhZjE2M2I3NTM1NC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/co-reading-annotations/39940315.jpg",
+          "width": 736,
+          "height": 1027
+        }
+      },
+      {
+        "id": 46169758,
+        "type": "Image",
+        "title": "Sweet Chick - High Tide",
+        "created_at": "2026-05-15T02:34:51Z",
+        "connected_at": "2026-11-05T09:41:50Z",
+        "source_url": "https://hightidenyc.com/work/sweet-chick",
+        "block_url": "https://www.are.na/block/46169758",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NjE2OTc1OC9vcmlnaW5hbF82MGQxMjNlYzJlZDIyMGVhNDc4Y2IwMmE4N2MyYjkwOS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjo0MDAsImhlaWdodCI6NDAwLCJmaXQiOiJpbnNpZGUiLCJ3aXRob3V0RW5sYXJnZW1lbnQiOnRydWV9LCJ3ZWJwIjp7InF1YWxpdHkiOjc1fSwianBlZyI6eyJxdWFsaXR5Ijo3NX0sInJvdGF0ZSI6bnVsbH19",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NjE2OTc1OC9vcmlnaW5hbF82MGQxMjNlYzJlZDIyMGVhNDc4Y2IwMmE4N2MyYjkwOS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7IndpZHRoIjoxODAwLCJoZWlnaHQiOjE4MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "local": "data/img/arena/co-reading-annotations/46169758.jpg",
+          "width": 2400,
+          "height": 1460
+        }
+      },
+      {
+        "id": 11395557,
+        "type": "Image",
+        "title": "Glenn Ligon",
+        "created_at": "2021-03-31T03:27:22Z",
+        "connected_at": "2026-11-05T09:41:28Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/11395557",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIxMTM5NTU1Ny9vcmlnaW5hbF9mMThkYzYzMjU5NjY0ZjZkYWFlODc1OGU1ZmRjNTE3My5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIxMTM5NTU1Ny9vcmlnaW5hbF9mMThkYzYzMjU5NjY0ZjZkYWFlODc1OGU1ZmRjNTE3My5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/co-reading-annotations/11395557.jpg"
+        }
+      },
+      {
+        "id": 5964149,
+        "type": "Image",
+        "title": "LiquidText Clipping",
+        "created_at": "2020-01-22T06:50:51Z",
+        "connected_at": "2026-11-05T09:41:12Z",
+        "source_url": "https://www.liquidtext.net/liquidtextadeeperdive",
+        "block_url": "https://www.are.na/block/5964149",
+        "image": {
+          "thumb": "https://d2w9rnfcy7mm78.cloudfront.net/5964149/original_a3ca180423bbfd91d32d3481ba0127e5.gif?1579675853",
+          "display": "https://d2w9rnfcy7mm78.cloudfront.net/5964149/original_a3ca180423bbfd91d32d3481ba0127e5.gif?1579675853",
+          "local": "data/img/arena/co-reading-annotations/5964149.jpg",
+          "width": 800,
+          "height": 600
+        }
+      },
+      {
+        "id": 41928462,
+        "type": "Image",
+        "title": "cleanshot-2025-12-20-at-14.59.52@2x.png",
+        "created_at": "2025-12-20T14:00:25Z",
+        "connected_at": "2026-11-05T09:38:48Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/41928462",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0MTkyODQ2Mi9vcmlnaW5hbF9iOTU1MGFmMTM1ZWI5Yjk1MThlZmI3ZDg0ZjcyY2YxZC5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0MTkyODQ2Mi9vcmlnaW5hbF9iOTU1MGFmMTM1ZWI5Yjk1MThlZmI3ZDg0ZjcyY2YxZC5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/co-reading-annotations/41928462.jpg",
+          "width": 1020,
+          "height": 1492
+        }
+      },
+      {
+        "id": 14395003,
+        "type": "Image",
+        "title": "footnotes blue halftone",
+        "created_at": "2021-12-17T21:06:39Z",
+        "connected_at": "2026-11-05T09:30:21Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/14395003",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIxNDM5NTAwMy9vcmlnaW5hbF8yMGE5ODFiZmQ2OTFmODA0ZWQ5Mzg4NWE1MTc2MmM0MC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIxNDM5NTAwMy9vcmlnaW5hbF8yMGE5ODFiZmQ2OTFmODA0ZWQ5Mzg4NWE1MTc2MmM0MC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/co-reading-annotations/14395003.jpg",
+          "width": 3277,
+          "height": 2426
+        }
+      },
+      {
+        "id": 21746604,
+        "type": "Image",
+        "title": "footnotes–hypertext",
+        "created_at": "2023-05-09T08:56:06Z",
+        "connected_at": "2026-11-05T09:29:12Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/21746604",
+        "image": {
+          "thumb": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIyMTc0NjYwNC9vcmlnaW5hbF8wZjA1ZTA5NDBhYWY2ZTQ4ZDhlMzNiYzBkNThhZDg3ZS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjQwMCwiaGVpZ2h0Ijo0MDAsImZpdCI6Imluc2lkZSIsIndpdGhvdXRFbmxhcmdlbWVudCI6dHJ1ZX0sIndlYnAiOnsicXVhbGl0eSI6NzV9LCJqcGVnIjp7InF1YWxpdHkiOjc1fSwicm90YXRlIjpudWxsfX0=",
+          "display": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiIyMTc0NjYwNC9vcmlnaW5hbF8wZjA1ZTA5NDBhYWY2ZTQ4ZDhlMzNiYzBkNThhZDg3ZS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjE4MDAsImhlaWdodCI6MTgwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ==",
+          "local": "data/img/arena/co-reading-annotations/21746604.jpg",
+          "width": 1992,
+          "height": 1068
+        }
+      }
+    ],
+    "texts": [
+      {
+        "id": 18481884,
+        "type": "Text",
+        "title": null,
+        "created_at": "2022-10-13T04:49:55Z",
+        "connected_at": "2026-11-05T09:30:09Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/18481884",
+        "text": "“What is a footnote? It’s a thought trying to escape in another direction.”\n— Ted Nelson here (https://www.youtube.com/watch?v=PPBeHDxcVSA)"
+      },
+      {
+        "id": 26202439,
+        "type": "Text",
+        "title": "Marked up book as gift",
+        "created_at": "2024-02-07T15:10:11Z",
+        "connected_at": "2026-11-05T09:30:01Z",
+        "source_url": null,
+        "block_url": "https://www.are.na/block/26202439",
+        "text": "people would mark up books for one another as gifts"
+      }
+    ]
   }
 ]
