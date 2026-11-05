@@ -623,31 +623,30 @@ function buildIndex(ix) {
   if (!$('.wk-name')) body.append(wkName());
   const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean), art = ART.map(id => S.points.find(p => p.id === id)).filter(Boolean);
   const org = p => p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org;
-  const go = p => e => p.go ? p.go() : ready.then(() => open(p, (e.currentTarget.querySelector('img,video') || e.currentTarget).getBoundingClientRect()));
   const jump = id => e => { e.preventDefault(); const t = ix.querySelector('#wk-' + id); if (t) ix.scrollTo({ top: t.offsetTop - 70, behavior: RM ? 'auto' : 'smooth' }); };
-  // the top, read like a CV: about, the index of pieces, where I've worked and studied, how to reach me
-  const col = (name, ...kids) => h('div', { class: 'wk-col' }, h('p', { class: 'wk-k' }, name), ...kids);
-  const rowsOf = list => h('ul', { class: 'wk-list' }, list.map(r => h('li', {}, h('b', {}, r.org), h('span', {}, r.role), h('span', {}, r.when))));
+  // the first screen: a few words, a picture of a lamp I made, the index, how to reach me; my name across the foot
+  const col = (name, ...kids) => h('div', { class: 'wk-col' }, name ? h('p', { class: 'wk-k' }, name) : null, ...kids);
   const email = h('button', { type: 'button', class: 'wk-mail' }, 'Email');
-  email.onclick = () => { const a = S.person.email, done = () => { email.textContent = 'copied ' + a; setTimeout(() => { email.textContent = 'Email'; }, 1800); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
+  email.onclick = () => { const a = S.person.email, done = () => { email.textContent = 'copied'; setTimeout(() => { email.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
+  const link = (href, txt) => h('a', { href, target: '_blank', rel: 'noopener' }, txt);
   const top = h('header', { class: 'wk-top' },
-    col('About', h('p', {}, P.lede), h('p', {}, P.about[0])),
+    col('About', h('p', {}, P.lede)),
+    h('figure', { class: 'wk-pic' }, h('img', { src: A('lamp.jpg'), alt: 'A paper lamp with red dots, glowing, hung from an arc over the shelves at home.' })),
     col('Work', h('ul', { class: 'wk-idx' }, work.map(p => h('li', {}, h('a', { href: '#wk-' + p.id, onclick: jump(p.id) }, p.title))), h('li', { class: 'gap' }, h('a', { href: '#wk-playground', onclick: jump('playground') }, 'Playground')), h('li', {}, h('a', { href: '#wk-art', onclick: jump('art') }, 'Art')))),
-    col('Experience', rowsOf(P.work)),
-    col('Education', rowsOf(P.education)),
-    col('Contact', h('ul', { class: 'wk-idx' }, h('li', {}, email), h('li', {}, h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'CV')), h('li', {}, h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn')), h('li', {}, h('a', { href: S.person.arena, target: '_blank', rel: 'noopener' }, 'Are.na')), h('li', {}, h('a', { href: 'https://www.instagram.com/' + S.person.instagram + '/', target: '_blank', rel: 'noopener' }, 'Instagram')))));
-  // each piece: a plain row (piece, where, year) that holds at the top while its picture passes, the picture, one line
-  const piece = p => { const src = p.still || p.img;
-    const media = p.video && !RM ? h('video', { src: A(p.video), poster: A(src), muted: '', loop: '', playsinline: '', autoplay: '', preload: 'metadata', 'aria-hidden': 'true' }) : h('img', { src: A(src), alt: p.alt || p.title, loading: 'lazy' });
-    const b = h('button', { type: 'button', class: 'wk-media pt-row', 'aria-label': 'Open ' + p.title, onclick: go(p) }, media); b._p = p;
-    return h('article', { class: 'wk-piece', id: 'wk-' + p.id }, h('div', { class: 'wk-row' }, h('span', {}, p.title), h('span', {}, org(p)), h('span', {}, p.year)), b, h('p', { class: 'wk-say' }, p.line)); };
-  const small = p => { const b = h('button', { type: 'button', class: 'wk-tile pt-row', onclick: go(p) }, h('span', { class: 'wk-timg' }, h('img', { src: A(p.img), alt: p.alt || p.title, loading: 'lazy' })), h('span', { class: 'wk-tcap' }, h('b', {}, p.title), h('span', {}, p.org))); b._p = p; return b; };
-  const head = (id, cols) => h('div', { class: 'wk-row wk-hd', id: 'wk-' + id }, cols.map(c => h('span', {}, c)));
+    col('Contact', h('ul', { class: 'wk-idx' }, h('li', {}, email), h('li', {}, link(S.person.resume, 'CV')), h('li', {}, link(S.person.linkedin, 'LinkedIn')), h('li', {}, link(S.person.arena, 'Are.na')))));
+  // the rest, as it was: the pieces as pictures with their names, in three plain groups
+  const card = (p, i, small) => { const src = p.still || p.img, lead = i === 0 && !small;
+    const media = lead && p.video && !RM ? h('video', { src: A(p.video), poster: A(src), muted: '', loop: '', playsinline: '', autoplay: '', preload: 'metadata', 'aria-hidden': 'true' }) : src ? h('img', { src: A(src), alt: p.alt || p.title, loading: 'lazy' }) : null;
+    const r = h('button', { type: 'button', class: 'wk-card pt-row' + (lead ? ' lead' : '') + (small ? ' small' : ''), id: small ? null : 'wk-' + p.id, 'aria-label': p.title + ', ' + p.line, onclick: e => p.go ? p.go() : ready.then(() => open(p, (e.currentTarget.querySelector('img,video') || e.currentTarget).getBoundingClientRect())) },
+      h('span', { class: 'wk-img' }, media),
+      h('span', { class: 'wk-cap' }, h('span', { class: 'wk-title' }, p.title), h('span', { class: 'wk-meta' }, [small ? p.org : org(p), small ? '' : p.year].filter(Boolean).join(' · '))),
+      small ? null : h('span', { class: 'wk-line' }, p.line));
+    r._p = p; return r; };
+  const group = (id, name, note, list, small) => h('section', { class: 'wk-sec' + (small ? ' small' : ''), id: 'wk-' + id }, h('h2', { class: 'wk-h' }, name, h('span', {}, note)), h('div', { class: 'wk-grid' + (small ? ' three' : '') }, list.map((p, i) => card(p, i, small))));
   ix.replaceChildren(h('div', { class: 'wk' }, top,
-    head('work', ['Project', 'Where', 'Year']), ...work.map(piece),
-    head('playground', ['Playground', 'Things I make for myself', '']), h('div', { class: 'wk-tiles' }, PLAY.map(small)),
-    head('art', ['Art', 'Theatre, clay and pictures', '']), h('div', { class: 'wk-tiles' }, art.map(small)),
-    h('p', { class: 'wk-end' }, '© 2026 Harshita Shyale')));
+    group('work', 'Work', 'product design, research and engineering', work),
+    group('playground', 'Playground', 'things I make for myself', PLAY, true),
+    group('art', 'Art', 'theatre, clay and pictures', art, true)));
 }
 // my name, very large, held at the foot of the screen behind the work; the orbit turns small between the two words
 function wkName() {

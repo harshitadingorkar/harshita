@@ -1774,3 +1774,26 @@ body.case-open .wk-name{opacity:.08}
   .wk-row span:nth-child(2){display:none}
   .wk-tiles{grid-template-columns:1fr 1fr;gap:14px}
 }
+
+/* ---------- Round 43: Mea Culpa, fewer words, a lamp ----------
+   The first screen keeps the adrivno.work frame with far less text: a line, a picture of a lamp I made, the index, contact.
+   My name in Mea Culpa across the foot. Below, the pieces go back to cards in three groups. */
+.wk-name{font:400 12.5vw/.8 'Mea Culpa',var(--voice);letter-spacing:0;gap:.12em;bottom:1vh}
+.wk-mark{width:.62em;height:.62em;translate:0 .04em}
+.wk-top{grid-template-columns:1.4fr .9fr 1fr .7fr;gap:32px;min-height:calc(97svh - 92px)}
+.wk-col p:not(.wk-k):first-of-type{font:400 clamp(20px,1.9vw,26px)/1.25 var(--voice);max-width:18em}
+.wk-pic{margin:0;align-self:start}
+.wk-pic img{display:block;width:100%;max-width:260px;aspect-ratio:3/4;object-fit:cover;border-radius:2px;box-shadow:0 30px 50px -36px rgba(0,0,0,.6)}
+.wk-sec{max-width:1040px;margin-left:auto;margin-right:auto}
+.wk-top+.wk-sec{margin-top:0}
+.wk-line{display:block;margin-top:2px}
+@media (max-width:960px){.wk-top{grid-template-columns:1fr 1fr}.wk-top .wk-col:first-child{grid-column:1/-1}}
+@media (max-width:600px){
+  .wk-top{grid-template-columns:1fr 1fr;min-height:calc(96svh - 84px)}
+  .wk-pic img{max-width:none}
+  .wk-name{font-size:15vw}
+}
+.wk-col .wk-k+p{font:400 clamp(20px,1.9vw,26px)/1.25 var(--voice);letter-spacing:-.01em;max-width:18em}
+.wk-name{bottom:max(7vh,4vw)}
+.wk-top{min-height:calc(100svh - 64px)}
+@media (max-width:600px){.wk-top{min-height:calc(100svh - 56px)}.wk-name{bottom:4vh}}
