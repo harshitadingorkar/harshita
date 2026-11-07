@@ -437,7 +437,7 @@ async function askMotion() {
    a physics point (x, y, z) sits at (x, TOP - y, -z), where TOP is the anchor's height above the grass. */
 const WALL = .5;                         // the physics keeps pieces this far in front of the meadow
 const cv = document.getElementById('room');
-const gl = cv.getContext('webgl2', { antialias: false, premultipliedAlpha: true, alpha: false, powerPreference: 'high-performance' });
+const gl = cv.getContext('webgl2', { antialias: true, premultipliedAlpha: true, alpha: false, powerPreference: 'high-performance' });
 let W = 0, H = 0, DPR = 1, REST, TOP = 1.5;
 const SUN = (() => { const v = [-.45, .55, .7], m = Math.hypot(...v); return v.map(c => c / m); })();   // toward the sun
 const hexf = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
@@ -680,44 +680,273 @@ function outline(c, n) {
 }
 function inside(n, u, v, k = 1) { shapeCtx.setTransform(1000 * k, 0, 0, 1000 * k, 500, 500); shapeCtx.beginPath(); outline(shapeCtx, n); return shapeCtx.isPointInPath(500 + u * 1000, 500 + v * 1000); }
 function baseColor(n) { return (n.c1 || COL[n.kind] || [210, 200, 230]).map(c => c / 255); }
-function buildMobile() {
-  const R = rnd(1773962975), list = [];
-  for (const n of PIECES) {
-    const spacing = n.kind === 'crystal' || n.rc < .035 ? .0028 : .0038, ext = n.rc * 1.6, col = baseColor(n), rim = n.rim ? n.rim.map(c => c / 255) : col.map(c => c * .7);
-    n.splats = [];
-    for (let v = -ext; v <= ext; v += spacing) for (let u = -ext; u <= ext; u += spacing) {
-      const ju = u + (R() - .5) * spacing * .5, jv = v + (R() - .5) * spacing * .5;
-      if (!inside(n, ju, jv)) continue;
-      const edge = !inside(n, ju, jv, 1.07);       // near the outline: deeper colour, as thicker glass and a worked edge read
-      const c = edge ? vary(rim, R(), .1) : vary(col, R(), n.kind === 'brass' || n.kind === 'oak' ? .14 : .08);
-      const s = spacing * (edge ? .36 : .5) * (.85 + R() * .3);
-      n.splats.push({ u: ju, v: jv, s, c, a: GLASS[n.kind] ? (edge ? .62 : .3) : .9, edge });
-    }
-    // a hole drilled near the top, and the wire loop through it
-    n.splats.push({ u: 0, v: -n.hole, s: .0025, c: PAL.wire, a: .9, edge: true, loop: true });
-    list.push(...n.splats);
-  }
-  // the wires: each rod is a run of thin splats along its bent curve; each string a run along its length
-  MOB = { pieceCount: list.length + PIECES.length * 3, wireCount: RODS.length * 34 + outer.length * 40 + 60 };
-  const total = MOB.pieceCount + MOB.wireCount;
-  mobData = new Float32Array(total * STRIDE); mobSorted = new Float32Array(total * STRIDE);
-  mobKey = new Float32Array(total); mobIdx = new Uint32Array(total);
-}
+/* ---------- the mobile, as real objects ----------
+   The meadow is drawn first into a texture. Then the wire and the pieces are drawn as solid 3D
+   meshes over it, each with its own material: brass reflects the sky and the grass and shows its
+   polishing scratches; glass bends the meadow behind it, reflects the sky at its rim and deepens
+   in colour where it is thicker; crystal splits the light; oak is grained and matte; the film
+   changes colour with the angle you see it at. The wire is round, dark annealed steel, bent into
+   loops at its ends, with S-hooks between the levels, a glass bead on each, and a ring through
+   every drilled hole. */
 const GLASS = { glass: 1, tear: 1, sphere: 1, crystal: 1, film: 1 };
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const norm = a => { const m = Math.hypot(...a) || 1; return [a[0] / m, a[1] / m, a[2] / m]; };
+
+const MESH_VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec3 pos;
+layout(location=1) in vec3 nor;
+uniform mat4 model, view, proj;
+out vec3 wp, wn, lp, ln;
+void main() { vec4 w = model * vec4(pos, 1.); wp = w.xyz; wn = mat3(model) * nor; lp = pos; ln = nor; gl_Position = proj * view * w; }`;
+const ENV = `
+uniform vec3 sun, skyTop, skyLow;
+vec3 env(vec3 d) {
+  vec3 sky = mix(skyLow, skyTop, smoothstep(0., .55, d.y));
+  vec3 grass = mix(vec3(.5, .6, .38), vec3(.3, .42, .27), smoothstep(0., -.45, d.y));
+  vec3 c = mix(sky, grass, smoothstep(.01, -.06, d.y));
+  return c + vec3(1., .96, .86) * pow(max(dot(d, sun), 0.), 300.) * 5.;
+}
+float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float vnoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+  return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }`;
+const MESH_FS = `#version 300 es
+precision highp float;
+in vec3 wp, wn, lp, ln;
+uniform vec3 eye, base, deep;
+uniform int mat;              // 0 brass, 1 glass, 2 oak, 3 crystal, 4 film, 5 bead, 6 frosted glass, 7 ribbed glass
+uniform sampler2D scene;
+uniform vec2 vp;
+uniform vec3 hole;            // the drilled hole: centre (u, v) in the piece, and its radius
+uniform mat4 view;
+out vec4 o;
+${ENV}
+void main() {
+  if (hole.z > 0. && length(lp.xy - hole.xy) < hole.z) discard;
+  vec3 N = normalize(wn), V = normalize(eye - wp);
+  if (dot(N, V) < 0.) N = -N;                     // thin pieces are seen from both sides
+  vec3 R = reflect(-V, N), H = normalize(sun + V);
+  float NV = max(dot(N, V), 0.), NL = dot(N, sun), fres = .04 + .96 * pow(1. - NV, 5.);
+  vec2 suv = gl_FragCoord.xy / vp;
+  vec3 c;
+  if (mat == 0) {
+    // brass: a hand-polished sheet; fine scratches running every which way, a little darker where handled
+    float s1 = vnoise(vec2(lp.x * 40., lp.y * 2600.)), s2 = vnoise(vec2((lp.x + lp.y) * 1800., (lp.x - lp.y) * 30.));
+    float scr = mix(s1, s2, step(.5, vnoise(lp.xy * 30.)));
+    float patina = (vnoise(lp.xy * 400.) - .5) * .06;
+    vec3 Tu = normalize(cross(N, vec3(0., 1., .15))), Tv = normalize(cross(N, Tu));
+    vec2 warp = vec2(vnoise(lp.xy * 18.) - .5, vnoise(lp.xy * 18. + 7.3) - .5) + lp.xy * 4.;   // slightly dished, slightly dented
+    vec3 Nb = normalize(N + Tu * (warp.x * .55 + (scr - .5) * .1) + Tv * warp.y * .55);
+    vec3 Rb = reflect(-V, Nb), Hb = normalize(sun + V);
+    vec3 F0 = base * (1. - patina);
+    float spec = pow(max(dot(Nb, Hb), 0.), 60.) * 1.6 + pow(max(dot(Nb, Hb), 0.), 9.) * .45;
+    vec3 refl = mix(env(Rb), (skyTop + skyLow) * .5, .25);
+    float lum = dot(refl, vec3(.33));
+    c = F0 * (.14 + 1.05 * refl) * (.7 + .6 * lum) + F0 * spec * (.8 + scr * .4) + F0 * F0 * max(dot(Nb, sun), 0.) * .25;
+  } else if (mat == 2) {
+    // white oak: long grain, with the pale flecks quarter-sawn oak shows
+    float g = sin((lp.x * 220. + vnoise(lp.xy * vec2(40., 8.)) * 6.) ) * .5 + .5;
+    float fleck = smoothstep(.82, .95, vnoise(vec2(lp.x * 300., lp.y * 70.)));
+    vec3 alb = mix(deep, base, g * .55 + .3) + fleck * .12;
+    float diff = max(NL, 0.) * .8 + .38;
+    c = alb * diff + pow(max(dot(N, H), 0.), 16.) * .06;
+  } else {
+    // glass: the meadow seen through it, bent; deeper colour through more glass; the sky on its rim
+    float thick = mat == 5 ? 2.2 : (mat == 1 ? 1.5 : 1.);
+    float path = min(thick / max(NV, .3), 3.);
+    if (mat == 7) path *= .8 + .5 * (.5 + .5 * sin(atan(lp.z, lp.x) * 14. + lp.y * 90.));   // ribbed, swirled
+    vec3 Nv = mat3(view) * N;
+    float bend = mat == 3 ? .05 : (mat == 1 || mat == 7 ? .07 : .025);   // round glass bends the meadow behind it hard
+    vec3 refr;
+    if (mat == 3) {          // cut crystal: each colour bends a little differently
+      refr = vec3(texture(scene, suv - Nv.xy * bend).r, texture(scene, suv - Nv.xy * bend * 1.12).g, texture(scene, suv - Nv.xy * bend * 1.25).b);
+    } else if (mat == 6) {   // frosted: the meadow blurred through it
+      refr = vec3(0.);
+      for (int i = 0; i < 8; i++) { float a = float(i) * 2.399; refr += texture(scene, suv - Nv.xy * bend + vec2(cos(a), sin(a)) * .009 * (1. + float(i) * .2)).rgb; }
+      refr = refr / 8. * .7 + .28;
+    } else refr = texture(scene, suv - Nv.xy * bend).rgb;
+    vec3 tint = mat == 4 ? vec3(1.) : pow(mix(vec3(1.), base, mat == 1 ? 1. : .75), vec3(path * (mat == 1 ? .6 : .45)));
+    vec3 body = refr * tint + base * (mat == 1 ? .22 : .1) + .05;      // a little light caught inside the glass
+    if (mat == 4) {          // dichroic film: thin-film colour that slides as the angle changes
+      vec3 irid = .5 + .5 * cos(6.2832 * (vec3(0., .33, .67) + NV * 1.7 + lp.x * 6.));
+      body = mix(refr, mix(irid, vec3(1.), .35), .38);
+      fres = max(fres, .12);
+    }
+    float edge = pow(1. - NV, 3.);
+    body = mix(body, mix(body, deep, .5), edge * .45);
+    float spec = pow(max(dot(N, H), 0.), mat == 3 ? 900. : 400.) * 6. + pow(max(dot(N, H), 0.), 40.) * .25;
+    c = mix(body, env(R), fres * (mat == 6 ? .5 : (mat == 1 ? .55 : 1.))) + vec3(spec) * (mat == 1 ? .7 : 1.);
+  }
+  o = vec4(c, 1.);
+}`;
+// round wire: each run of wire is a ribbon facing the eye, shaded as a cylinder
+const WIRE_VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 q;       // x: along (0 or 1), y: across (-1 or 1)
+layout(location=1) in vec3 p0;
+layout(location=2) in vec3 p1;
+layout(location=3) in vec2 rk;      // radius in metres, kind (0 steel, 1 nylon)
+uniform mat4 view, proj;
+uniform vec2 vp;
+uniform vec3 eye;
+out float s; out vec3 wp, side, toE; flat out float kind; out float cover;
+void main() {
+  vec3 p = mix(p0, p1, q.x), d = normalize(p1 - p0);
+  vec3 e = normalize(eye - p);
+  side = normalize(cross(d, e)); toE = e;
+  vec4 c = proj * view * vec4(p, 1.);
+  // never thinner than a pixel and a bit on screen, so it stays solid and smooth
+  float px = rk.x * 2. * proj[1][1] * vp.y * .5 / c.w;
+  float w = max(rk.x, rk.x * 1.7 / max(px, 1e-4));
+  cover = clamp(px / 1.2, .75, 1.);
+  vec4 c2 = proj * view * vec4(p + side * w * q.y, 1.);
+  gl_Position = c2;
+  s = q.y; wp = p; kind = rk.y;
+}`;
+const WIRE_FS = `#version 300 es
+precision highp float;
+in float s; in vec3 wp, side, toE; flat in float kind; in float cover;
+uniform vec3 eye;
+out vec4 o;
+${ENV}
+void main() {
+  vec3 N = normalize(side * s + toE * sqrt(max(0., 1. - s * s)));
+  vec3 V = normalize(eye - wp), H = normalize(sun + V), R = reflect(-V, N);
+  float a = (1. - smoothstep(.75, 1., abs(s))) * cover;
+  if (kind > .5) {           // nylon line: almost clear, a glint where the sun catches it
+    vec3 c = env(R) * .9 + pow(max(dot(N, H), 0.), 80.) * 1.5;
+    o = vec4(c * a * .8, a * .8); return;
+  }
+  vec3 base = vec3(.13, .13, .15);                     // dark annealed steel
+  vec3 c = base * (.35 + .65 * max(dot(N, sun), 0.)) + env(R) * .16 + vec3(1., .97, .9) * pow(max(dot(N, H), 0.), 70.) * .9;
+  o = vec4(c * a, a);
+}`;
+const BLIT_FS = `#version 300 es
+precision mediump float; in vec2 p; uniform sampler2D tex; out vec4 o; void main() { o = texture(tex, p * .5 + .5); }`;
+const BLIT_VS = `#version 300 es
+layout(location=0) in vec2 quad; out vec2 p; void main() { p = quad; gl_Position = vec4(quad, 0., 1.); }`;
+
+/* ---------- geometry, in each piece's own metres: u right, v down, w out of its face ---------- */
+function tri(out, a, b, c, na, nb, nc) { out.push(...a, ...na, ...b, ...nb, ...c, ...nc); }
+function flatTri(out, a, b, c) { const n = norm(cross(sub(b, a), sub(c, a))); tri(out, a, b, c, n, n, n); }
+function extrude(pts, th, out = []) {          // a flat piece of sheet: two faces and the cut edge
+  const h = th / 2, cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    tri(out, [cx, cy, h], [a[0], a[1], h], [b[0], b[1], h], [0, 0, 1], [0, 0, 1], [0, 0, 1]);
+    tri(out, [cx, cy, -h], [b[0], b[1], -h], [a[0], a[1], -h], [0, 0, -1], [0, 0, -1], [0, 0, -1]);
+    const e = norm([b[1] - a[1], -(b[0] - a[0]), 0]);
+    tri(out, [a[0], a[1], h], [a[0], a[1], -h], [b[0], b[1], h], e, e, e);
+    tri(out, [b[0], b[1], h], [a[0], a[1], -h], [b[0], b[1], -h], e, e, e);
+  }
+  return out;
+}
+function lathe(prof, seg, flat, out = []) {    // turned about the v axis: prof = [[radius, v], ...] from top to bottom
+  for (let i = 0; i < prof.length - 1; i++) for (let j = 0; j < seg; j++) {
+    const a0 = j / seg * TAU, a1 = (j + 1) / seg * TAU, [r0, v0] = prof[i], [r1, v1] = prof[i + 1];
+    const P = (r, v, a) => [Math.cos(a) * r, v, Math.sin(a) * r];
+    const A = P(r0, v0, a0), B = P(r0, v0, a1), C = P(r1, v1, a0), D = P(r1, v1, a1);
+    if (flat) { if (r0 > 1e-6) flatTri(out, A, C, B); if (r1 > 1e-6) flatTri(out, B, C, D); continue; }
+    const dr = r1 - r0, dv = v1 - v0, L = Math.hypot(dr, dv) || 1, nr = dv / L, nv = -dr / L;
+    const Nn = a => [Math.cos(a) * nr, nv, Math.sin(a) * nr];
+    tri(out, A, C, B, Nn(a0), Nn(a0), Nn(a1)); tri(out, B, C, D, Nn(a1), Nn(a0), Nn(a1));
+  }
+  return out;
+}
+const circlePts = (rx, ry, n = 56) => Array.from({ length: n }, (_, i) => [Math.cos(i / n * TAU) * rx, Math.sin(i / n * TAU) * ry]);
+function geometryFor(n) {
+  switch (n.kind) {
+    case 'brass': return extrude(circlePts(n.r, n.r, 72), .0012);
+    case 'glass': return extrude(circlePts(n.r, n.r, 72), .004);
+    case 'film': return extrude(circlePts(n.rx, n.ry, 64), .0006);
+    case 'oak': {
+      const pts = [], w = n.w, h = n.h;
+      for (let i = 0; i < 64; i++) { const t = i / 64 * TAU, y = -Math.cos(t) * h / 2 + h * .05; pts.push([Math.sin(t) * w * (.66 + .3 * (1 - Math.cos(t)) / 2), y]); }
+      return extrude(pts, .006);
+    }
+    case 'sphere': {
+      const prof = []; for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI; prof.push([Math.sin(a) * n.r, -Math.cos(a) * n.r]); }
+      return lathe(prof, 40, false);
+    }
+    case 'tear': {
+      const prof = [], w = n.w, h = n.h;
+      for (let i = 0; i <= 36; i++) { const s = i / 36, k = (s - .62) / (s < .62 ? .62 : .38); let r = w * 1.1 * Math.sqrt(Math.max(0, 1 - k * k)); if (s < .62) r *= .12 + .88 * Math.pow(s / .62, .8); prof.push([Math.max(r, i === 0 ? .0018 : 0), -h * .55 + h * s]); }
+      return lathe(prof, 32, false);
+    }
+    case 'crystal': {
+      const w = n.w, h = n.h, t = -h * .55, b = w * .55, by = t + b, top = by + b + h * .04;
+      const out = lathe([[0, by - b], [b * .62, by - b * .7], [b, by], [b * .62, by + b * .7], [0, by + b]], 8, true);
+      return lathe([[0, top], [w * .45, top], [w * .62, t + h * .78], [0, t + h]], 8, true, out);
+    }
+  }
+}
+const sphereGeom = r => { const prof = []; for (let i = 0; i <= 10; i++) { const a = i / 10 * Math.PI; prof.push([Math.sin(a) * r, -Math.cos(a) * r]); } return lathe(prof, 14, false); };
+const capGeom = r => lathe([[0, -r * .45], [r * .5, -r * .45], [r * .5, 0], [r * .36, 0], [0, 0]], 18, false);
+
+let meshProg, wireProg, blitProg, MU = {}, WU = {}, BU = {}, sceneFbo = null, sceneTex = null, wireBuf, wireVAO, wireData = new Float32Array(4000 * 8), wireN = 0;
+const meshes = new Map();
+function meshVAO(data) {
+  const vao = gl.createVertexArray(), buf = gl.createBuffer();
+  gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+  gl.bindVertexArray(null);
+  return { vao, count: data.length / 6 };
+}
+function initObjects() {
+  meshProg = program(MESH_VS, MESH_FS); wireProg = program(WIRE_VS, WIRE_FS); blitProg = program(BLIT_VS, BLIT_FS);
+  for (const k of ['model', 'view', 'proj', 'eye', 'base', 'deep', 'mat', 'scene', 'vp', 'hole', 'sun', 'skyTop', 'skyLow']) MU[k] = gl.getUniformLocation(meshProg, k);
+  for (const k of ['view', 'proj', 'vp', 'eye', 'sun', 'skyTop', 'skyLow']) WU[k] = gl.getUniformLocation(wireProg, k);
+  BU.tex = gl.getUniformLocation(blitProg, 'tex');
+  wireBuf = gl.createBuffer(); wireVAO = gl.createVertexArray(); gl.bindVertexArray(wireVAO);
+  const qb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, qb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, -1, 1, -1, 0, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, wireBuf);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 32, 0); gl.vertexAttribDivisor(1, 1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 32, 12); gl.vertexAttribDivisor(2, 1);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 2, gl.FLOAT, false, 32, 24); gl.vertexAttribDivisor(3, 1);
+  gl.bindVertexArray(null);
+  meshes.set('bead', meshVAO(sphereGeom(.0028)));
+  meshes.set('cap', meshVAO(capGeom(.008)));
+}
+function sceneTarget() {
+  if (sceneTex) { gl.deleteTexture(sceneTex); gl.deleteFramebuffer(sceneFbo); }
+  sceneTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, sceneTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, cv.width, cv.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  sceneFbo = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, sceneTex, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+// each piece's material: which shader branch, its colour, and a deeper colour for its thick edges
+const BEADS = [[.93, .82, .86], [.82, .9, .92], [.94, .92, .8], [.86, .84, .95], [.9, .93, .9]];
+function materialFor(n) {
+  const c = (n.c1 || [0, 0, 0]).map(v => v / 255), rim = (n.rim || [0, 0, 0]).map(v => v / 255);
+  switch (n.kind) {
+    case 'brass': return { mat: 0, base: [.88, .74, .46], deep: [.5, .38, .18] };
+    case 'oak': return { mat: 2, base: [.9, .74, .55], deep: [.74, .56, .38] };
+    case 'glass': return { mat: n.r > .04 ? 6 : 1, base: c, deep: rim };
+    case 'sphere': return { mat: 7, base: c, deep: rim };
+    case 'tear': return { mat: 1, base: c, deep: rim };
+    case 'crystal': return { mat: 3, base: [.97, .98, 1], deep: [.75, .78, .85] };
+    case 'film': return { mat: 4, base: [1, 1, 1], deep: [.6, .55, .7] };
+  }
+}
+function buildMobile() {
+  for (const n of PIECES) { n.mesh = meshVAO(geometryFor(n)); n.mtl = materialFor(n); }
+  const total = PIECES.length * 3;
+  mobData = new Float32Array(total * STRIDE); mobSorted = new Float32Array(total * STRIDE);
+  mobKey = new Float32Array(total); mobIdx = new Uint32Array(total);
+}
+
 function pieceFrame(n) {
   // down: from the hole to the centre; right and face turn about it with the piece's yaw
   const S = toG(n.S.x, n.S.y, n.S.z), Cc = toG(n.Cp.x, n.Cp.y, n.Cp.z), down = norm(sub(Cc, S));
-  let r0 = norm(sub([1, 0, 0], mul(down, down[0]))); const f0 = cross(r0, down);
+  const r0 = norm(sub([1, 0, 0], mul(down, down[0]))), f0 = cross(r0, down);
   const cy = Math.cos(n.yaw), sy = Math.sin(n.yaw);
-  let right = add(mul(r0, cy), mul(f0, sy)), face = add(mul(f0, cy), mul(r0, -sy));
-  if (n.kind === 'sphere' || n.kind === 'tear' || n.kind === 'crystal') {   // round things look the same from every side: face the eye
-    const toEye = norm(sub(cam.pos, Cc)); right = norm(cross(down, toEye)); face = cross(right, down);
-    if (dot(right, [1, 0, 0]) < 0) { right = mul(right, -1); face = mul(face, -1); }
-  }
-  return { C: Cc, down, right, face };
+  return { C: Cc, S, down, right: add(mul(r0, cy), mul(f0, sy)), face: add(mul(f0, cy), mul(r0, -sy)) };
 }
 let mobN = 0;
 function writeSplat(arr, i, c, a1, a2, a3, col, alpha) {
@@ -729,58 +958,66 @@ function writeSplat(arr, i, c, a1, a2, a3, col, alpha) {
   arr[o + 12] = col[0]; arr[o + 13] = col[1]; arr[o + 14] = col[2]; arr[o + 15] = alpha;
   arr[o + 16] = 0; arr[o + 17] = 0; arr[o + 18] = 2; arr[o + 19] = 0;
 }
-function wireRun(p0, p1, step, w) {
-  const d = sub(p1, p0), L = Math.hypot(...d), n = Math.max(1, Math.min(60, Math.ceil(L / step))), dir = mul(d, 1 / L);
-  const side = norm(cross(dir, [0, 0, 1])), deep = norm(cross(dir, side));
-  for (let i = 0; i < n && mobN < mobKey.length; i++) {
-    const c = add(p0, mul(d, (i + .5) / n));
-    writeSplat(mobData, mobN++, c, mul(dir, L / n * .42), mul(side, w), mul(deep, w), PAL.wire, .85);
+
+/* ---------- the wire, rebuilt every frame from the physics ---------- */
+const STEEL = .0009, NYLON = .0003;
+function seg(a, b, r, kind = 0) { if (wireN >= 4000) return; const o = wireN++ * 8; wireData.set(a, o); wireData.set(b, o + 3); wireData[o + 6] = r; wireData[o + 7] = kind; }
+function poly(pts, r, kind = 0) { for (let i = 1; i < pts.length; i++) seg(pts[i - 1], pts[i], r, kind); }
+// a small loop of wire: centre c, in the plane of axes a and b
+function loop(c, a, b, rad, r = STEEL, from = 0, to = TAU, n = 12) {
+  const pts = []; for (let i = 0; i <= n; i++) { const t = from + (to - from) * i / n; pts.push(add(c, add(mul(a, Math.cos(t) * rad), mul(b, Math.sin(t) * rad)))); }
+  poly(pts, r);
+}
+let BEADPOS = [];
+function updateWire() {
+  wireN = 0; BEADPOS = [];
+  const X = [1, 0, 0], Y = [0, 1, 0], Z = [0, 0, 1];
+  for (const r of RODS) {
+    const L = toG(r.L.x, r.L.y, r.L.z), R2 = toG(r.R.x, r.R.y, r.R.z), Hh = toG(r.H.x, r.H.y, r.H.z);
+    const along = norm(sub(R2, L)), up = norm(cross(cross(along, Y), along)), toward = norm(cross(along, up));
+    // the rod: one wire, bent through its hook, with a little loop formed at the top where it hangs
+    const ctrl = sub(mul(Hh, 2), mul(add(L, R2), .5)), pts = [];
+    for (let i = 0; i <= 28; i++) { const t = i / 28, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, c = t * t; pts.push(add(add(mul(L, a), mul(ctrl, b)), mul(R2, c))); }
+    poly(pts, STEEL);
+    loop(add(Hh, mul(up, .0042)), up, toward, .0042, STEEL * .9);
+    // each end turned down and round into a closed eye
+    for (const [tip, dir] of [[L, -1], [R2, 1]]) {
+      const out = mul(along, dir);
+      loop(add(tip, mul(up, -.004)), out, up, .004, STEEL * .9, Math.PI * .5, Math.PI * 2.5, 14);
+    }
+  }
+  for (const cn of outer) {
+    const b = toG(cn.b.x, cn.b.y, cn.b.z);
+    if (cn.a === ANCHOR) { seg(add(b, [0, 3, 0]), add(b, [0, .006, 0]), NYLON, 1); continue; }   // the hanging line: clear nylon
+    const a = add(toG(cn.a.x, cn.a.y, cn.a.z), [0, -.008, 0]);
+    const piece = PIECES.find(p => p.S === cn.b);
+    const end = piece ? b : add(b, [0, .0084, 0]);
+    // an S-hook: down from the eye, with a small glass bead threaded on it
+    const d = sub(end, a), len = Math.hypot(...d);
+    if (len < .003) continue;
+    const dir = mul(d, 1 / len), side = norm(cross(dir, Z));
+    loop(add(a, mul(dir, .0035)), dir, side, .0035, STEEL * .85, Math.PI, TAU * 1.5, 10);
+    seg(add(a, mul(dir, .007)), sub(end, mul(dir, .003)), STEEL * .85);
+    BEADPOS.push(add(a, mul(d, .45)));
+    if (piece) {    // a ring of wire through the drilled hole
+      const F = piece.F, hc = add(F.C, mul(F.down, -piece.hole));
+      loop(hc, F.down, F.face, .0045, STEEL * .8, 0, TAU, 16);
+    }
   }
 }
 function updateMobile() {
   mobN = 0;
-  const eye = cam.pos;
-  for (const n of PIECES) {
-    const F = pieceFrame(n); n.F = F;
-    // light: a flat face turned toward the sun is brighter; the side that faces you catches a highlight
-    const nd = Math.abs(dot(F.face, SUN)), toEye = norm(sub(eye, F.C)), half = norm(add(SUN, toEye));
-    const spec = Math.pow(Math.abs(dot(F.face, half)), 28), lit = .78 + nd * .32;
-    const thin = n.kind === 'sphere' ? .3 : .12;
-    for (const s of n.splats) {
-      const c = add(F.C, add(mul(F.right, s.u), mul(F.down, s.v)));
-      // a highlight sits on the upper sun-side of each piece
-      const hl = s.loop ? 0 : Math.max(0, -(s.u * .7 + s.v) / (n.rc * 1.2)) * spec * (GLASS[n.kind] ? .9 : .55);
-      const k = s.loop ? s.c : [Math.min(1, s.c[0] * lit + hl), Math.min(1, s.c[1] * lit + hl), Math.min(1, s.c[2] * lit + hl)];
-      writeSplat(mobData, mobN++, c, mul(F.right, s.s), mul(F.down, s.s), mul(F.face, s.s * thin), k, s.a);
-    }
-  }
-  // a soft blue shadow lying on the grass under each piece, along the sun's rays, as Sillage's crow casts on its floor
+  for (const n of PIECES) n.F = pieceFrame(n);
+  // a soft blue shadow lying on the grass under each piece, along the sun's rays
   for (const n of PIECES) {
     const F = n.F, g = toGround(F.C), ru = dirGround(F.right), dv = dirGround(F.down), r = n.rc;
-    const wgt = GLASS[n.kind] ? .55 : 1, h = F.C[1];
-    const soft = 1 + h * .35;                       // the further it hangs above the grass, the softer its shadow
+    const wgt = GLASS[n.kind] ? .55 : 1, soft = 1 + F.C[1] * .35;
     for (const [k, a] of [[.7, .22], [1.1, .14], [1.6, .08]]) {
-      const ax = [ru[0] * r * k * soft, 0, ru[1] * r * k * soft], az = [dv[0] * r * k * soft, 0, dv[1] * r * k * soft];
-      writeSplat(mobData, mobN++, [g[0], .16, g[1]], ax, az, [0, .004, 0], [.2, .27, .5], a * wgt);
+      writeSplat(mobData, mobN++, [g[0], .16, g[1]], [ru[0] * r * k * soft, 0, ru[1] * r * k * soft], [dv[0] * r * k * soft, 0, dv[1] * r * k * soft], [0, .004, 0], [.2, .27, .5], a * wgt);
     }
   }
-  const w = .0011;
-  for (const r of RODS) {           // each rod: a curve through its hook, as a bent wire would be
-    const L = toG(r.L.x, r.L.y, r.L.z), R2 = toG(r.R.x, r.R.y, r.R.z), Hh = toG(r.H.x, r.H.y, r.H.z);
-    const ctrl = sub(mul(Hh, 2), mul(add(L, R2), .5));
-    let prev = L;
-    for (let i = 1; i <= 16; i++) { const t = i / 16, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, c = t * t; const p = add(add(mul(L, a), mul(ctrl, b)), mul(R2, c)); wireRun(prev, p, .02, w * 1.25); prev = p; }
-  }
-  for (const cn of outer) {
-    const a = cn.a === ANCHOR ? toG(0, -3, 0) : toG(cn.a.x, cn.a.y, cn.a.z), b = toG(cn.b.x, cn.b.y, cn.b.z);
-    wireRun(a, b, .025, w * .8);
-  }
-  // sort back to front from the eye
-  for (let i = 0; i < mobN; i++) { const o = i * STRIDE, dx = mobData[o] - eye[0], dy = mobData[o + 1] - eye[1], dz = mobData[o + 2] - eye[2]; mobKey[i] = -(dx * dx + dy * dy + dz * dz); mobIdx[i] = i; }
-  const idx = mobIdx.subarray(0, mobN); idx.sort((a, b) => mobKey[a] - mobKey[b]);
-  for (let j = 0; j < mobN; j++) mobSorted.set(mobData.subarray(idx[j] * STRIDE, idx[j] * STRIDE + STRIDE), j * STRIDE);
-  gl.bindBuffer(gl.ARRAY_BUFFER, mobileBuf); gl.bufferData(gl.ARRAY_BUFFER, mobSorted.subarray(0, mobN * STRIDE), gl.DYNAMIC_DRAW);
-  // where each piece is on screen, for hover and touch
+  gl.bindBuffer(gl.ARRAY_BUFFER, mobileBuf); gl.bufferData(gl.ARRAY_BUFFER, mobData.subarray(0, mobN * STRIDE), gl.DYNAMIC_DRAW);
+  updateWire();
   for (const n of PIECES) { const [x, y, d] = toScreen(n.F.C); n.X = x; n.Y = y; n.R = n.rc * cam.fy / d; }
 }
 
@@ -815,12 +1052,17 @@ function resize() {
   DPR = Math.min(devicePixelRatio || 1, matchMedia('(pointer: coarse)').matches ? 1.5 : 2);
   W = innerWidth; H = innerHeight;
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-  placeCamera(); buildMeadow(); buildMobile();
+  placeCamera(); buildMeadow(); buildMobile(); sceneTarget();
+}
+function modelOf(F) {
+  const r = F.right, d = F.down, f = F.face, c = F.C;
+  return new Float32Array([r[0], r[1], r[2], 0, d[0], d[1], d[2], 0, f[0], f[1], f[2], 0, c[0], c[1], c[2], 1]);
 }
 function render() {
-  gl.viewport(0, 0, cv.width, cv.height);
   updateMobile(); drawShadowMap();
-  // the sky, then everything else back to front
+  // 1. the meadow, into a texture the glass can look through
+  gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFbo);
+  gl.viewport(0, 0, cv.width, cv.height);
   gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
   gl.useProgram(skyProg);
   const hz = toScreen([0, 0, -200])[1];
@@ -837,6 +1079,47 @@ function render() {
   gl.uniform3fv(U.fogCol, PAL.fog); gl.uniform3f(U.shadeCol, .4, .52, .88);
   gl.bindVertexArray(meadowVAO); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, meadowCount);
   gl.bindVertexArray(mobileVAO); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, mobN);
+  // 2. onto the screen
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, cv.width, cv.height);
+  gl.disable(gl.BLEND);
+  gl.useProgram(blitProg); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, sceneTex); gl.uniform1i(BU.tex, 0);
+  gl.bindVertexArray(skyVAO); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  // 3. the pieces, solid, each in its material
+  gl.clear(gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+  gl.useProgram(meshProg);
+  gl.uniformMatrix4fv(MU.view, false, cam.view); gl.uniformMatrix4fv(MU.proj, false, cam.proj);
+  gl.uniform3fv(MU.eye, cam.pos); gl.uniform3fv(MU.sun, SUN); gl.uniform3fv(MU.skyTop, PAL.skyTop); gl.uniform3fv(MU.skyLow, PAL.skyLow);
+  gl.uniform2f(MU.vp, cv.width, cv.height); gl.uniform1i(MU.scene, 0);
+  for (const n of PIECES) {
+    const m = n.mtl;
+    gl.uniformMatrix4fv(MU.model, false, modelOf(n.F));
+    gl.uniform1i(MU.mat, m.mat); gl.uniform3fv(MU.base, m.base); gl.uniform3fv(MU.deep, m.deep);
+    const flat = n.kind === 'brass' || n.kind === 'glass' || n.kind === 'film' || n.kind === 'oak';
+    gl.uniform3f(MU.hole, 0, -n.hole, flat ? .0026 : 0);
+    gl.bindVertexArray(n.mesh.vao); gl.drawArrays(gl.TRIANGLES, 0, n.mesh.count);
+    if (n.kind === 'sphere') {      // the blown globe's metal cap
+      const F = n.F, cap = { C: add(F.C, mul(F.down, -n.r * .96)), right: F.right, down: F.down, face: F.face };
+      gl.uniformMatrix4fv(MU.model, false, modelOf(cap)); gl.uniform1i(MU.mat, 0); gl.uniform3f(MU.base, .78, .74, .7); gl.uniform3f(MU.hole, 0, 0, 0);
+      const c = meshes.get('cap'); gl.bindVertexArray(c.vao); gl.drawArrays(gl.TRIANGLES, 0, c.count);
+    }
+  }
+  // beads threaded on the links
+  const bead = meshes.get('bead');
+  gl.uniform1i(MU.mat, 5); gl.uniform3f(MU.hole, 0, 0, 0); gl.uniform3f(MU.deep, .55, .6, .62);
+  BEADPOS.forEach((p, i) => {
+    gl.uniformMatrix4fv(MU.model, false, modelOf({ C: p, right: [1, 0, 0], down: [0, -1, 0], face: [0, 0, 1] }));
+    gl.uniform3fv(MU.base, BEADS[i % BEADS.length]);
+    gl.bindVertexArray(bead.vao); gl.drawArrays(gl.TRIANGLES, 0, bead.count);
+  });
+  // 4. the wire, over and around them
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+  gl.useProgram(wireProg);
+  gl.uniformMatrix4fv(WU.view, false, cam.view); gl.uniformMatrix4fv(WU.proj, false, cam.proj);
+  gl.uniform2f(WU.vp, W, H); gl.uniform3fv(WU.eye, cam.pos); gl.uniform3fv(WU.sun, SUN); gl.uniform3fv(WU.skyTop, PAL.skyTop); gl.uniform3fv(WU.skyLow, PAL.skyLow);
+  gl.bindBuffer(gl.ARRAY_BUFFER, wireBuf); gl.bufferData(gl.ARRAY_BUFFER, wireData.subarray(0, wireN * 8), gl.DYNAMIC_DRAW);
+  gl.bindVertexArray(wireVAO); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, wireN);
+  gl.depthMask(true); gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
   gl.bindVertexArray(null);
 }
 
@@ -947,7 +1230,7 @@ function hang() {
   env.air = keep; env.t = t;
   REST = bounds();
 }
-if (gl) initGL(); else cv.style.background = 'linear-gradient(#9DB8D6, #E2E9DE 30%, #7F9B5B 34%, #4D7752)';
+if (gl) { initGL(); initObjects(); } else cv.style.background = 'linear-gradient(#9DB8D6, #E2E9DE 30%, #7F9B5B 34%, #4D7752)';
 hang(); if (gl) resize();
 addEventListener('resize', () => { hang(); if (gl) resize(); });
 
