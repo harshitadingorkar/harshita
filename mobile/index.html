@@ -6,46 +6,33 @@
 <title>Brass and Glass</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="A hanging mobile of brass, oak and blown glass that sways with your phone, turns over when you hover it, and rings when its pieces touch.">
-<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
-/* Layout: one full-bleed room. The wall is the canvas; two small controls sit in the bottom-right corner and fade when you are not using them. */
+/* Layout: one full-bleed meadow, drawn in coloured pencil. Two small controls sit in the bottom-right corner and fade when you are not using them. One look only: a sunny day. */
 :root{
-  --wall:#E9E5DE; --wall-lit:#F6F2EA; --wire:#2E2C28;
-  --ink:#1D1C19; --ink3:rgba(29,28,25,.3); --hair:rgba(29,28,25,.14);
-  --chip:rgba(246,242,234,.72); --brass:#B8903A;
-  --glow:0;
+  --grass:#7FAE4C; --ink:#2B3150; --ink3:rgba(43,49,80,.35); --hair:rgba(43,49,80,.16);
+  --chip:rgba(250,249,236,.78); --pink:#E58FA6; color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --wall:#1B1A1D; --wall-lit:#3A3127; --wire:#A79F92;
-  --ink:#ECE6DA; --ink3:rgba(236,230,218,.3); --hair:rgba(236,230,218,.16);
-  --chip:rgba(30,28,30,.7); --brass:#D8B565; --glow:1; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --wall:#1B1A1D; --wall-lit:#3A3127; --wire:#A79F92;
-  --ink:#ECE6DA; --ink3:rgba(236,230,218,.3); --hair:rgba(236,230,218,.16);
-  --chip:rgba(30,28,30,.7); --brass:#D8B565; --glow:1; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:var(--wall);color:var(--ink);overflow:hidden;
+body{background:var(--grass);color:var(--ink);overflow:hidden;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 canvas#room{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 canvas#room.grab{cursor:grab}
 canvas#room.grabbing{cursor:grabbing}
-#grain{position:fixed;inset:0;pointer-events:none;opacity:.06;mix-blend-mode:multiply}
-:root[data-theme="dark"] #grain{mix-blend-mode:screen;opacity:.05}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #grain{mix-blend-mode:screen;opacity:.05}}
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.16;mix-blend-mode:multiply}
 .controls{position:fixed;z-index:2;display:flex;gap:8px;
   right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
   transition:opacity .8s ease}
-.controls.idle{opacity:.18}
+.controls.idle{opacity:.22}
 .controls button{width:40px;height:40px;display:grid;place-items:center;padding:0;color:var(--ink);background:var(--chip);
-  border:1px solid var(--hair);border-radius:50%;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:border-color .2s}
+  border:1px solid var(--hair);border-radius:50%;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:border-color .2s}
 .controls button:hover{border-color:var(--ink3)}
 .controls button:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
 .controls svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
 .controls .w{transition:opacity .3s,stroke .3s;opacity:.25}
-.controls .w.on{opacity:1;stroke:var(--brass)}
+.controls .w.on{opacity:1;stroke:var(--pink)}
 #b-sound .wave{opacity:0;transition:opacity .3s}
-#b-sound.on .wave{opacity:1;stroke:var(--brass)}
+#b-sound.on .wave{opacity:1;stroke:var(--pink)}
 #b-sound .x{transition:opacity .3s}
 #b-sound.on .x{opacity:0}
 @media (prefers-reduced-motion: reduce){.controls{transition:none}}
@@ -100,16 +87,16 @@ const TREE = rod(.50, .16, [
   rod(.30, .09, [
     piece('brass', { r: .074, g: 64, name: 'Hammered brass', note: 0, face: .35, drop: .03 }),
     rod(.27, .12, [
-      piece('glass', { r: .052, g: 15, name: 'Sea glass, frosted', c1: [150, 196, 160], c2: [236, 244, 232], rim: [92, 146, 108], note: 3, face: -.5 }),
+      piece('glass', { r: .052, g: 15, name: 'Pink glass, frosted', c1: [242, 168, 186], c2: [252, 236, 240], rim: [196, 104, 132], note: 3, face: -.5 }),
       rod(.19, .15, [
-        piece('tear', { w: .026, h: .085, g: 9, name: 'Lilac teardrop, blown', c1: [190, 168, 226], c2: [244, 238, 252], rim: [134, 104, 190], note: 6 }),
-        piece('glass', { r: .029, g: 4, name: 'Amber glass', c1: [232, 172, 74], c2: [250, 232, 190], rim: [184, 122, 36], note: 8, face: .7 })
+        piece('tear', { w: .026, h: .085, g: 9, name: 'Lilac teardrop, blown', c1: [200, 178, 234], c2: [244, 238, 252], rim: [128, 100, 182], note: 6 }),
+        piece('glass', { r: .029, g: 4, name: 'Amber glass', c1: [246, 206, 120], c2: [252, 240, 206], rim: [190, 132, 50], note: 8, face: .7 })
       ], .02, .55)
     ], -.03, -.4)
   ], .01, .3),
   rod(.33, .17, [
     rod(.25, .10, [
-      piece('sphere', { r: .046, g: 22, name: 'Ribbed globe, blown', c1: [150, 178, 210], c2: [236, 242, 250], rim: [92, 124, 168], note: 2, drop: .035 }),
+      piece('sphere', { r: .046, g: 22, name: 'Ribbed globe, blown', c1: [196, 222, 244], c2: [240, 246, 252], rim: [96, 132, 182], note: 2, drop: .035 }),
       rod(.19, .16, [
         piece('film', { rx: .05, ry: .032, g: 3, name: 'Dichroic film', note: 7, face: -.8 }),
         piece('crystal', { w: .028, h: .096, g: 12, name: 'Cut crystal pendalogue', note: 9 })
@@ -440,16 +427,16 @@ async function askMotion() {
   } catch (e) {}
 }
 
-/* ───────────── Camera, wall and theme ─────────────
-   You look at the mobile from FOCAL metres away; the wall stands WALL metres behind it. */
+/* ───────────── Camera and the meadow ─────────────
+   You look at the mobile from FOCAL metres away. Behind it a meadow slopes up and away; its shadows
+   land on the grass WALL metres behind the mobile. Everything is drawn the way coloured pencil
+   would draw it: grass as thousands of single strokes, shadows as strokes that turn blue. */
 const cv = document.getElementById('room'), ctx = cv.getContext('2d');
-const sh = document.createElement('canvas'), sctx = sh.getContext('2d');   // low-res shadow layer: upscaling blurs it for free
-const SHR = .34, FOCAL = 1.9, WALL = .12;
-let W = 0, H = 0, DPR = 1, SC = 400, OX = 0, OY = 0, YC = .4, theme = {}, REST;
-function readTheme() {
-  const cs = getComputedStyle(document.documentElement), get = k => cs.getPropertyValue(k).trim();
-  theme = { wall: get('--wall'), lit: get('--wall-lit'), wire: get('--wire'), glow: +get('--glow') || 0 };
-}
+const mk = document.createElement('canvas'), mctx = mk.getContext('2d', { willReadFrequently: true });  // where the shadows fall
+const ub = document.createElement('canvas'), uctx = ub.getContext('2d');                              // the soft underpainting
+const MKR = .2, UBR = .1, FOCAL = 1.9, WALL = .12;
+const WIRE = '#2B3150';
+let W = 0, H = 0, DPR = 1, SC = 400, OX = 0, OY = 0, YC = .4, REST, MASK = null, mw = 1, mh = 1;
 function bounds() {
   let minX = 0, maxX = 0, maxY = 0;
   for (const n of PIECES) { const r = n.rc + .01; minX = Math.min(minX, n.Cp.x - r); maxX = Math.max(maxX, n.Cp.x + r); maxY = Math.max(maxY, n.Cp.y + r * 1.4); }
@@ -457,66 +444,66 @@ function bounds() {
   return { minX, maxX, maxY };
 }
 function resize() {
-  DPR = Math.min(devicePixelRatio || 1, 2);
+  DPR = Math.min(devicePixelRatio || 1, 1.5);   // pencil strokes stay soft at 1.5x, and the phone keeps its frame rate
   W = innerWidth; H = innerHeight;
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-  sh.width = Math.max(1, Math.round(W * SHR)); sh.height = Math.max(1, Math.round(H * SHR));
+  mw = mk.width = Math.max(1, Math.round(W * MKR)); mh = mk.height = Math.max(1, Math.round(H * MKR));
+  ub.width = Math.max(2, Math.ceil(W * UBR)); ub.height = Math.max(2, Math.ceil(H * UBR));
   const b = REST, half = Math.max(-b.minX, b.maxX), bottom = 72;
   SC = Math.min((W - 24) / (half * 2 * 1.08), (H - bottom) / (b.maxY * 1.06));
   YC = b.maxY * .55;
   OX = W / 2; OY = Math.max(W < 560 ? 40 : 0, (H - bottom - b.maxY * SC) * .32);
-  makeTextures();
+  makeTextures(); sowGrass();
 }
 // perspective: nearer things (z < 0) are larger, and everything converges toward the middle of the mobile
 const persp = z => FOCAL / (FOCAL + z);
 function proj(x, y, z, out) { const s = persp(z); out[0] = OX + x * s * SC; out[1] = OY + (YC + (y - YC) * s) * SC; out[2] = s; return out; }
 const Q = [0, 0, 1], Q2 = [0, 0, 1];
-/* where a point's shadow lands on the wall */
-function onWall(x, y, z, out) {
-  const t = (WALL - z) / LD.z;
-  return proj(x + LD.x * t, y + LD.y * t, WALL, out);
-}
+function onWall(x, y, z, out) { const t = (WALL - z) / LD.z; return proj(x + LD.x * t, y + LD.y * t, WALL, out); }
+function screenToGround(sx, sy) { const s = persp(WALL); return [(sx - OX) / (SC * s), YC + ((sy - OY) / SC - YC) / s]; }
 
-/* pre-rendered surfaces: brushed brass, oak grain, the fine lines in dichroic film */
+/* pencil surfaces: hatching for every piece, oak grain, the pressed lines of the film */
 const TEX = {};
 function texCanvas(s) { const c = document.createElement('canvas'); c.width = c.height = s; return c; }
 function makeTextures() {
-  if (TEX.brass) return;
-  const s = 256;
+  if (TEX.hatch) return;
+  const s = 192;
   let c = texCanvas(s), x = c.getContext('2d');
-  for (let i = 0; i < 520; i++) {
-    const y = Math.random() * s, a = (Math.random() - .5) * .25, len = 40 + Math.random() * 200, x0 = Math.random() * s - 40;
-    x.strokeStyle = Math.random() < .5 ? `rgba(255,244,210,${.05 + Math.random() * .12})` : `rgba(90,60,10,${.04 + Math.random() * .1})`;
-    x.lineWidth = .4 + Math.random() * .8; x.beginPath(); x.moveTo(x0, y); x.lineTo(x0 + Math.cos(a) * len, y + Math.sin(a) * len); x.stroke();
+  x.lineCap = 'round';
+  for (let i = 0; i < 1500; i++) {                // short pencil strokes, mostly one direction, like a hand shading
+    const a = -.62 + (Math.random() - .5) * .3, len = 4 + Math.random() * 10, x0 = Math.random() * s, y0 = Math.random() * s;
+    x.strokeStyle = Math.random() < .55 ? `rgba(255,252,236,${.06 + Math.random() * .16})` : `rgba(48,36,40,${.04 + Math.random() * .12})`;
+    x.lineWidth = .5 + Math.random() * .7;
+    x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + Math.cos(a) * len, y0 + Math.sin(a) * len); x.stroke();
   }
-  for (let i = 0; i < 26; i++) { const g = x.createRadialGradient(Math.random() * s, Math.random() * s, 0, Math.random() * s, Math.random() * s, 14 + Math.random() * 20);
-    g.addColorStop(0, 'rgba(255,240,200,.08)'); g.addColorStop(1, 'rgba(255,240,200,0)'); x.fillStyle = g; x.fillRect(0, 0, s, s); }
-  TEX.brass = c;
+  TEX.hatch = c;
   c = texCanvas(s); x = c.getContext('2d');
-  for (let i = 0; i < 70; i++) {
-    const x0 = Math.random() * s; x.strokeStyle = `rgba(110,70,30,${.06 + Math.random() * .14})`; x.lineWidth = .5 + Math.random() * 1.4;
-    x.beginPath(); for (let y = -10; y <= s + 10; y += 8) x.lineTo(x0 + Math.sin(y * .03 + i) * 4 + noise3(i, y * .02, 1) * 6, y); x.stroke();
+  for (let i = 0; i < 46; i++) {
+    const x0 = Math.random() * s; x.strokeStyle = `rgba(120,76,40,${.08 + Math.random() * .16})`; x.lineWidth = .6 + Math.random() * 1.1;
+    x.beginPath(); for (let y = -10; y <= s + 10; y += 8) x.lineTo(x0 + Math.sin(y * .03 + i) * 3 + noise3(i, y * .02, 1) * 5, y); x.stroke();
   }
-  for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(255,236,200,${.08 + Math.random() * .12})`; x.fillRect(Math.random() * s, Math.random() * s, .8 + Math.random() * 1.6, 3 + Math.random() * 9); }
   TEX.oak = c;
   c = texCanvas(s); x = c.getContext('2d');
-  for (let i = 0; i < 140; i++) {
-    const y0 = Math.random() * s; x.strokeStyle = `rgba(255,255,255,${.06 + Math.random() * .18})`; x.lineWidth = .5;
+  for (let i = 0; i < 90; i++) {
+    const y0 = Math.random() * s; x.strokeStyle = `rgba(255,255,255,${.08 + Math.random() * .2})`; x.lineWidth = .5;
     x.beginPath(); for (let xx = -10; xx <= s + 10; xx += 6) x.lineTo(xx, y0 + Math.sin(xx * .05 + i * .7) * 5 + noise3(i * .3, xx * .03, 2) * 6); x.stroke();
   }
   TEX.film = c;
 }
 function grain() {
-  const c = texCanvas(160), x = c.getContext('2d'), d = x.createImageData(160, 160);
-  for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+  // paper tooth: fine noise with a few longer fibres
+  const N = 200, c = texCanvas(N), x = c.getContext('2d'), d = x.createImageData(N, N);
+  for (let i = 0; i < d.data.length; i += 4) { const v = 150 + Math.random() * 105; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
   x.putImageData(d, 0, 0);
+  x.strokeStyle = 'rgba(120,110,100,.25)'; x.lineWidth = .5;
+  for (let i = 0; i < 40; i++) { const x0 = Math.random() * N, y0 = Math.random() * N, a = Math.random() * TAU; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + Math.cos(a) * 9, y0 + Math.sin(a) * 9); x.stroke(); }
   document.getElementById('grain').style.backgroundImage = `url(${c.toDataURL()})`;
 }
 
 /* ───────────── Light ─────────────
-   light: direction toward the window, in view space (z toward you), used for shading.
-   LD: the direction the light travels in the world (z toward the wall), used for shadows.
-   The window stays put in the room, so tilting the phone moves it across the glass. */
+   light: direction toward the sun, in view space (z toward you), used for shading.
+   LD: the direction sunlight travels in the world (z toward the meadow), used for shadows.
+   The sun stays put, so tilting the phone moves it across the pieces. */
 const light = { x: -.36, y: -.5, z: .79 }, LD = { x: .36, y: .5, z: .79 };
 function updateLight() {
   const lx = -.36 - Math.sin(env.tilt) * .8, ly = -.5 - env.lean * .5, lz = .86;
@@ -524,37 +511,111 @@ function updateLight() {
   LD.x = -light.x; LD.y = -light.y; LD.z = light.z;
 }
 function faceLight(yaw, rot) {
-  // a flat face with normal (sin yaw, 0, cos yaw), turned in the picture plane by rot
   const nx0 = Math.sin(yaw), nz = Math.cos(yaw);
   const nx = nx0 * Math.cos(rot), ny = nx0 * Math.sin(rot);
   const s = nz >= 0 ? 1 : -1;
   const diff = Math.max(0, s * (nx * light.x + ny * light.y + nz * light.z));
   let hx = light.x, hy = light.y, hz = light.z + 1; const hm = Math.hypot(hx, hy, hz); hx /= hm; hy /= hm; hz /= hm;
-  const spec = Math.pow(Math.max(0, s * (nx * hx + ny * hy + nz * hz)), 60);
+  const spec = Math.pow(Math.max(0, s * (nx * hx + ny * hy + nz * hz)), 40);
   return { diff, spec };
 }
 const rgba = (c, a) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const darker = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 const GLASS = { glass: 1, tear: 1, sphere: 1, crystal: 1, film: 1 };
 
-/* ───────────── Drawing ───────────── */
-function drawWall() {
-  ctx.fillStyle = theme.wall; ctx.fillRect(0, 0, W, H);
-  // a soft patch of window light (lamplight at night) that slides as the phone tilts
-  const cx = W * (.18 - Math.sin(env.tilt) * .5), cy = H * (.12 - env.lean * .12), r = Math.max(W, H) * .85;
-  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  g.addColorStop(0, theme.lit); g.addColorStop(.55, theme.wall); g.addColorStop(1, theme.wall);
-  ctx.globalAlpha = .9; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
-  const v = ctx.createRadialGradient(W / 2, H * .45, Math.min(W, H) * .3, W / 2, H * .5, Math.max(W, H) * .8);
-  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, theme.glow ? 'rgba(0,0,0,.45)' : 'rgba(60,50,40,.12)');
-  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+/* ───────────── The meadow ─────────────
+   Two pencils' worth of colour: a sunlit ramp from deep grass to the near-white of bent blades
+   catching light, and a shadow ramp of blues. A blade in shadow is drawn from the blue ramp, so a
+   shadow is made of grass, with a ragged edge that moves as the blades move. */
+const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const SUN = ['#2F6534', '#3B7737', '#4C8A3D', '#629E43', '#80B24C', '#A2C55A', '#C2D66C', '#DCE48E', '#EDEEBE', '#F8F8E6'];
+const SHADE = ['#1E3D8A', '#24489C', '#2C55AE', '#3864BA', '#4C78C5', '#6890CF', '#8CABDA', '#B2C7E5', '#D5E0EF', '#F0F4F9'];
+const SUNc = SUN.map(hex), SHADEc = SHADE.map(hex);
+let BLADES = [], BINS = [];
+function sowGrass() {
+  const n = Math.round(clamp(W * H / 150, 2200, 7500)), scale = clamp(Math.min(W, H) / 720, .75, 1.3);
+  BLADES = [];
+  for (let i = 0; i < n; i++) {
+    const sx = -40 + Math.random() * (W + 50), sy = -10 + Math.random() * (H + 50), depth = clamp(sy / H, 0, 1);
+    const [wx, wy] = screenToGround(sx, sy);
+    BLADES.push({ sx, sy, wx, wy, depth,
+      len: (30 + Math.random() * 52) * (.55 + depth * .8) * scale,
+      // the meadow is combed to the right and a little up, in slow swirls, like long grass lying over
+      lean: -.26 + noise3(wx * 1.3 + 7, wy * 2.2, 2) * .3 + (Math.random() - .5) * .2,
+      thr: .18 + Math.random() * .64, tone: Math.random() * .22, ph: Math.random() * TAU,
+      layer: Math.random() < .42 ? 0 : 1, b: 0, cx: 0, cy: 0, tx: 0, ty: 0,
+      mi: (Math.min(mh - 1, Math.max(0, Math.round(sy * MKR))) * mw + Math.min(mw - 1, Math.max(0, Math.round(sx * MKR)))) * 4 });
+  }
+  BLADES.sort((a, b) => a.sy - b.sy);
+  BINS = Array.from({ length: 40 }, () => []);
+}
+// big slow cloud shadows, heavier toward the top of the meadow, as in a field seen from a hill
+function cloudAt(wx, wy, sy) {
+  const top = clamp(1 - sy / H * 1.6, 0, 1);
+  const c = noise3(wx * 1.1 - env.t * .02, wy * 3, 5.5) * .5 + .5;   // long, low wisps of cloud shadow
+  return clamp((c + top * .18 - .7) * 4.5, 0, 1);
+}
+// long bright bands where the wind lays the grass over and it shows the sun its paler side; they travel with the wind
+const bandAt = (wx, wy) => noise3(wx * .85 - env.t * (.05 + env.airNow * .9), wy * 3.1, 11) * .5 + .5;
+const patchAt = (wx, wy) => noise3(wx * 1.6 + 3, wy * 1.9, 9) * .5 + .5;
+const maskAt = i => MASK ? 1 - MASK[i] / 255 : 0;
+
+function updateGrass(dt) {
+  const k = 1 - Math.pow(.015, dt), t = env.t;
+  for (const B of BINS) B.length = 0;
+  for (const b of BLADES) {
+    windAt(b.wx, b.wy, WALL, tmp);
+    // blades lag the air a little, and never stand quite still
+    const target = clamp(tmp.x * 3.4, -.5, 1.35) + Math.sin(t * 1.5 + b.ph) * .06 + Math.sin(t * .6 + b.wx * 4) * .05;
+    b.b += (target - b.b) * k;
+    const sheen = clamp(b.b, 0, 1.3) * .42;                     // bent grass shows its paler side to the sun
+    const mob = maskAt(b.mi), shade = Math.max(cloudAt(b.wx, b.wy, b.sy), mob);
+    const inShade = shade > b.thr;
+    const band = bandAt(b.wx, b.wy);
+    let L = inShade ? .12 + b.tone + band * .6 + sheen * .35 - mob * .3
+                    : .2 + b.tone + band * .62 + sheen * .4 + patchAt(b.wx, b.wy) * .12 + b.depth * .05;
+    const idx = clamp(Math.floor(L * 10), 0, 9);
+    BINS[b.layer * 20 + (inShade ? 10 : 0) + idx].push(b);
+    const a = b.lean + b.b * .45, c = b.lean - .12 + b.b * .18;
+    b.tx = b.sx + Math.cos(a) * b.len; b.ty = b.sy + Math.sin(a) * b.len;
+    b.cx = b.sx + Math.cos(c) * b.len * .55; b.cy = b.sy + Math.sin(c) * b.len * .55;
+  }
+}
+function drawGrass() {
+  // underpainting: the same light and shade, soft, so no paper shows between strokes
+  const gw = ub.width, gh = ub.height, img = uctx.createImageData(gw, gh), d = img.data;
+  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
+    const sx = (gx + .5) / UBR, sy = (gy + .5) / UBR, [wx, wy] = screenToGround(sx, sy);
+    const mi = (Math.min(mh - 1, Math.round(sy * MKR)) * mw + Math.min(mw - 1, Math.round(sx * MKR))) * 4;
+    const sh = clamp(Math.max(cloudAt(wx, wy, sy) * .5, maskAt(mi) * .6), 0, 1), p = bandAt(wx, wy);   // the strokes carry most of the blue
+    const s0 = SUNc[3], s1 = SUNc[8], h0 = SHADEc[2], h1 = SHADEc[7], o = (gy * gw + gx) * 4;
+    for (let c = 0; c < 3; c++) d[o + c] = lerp(lerp(s0[c], s1[c], p), lerp(h0[c], h1[c], p), sh);
+    d[o + 3] = 255;
+  }
+  uctx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(ub, 0, 0, W, H);
+  ctx.lineCap = 'round';
+  for (let layer = 0; layer < 2; layer++) {
+    ctx.lineWidth = layer ? 1 : 2.2; ctx.globalAlpha = layer ? .7 : .34;
+    for (let r = 0; r < 2; r++) for (let i = 0; i < 10; i++) {
+      const list = BINS[layer * 20 + r * 10 + i]; if (!list.length) continue;
+      ctx.strokeStyle = (r ? SHADE : SUN)[i];
+      ctx.beginPath();
+      for (const b of list) { ctx.moveTo(b.sx, b.sy); ctx.quadraticCurveTo(b.cx, b.cy, b.tx, b.ty); }
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
 }
 
-/* a rod is drawn as one bent wire through its hook; a projector picks camera or wall */
-function rodPath(c, r, k, P3) {
+/* where the mobile's shadow falls on the grass: a small grey map the blades read their shade from */
+function a2(c, r, k, P3) {
   const [lx, ly] = P3(r.L.x, r.L.y, r.L.z, Q), [rx, ry] = P3(r.R.x, r.R.y, r.R.z, Q2);
   const [hx, hy] = P3(r.H.x, r.H.y, r.H.z, [0, 0, 1]);
   c.moveTo(lx * k, ly * k); c.quadraticCurveTo((2 * hx - (lx + rx) / 2) * k, (2 * hy - (ly + ry) / 2) * k, rx * k, ry * k);
 }
+const rodPath = a2;
 function stringPath(c, k, P3) {
   for (const cn of outer) {
     const a = cn.a, b = cn.b;
@@ -565,30 +626,23 @@ function stringPath(c, k, P3) {
 }
 const camP = (x, y, z, o) => proj(x, y, z, o);
 const wallP = (x, y, z, o) => onWall(x, y, z, o);
-
-function drawShadows() {
-  const k = SHR;
-  sctx.setTransform(1, 0, 0, 1, 0, 0);
-  sctx.fillStyle = '#fff'; sctx.fillRect(0, 0, sh.width, sh.height);
-  sctx.strokeStyle = theme.glow ? 'rgba(0,0,0,.5)' : 'rgba(70,62,52,.42)'; sctx.lineWidth = Math.max(.7, 2.4 * k);
-  sctx.beginPath(); for (const r of RODS) rodPath(sctx, r, k, wallP); stringPath(sctx, k, wallP); sctx.stroke();
+function drawMask() {
+  const k = MKR;
+  mctx.setTransform(1, 0, 0, 1, 0, 0);
+  mctx.fillStyle = '#fff'; mctx.fillRect(0, 0, mw, mh);
+  mctx.strokeStyle = 'rgba(0,0,0,.6)'; mctx.lineWidth = 1.2;
+  mctx.beginPath(); for (const r of RODS) rodPath(mctx, r, k, wallP); stringPath(mctx, k, wallP); mctx.stroke();
   for (const n of PIECES) {
     const [x, y, s] = onWall(n.Cp.x, n.Cp.y, n.Cp.z, Q);
-    // a piece further from the wall throws a larger, softer, fainter shadow
-    const gap = clamp((WALL - n.Cp.z) / WALL, .2, 2.2), soft = 1 + (gap - 1) * .12;
-    sctx.save(); sctx.translate(x * k, y * k); sctx.rotate(n.rot); sctx.scale(k * SC * s * soft, k * SC * s * soft);
-    const sx = (n.kind === 'sphere' || n.kind === 'tear') ? 1 : Math.max(.06, Math.abs(Math.cos(n.yaw)));
-    const fade = clamp(1.25 - gap * .35, .45, 1);
-    if (GLASS[n.kind]) {
-      const col = n.c1 || (n.kind === 'film' ? hueRGB(n.hue) : [200, 205, 215]);
-      sctx.fillStyle = rgba([col[0] * .78, col[1] * .78, col[2] * .78], (n.kind === 'crystal' ? .18 : .32) * fade);
-      sctx.strokeStyle = rgba([col[0] * .5, col[1] * .5, col[2] * .5], .4 * fade); sctx.lineWidth = .006;
-    } else { sctx.fillStyle = theme.glow ? `rgba(0,0,0,${.6 * fade})` : `rgba(80,68,54,${.5 * fade})`; sctx.strokeStyle = 'rgba(0,0,0,0)'; }
-    sctx.scale(sx, 1); sctx.beginPath(); outline(sctx, n); sctx.fill(); if (GLASS[n.kind]) sctx.stroke();
-    sctx.restore();
+    const gap = clamp((WALL - n.Cp.z) / WALL, .2, 2.2), soft = 1 + (gap - 1) * .1;
+    mctx.save(); mctx.translate(x * k, y * k); mctx.rotate(n.rot); mctx.scale(k * SC * s * soft, k * SC * s * soft);
+    const sx = (n.kind === 'sphere' || n.kind === 'tear') ? 1 : Math.max(.08, Math.abs(Math.cos(n.yaw)));
+    mctx.scale(sx, 1);
+    mctx.fillStyle = `rgba(0,0,0,${(GLASS[n.kind] ? (n.kind === 'crystal' ? .25 : .45) : .92) * clamp(1.2 - gap * .3, .5, 1)})`;
+    mctx.beginPath(); outline(mctx, n); mctx.fill();
+    mctx.restore();
   }
-  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(sh, 0, 0, W, H); ctx.restore();
+  MASK = mctx.getImageData(0, 0, mw, mh).data;
 }
 
 /* silhouette of a piece, in its own metres, centre of mass at the origin */
@@ -612,28 +666,50 @@ function outline(c, n) {
       c.bezierCurveTo(-w * .68, t + h * .25, -w * .55, t, 0, t); break; }
   }
 }
-function hueRGB(h) {
-  const f = n => { const k = (n + h / 30) % 12; return .62 - .3 * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
-  return [f(0) * 255, f(8) * 255, f(4) * 255];
-}
 
+/* ───────────── Drawing the mobile, in pencil ───────────── */
 function drawWires() {
-  ctx.lineCap = 'round';
-  ctx.strokeStyle = theme.wire; ctx.lineWidth = 1;
-  ctx.beginPath(); stringPath(ctx, 1, camP); ctx.stroke();
-  for (const r of RODS) {           // nearer rods read a touch thicker
-    const s = persp((r.L.z + r.R.z) / 2);
-    ctx.strokeStyle = theme.wire; ctx.lineWidth = 1.7 * s;
-    ctx.beginPath(); rodPath(ctx, r, 1, camP); ctx.stroke();
-    ctx.strokeStyle = theme.glow ? 'rgba(255,236,200,.35)' : 'rgba(255,250,240,.45)'; ctx.lineWidth = .6 * s;
-    ctx.save(); ctx.translate(0, -.6); ctx.beginPath(); rodPath(ctx, r, 1, camP); ctx.stroke(); ctx.restore();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // every line is gone over twice, a hair apart, the way a pencil line is
+  for (const [dx, dy, a, w] of [[0, 0, .9, 1], [.6, .35, .3, .8]]) {
+    ctx.save(); ctx.translate(dx, dy); ctx.globalAlpha = a; ctx.strokeStyle = WIRE;
+    ctx.lineWidth = w; ctx.beginPath(); stringPath(ctx, 1, camP); ctx.stroke();
+    for (const r of RODS) { ctx.lineWidth = 1.6 * w * persp((r.L.z + r.R.z) / 2); ctx.beginPath(); rodPath(ctx, r, 1, camP); ctx.stroke(); }
+    ctx.restore();
   }
-  ctx.strokeStyle = theme.wire; ctx.lineWidth = 1.1;
+  ctx.globalAlpha = .85; ctx.strokeStyle = WIRE; ctx.lineWidth = 1;
   ctx.beginPath();
-  for (const r of RODS) for (const p of [r.L, r.R, r.H]) { const [x, y, s] = proj(p.x, p.y, p.z, Q); ctx.moveTo(x + 1.8 * s, y); ctx.arc(x, y, 1.8 * s, 0, TAU); }
-  ctx.stroke();
+  for (const r of RODS) for (const p of [r.L, r.R]) { const [x, y, s] = proj(p.x, p.y, p.z, Q); ctx.moveTo(x + 1.7 * s, y); ctx.arc(x, y, 1.7 * s, 0, TAU); }
+  ctx.stroke(); ctx.globalAlpha = 1;
 }
-
+const COL = { brass: [214, 164, 70], oak: [208, 154, 102], crystal: [236, 240, 248] };
+/* a flat colour, shaded with pencil strokes: lighter toward the sun, a little darker away from it */
+function pencil(n, col, alpha, L, holeR, reach) {
+  ctx.beginPath(); outline(ctx, n); if (holeR) ctx.arc(0, -n.hole, holeR, 0, TAU, true);
+  ctx.fillStyle = rgba(col, alpha); ctx.fill('evenodd');
+  ctx.save(); ctx.clip('evenodd');
+  const R = reach;
+  ctx.globalAlpha = .9; ctx.drawImage(TEX.hatch, -R, -R, R * 2, R * 2); ctx.globalAlpha = 1;
+  const g = ctx.createLinearGradient(light.x * R, light.y * R, -light.x * R, -light.y * R);
+  g.addColorStop(0, `rgba(255,252,236,${.2 + L.diff * .3 + L.spec * .45})`);
+  g.addColorStop(.55, 'rgba(255,252,236,0)');
+  g.addColorStop(1, rgba(darker(col, .55), .3 * alpha));
+  ctx.fillStyle = g; ctx.fillRect(-R, -R, R * 2, R * 2);
+  ctx.restore();
+}
+function edge(n, col, px, sx) {
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = rgba(darker(col, .62), .7); ctx.lineWidth = px * 1.05 / Math.abs(sx || 1);
+  ctx.beginPath(); outline(ctx, n); ctx.stroke();
+  ctx.save(); ctx.translate(px * .7, px * .4); ctx.strokeStyle = rgba(darker(col, .62), .28); ctx.beginPath(); outline(ctx, n); ctx.stroke(); ctx.restore();
+}
+/* two or three short white strokes where the sun catches, as you would leave paper showing */
+function glints(r, L, px, k = 1) {
+  const a = Math.atan2(light.y, light.x), alpha = (.35 + L.spec * .6 + L.diff * .15) * k;
+  ctx.strokeStyle = `rgba(255,255,248,${alpha})`; ctx.lineCap = 'round';
+  ctx.lineWidth = px * 1.8; ctx.beginPath(); ctx.arc(0, 0, r * .74, a - .55, a + .05); ctx.stroke();
+  ctx.lineWidth = px * 1.3; ctx.beginPath(); ctx.arc(0, 0, r * .58, a - .25, a - .02); ctx.stroke();
+}
 function drawPiece(n) {
   const [cx, cy, ps] = proj(n.Cp.x, n.Cp.y, n.Cp.z, Q);
   n.X = cx; n.Y = cy; n.R = n.rc * SC * ps;
@@ -641,180 +717,116 @@ function drawPiece(n) {
   const cyaw = Math.cos(n.yaw), sx = Math.sign(cyaw || 1) * Math.max(.05, Math.abs(cyaw));
   ctx.save(); ctx.translate(cx, cy); ctx.rotate(n.rot);
   const s = SC * ps; ctx.scale(s, s);
-  const px = 1 / s;                                   // one screen pixel, in metres
+  const px = 1 / s;
   switch (n.kind) {
     case 'brass': {
+      const col = COL.brass;
       ctx.save(); ctx.scale(sx, 1);
-      ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .0035, 0, TAU, true);
-      const g = ctx.createLinearGradient(-n.r, -n.r, n.r, n.r);
-      g.addColorStop(0, '#E9CF84'); g.addColorStop(.45, '#C9A44C'); g.addColorStop(1, '#8E6B25');
-      ctx.fillStyle = g; ctx.fill('evenodd');
-      ctx.save(); ctx.clip('evenodd');
-      ctx.globalAlpha = .8; ctx.drawImage(TEX.brass, -n.r, -n.r, n.r * 2, n.r * 2); ctx.globalAlpha = 1;
-      // the face darkens as it turns from the light, and a band of sheen sweeps across as it turns
-      ctx.fillStyle = `rgba(40,26,4,${(1 - L.diff) * .5})`; ctx.fillRect(-n.r, -n.r, n.r * 2, n.r * 2);
-      const band = Math.sin(n.yaw * 1.6 + env.tilt) * n.r * 1.3;
-      const sg = ctx.createLinearGradient(band - n.r * .6, -n.r, band + n.r * .6, n.r), sa = .18 + L.spec * .7;
-      sg.addColorStop(0, 'rgba(255,246,214,0)'); sg.addColorStop(.5, `rgba(255,246,214,${sa})`); sg.addColorStop(1, 'rgba(255,246,214,0)');
-      ctx.fillStyle = sg; ctx.fillRect(-n.r, -n.r, n.r * 2, n.r * 2);
+      pencil(n, col, 1, L, .0035, n.r * 1.2);
+      // a band of sheen sweeps across as it turns toward the sun
+      ctx.save(); ctx.beginPath(); outline(ctx, n); ctx.clip();
+      const band = Math.sin(n.yaw * 1.6 + env.tilt) * n.r * 1.2;
+      const sg = ctx.createLinearGradient(band - n.r * .5, -n.r, band + n.r * .5, n.r);
+      sg.addColorStop(0, 'rgba(255,248,214,0)'); sg.addColorStop(.5, `rgba(255,248,214,${.12 + L.spec * .55})`); sg.addColorStop(1, 'rgba(255,248,214,0)');
+      ctx.fillStyle = sg; ctx.fillRect(-n.r, -n.r, n.r * 2, n.r * 2); ctx.restore();
+      edge(n, col, px, sx);
       ctx.restore();
-      ctx.strokeStyle = 'rgba(110,80,24,.7)'; ctx.lineWidth = px * 1.1 / Math.abs(sx); ctx.beginPath(); outline(ctx, n); ctx.stroke();
-      ctx.restore();
-      if (Math.abs(cyaw) < .2) { ctx.strokeStyle = '#B48E3C'; ctx.lineWidth = px * 2; ctx.beginPath(); ctx.moveTo(0, -n.r); ctx.lineTo(0, n.r); ctx.stroke(); }
+      if (Math.abs(cyaw) < .2) { ctx.strokeStyle = rgba(darker(col, .7), .9); ctx.lineWidth = px * 2; ctx.beginPath(); ctx.moveTo(0, -n.r); ctx.lineTo(0, n.r); ctx.stroke(); }
       break;
     }
     case 'glass': {
       ctx.save(); ctx.scale(sx, 1);
-      ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .0032, 0, TAU, true);
-      const a = .5 + .2 * theme.glow, g = ctx.createLinearGradient(0, -n.r, 0, n.r);
-      g.addColorStop(0, rgba(n.c2, a * .85)); g.addColorStop(1, rgba(n.c1, a));
-      ctx.fillStyle = g; ctx.fill('evenodd');
-      // a fire-polished edge is thicker, so it reads deeper in colour
-      ctx.strokeStyle = rgba(n.rim, .55); ctx.lineWidth = n.r * .14;
-      ctx.beginPath(); ctx.arc(0, 0, n.r * .93, 0, TAU); ctx.stroke();
-      ctx.strokeStyle = rgba(n.rim, .8); ctx.lineWidth = px * 1.1 / Math.abs(sx);
-      ctx.beginPath(); outline(ctx, n); ctx.stroke();
-      specBlob(n.r, L, n);
+      pencil(n, n.c1, .62, L, .0032, n.r * 1.2);
+      ctx.strokeStyle = rgba(n.rim, .32); ctx.lineWidth = n.r * .1;    // the thicker rim reads deeper
+      ctx.beginPath(); ctx.arc(0, 0, n.r * .94, 0, TAU); ctx.stroke();
+      edge(n, n.rim, px, sx);
+      glints(n.r, L, px / Math.abs(sx));
       ctx.restore();
-      if (Math.abs(cyaw) < .22) { ctx.strokeStyle = rgba(n.rim, .9); ctx.lineWidth = px * 2.4; ctx.beginPath(); ctx.moveTo(0, -n.r); ctx.lineTo(0, n.r); ctx.stroke(); }
+      if (Math.abs(cyaw) < .22) { ctx.strokeStyle = rgba(n.rim, .9); ctx.lineWidth = px * 2.2; ctx.beginPath(); ctx.moveTo(0, -n.r); ctx.lineTo(0, n.r); ctx.stroke(); }
       break;
     }
     case 'film': {
-      // thin-film colour: the hue slides as the angle to the light changes
-      n.hue = ((200 + n.yaw * 95 + env.tilt * 60 + L.diff * 40) % 360 + 360) % 360;
+      n.hue = ((330 + n.yaw * 80 + env.tilt * 50 + L.diff * 30) % 360 + 360) % 360;
       ctx.save(); ctx.scale(sx, 1);
       ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .0028, 0, TAU, true);
       const g = ctx.createLinearGradient(-n.rx, -n.ry, n.rx, n.ry), h = n.hue;
-      g.addColorStop(0, `hsla(${h},70%,64%,.55)`); g.addColorStop(.5, `hsla(${(h + 70) % 360},75%,70%,.5)`); g.addColorStop(1, `hsla(${(h + 150) % 360},65%,58%,.6)`);
+      g.addColorStop(0, `hsla(${h},62%,80%,.7)`); g.addColorStop(.5, `hsla(${(h + 60) % 360},60%,84%,.65)`); g.addColorStop(1, `hsla(${(h + 130) % 360},55%,76%,.7)`);
       ctx.fillStyle = g; ctx.fill('evenodd');
-      ctx.save(); ctx.clip('evenodd'); ctx.globalAlpha = .7; ctx.drawImage(TEX.film, -n.rx, -n.ry, n.rx * 2, n.ry * 2); ctx.restore();
-      ctx.strokeStyle = `hsla(${(h + 40) % 360},60%,40%,.6)`; ctx.lineWidth = px / Math.abs(sx); ctx.beginPath(); outline(ctx, n); ctx.stroke();
-      specBlob(n.ry, L, n);
+      ctx.save(); ctx.clip('evenodd'); ctx.drawImage(TEX.hatch, -n.rx, -n.rx, n.rx * 2, n.rx * 2); ctx.globalAlpha = .8; ctx.drawImage(TEX.film, -n.rx, -n.ry, n.rx * 2, n.ry * 2); ctx.restore();
+      edge(n, [150, 120, 170], px, sx);
+      glints(n.ry, L, px / Math.abs(sx), .8);
       ctx.restore();
       break;
     }
     case 'sphere': {
       const r = n.r;
-      const g = ctx.createRadialGradient(-r * .25, -r * .3, r * .1, 0, 0, r);
-      g.addColorStop(0, rgba(n.c2, .18 + .1 * theme.glow)); g.addColorStop(.75, rgba(n.c1, .38 + .1 * theme.glow)); g.addColorStop(1, rgba(n.rim, .7));
-      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fillStyle = g; ctx.fill();
+      pencil(n, n.c1, .55, L, 0, r * 1.2);
       ctx.save(); ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.clip(); ctx.rotate(.35);
-      for (let i = 0; i < 9; i++) {                 // swirled ribs, turning with the globe
-        const ph = i / 9 * Math.PI + n.yaw, sxr = Math.cos(ph);
+      for (let i = 0; i < 7; i++) {                 // swirled ribs, turning with the globe
+        const ph = i / 7 * Math.PI + n.yaw, sxr = Math.cos(ph);
         if (sxr < 0) continue;
-        ctx.strokeStyle = rgba(n.rim, .12 + sxr * .22); ctx.lineWidth = px * 1.4;
+        ctx.strokeStyle = rgba(n.rim, .1 + sxr * .25); ctx.lineWidth = px * 1.2;
         ctx.beginPath(); ctx.ellipse(0, 0, Math.abs(Math.sin(ph)) * r * 1.05 + px, r * 1.1, 0, 0, TAU); ctx.stroke();
       }
       ctx.restore();
-      ctx.strokeStyle = rgba(n.rim, .75); ctx.lineWidth = px * 1.1; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
-      const hx = light.x * r * .55, hy = light.y * r * .55;   // the window, reflected
-      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.beginPath(); ctx.ellipse(hx, hy, r * .16, r * .09, -.6, 0, TAU); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(-hx * .9, -hy * .9, r * .09, r * .05, -.6, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#B9974A'; ctx.fillRect(-r * .16, -r - .004, r * .32, .006);
+      edge(n, n.rim, px, 1);
+      glints(r, L, px, 1.1);
+      ctx.fillStyle = rgba(COL.brass, 1); ctx.fillRect(-r * .15, -r - .004, r * .3, .006);
       break;
     }
     case 'tear': {
-      ctx.beginPath(); outline(ctx, n);
-      const g = ctx.createLinearGradient(-n.w, 0, n.w, 0);
-      const a = .45 + .12 * theme.glow, edge = rgba(n.rim, a + .2);
-      g.addColorStop(0, edge); g.addColorStop(.35, rgba(n.c2, a * .55)); g.addColorStop(.65, rgba(n.c1, a * .6)); g.addColorStop(1, edge);
-      ctx.fillStyle = g; ctx.fill();
-      ctx.strokeStyle = rgba(n.rim, .8); ctx.lineWidth = px * 1.1; ctx.stroke();
-      const hx = Math.sin(n.yaw) * n.w * .45 - n.w * .35;
-      ctx.fillStyle = `rgba(255,255,255,${.4 + L.spec * .5})`;
-      ctx.beginPath(); ctx.ellipse(hx, n.h * .05, n.w * .1, n.h * .22, 0, 0, TAU); ctx.fill();
+      pencil(n, n.c1, .6, L, 0, n.h * .7);
+      edge(n, n.rim, px, 1);
+      const hx = Math.sin(n.yaw) * n.w * .4 - n.w * .35;
+      ctx.strokeStyle = `rgba(255,255,248,${.45 + L.spec * .5})`; ctx.lineWidth = px * 1.8; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(hx, -n.h * .05); ctx.quadraticCurveTo(hx - n.w * .1, n.h * .12, hx + n.w * .05, n.h * .3); ctx.stroke();
       break;
     }
     case 'crystal': {
-      ctx.beginPath(); outline(ctx, n);
-      ctx.fillStyle = theme.glow ? 'rgba(220,228,240,.22)' : 'rgba(225,232,240,.4)'; ctx.fill();
-      ctx.strokeStyle = 'rgba(120,130,145,.8)'; ctx.lineWidth = px * 1.1; ctx.stroke();
-      // facets light up one after another as it turns
+      pencil(n, COL.crystal, .45, L, 0, n.h * .7);
       const w = n.w, h = n.h, t = -h * .55, b = w * .55, by = t + b, top = by + b + h * .04;
       const facets = [
         [[0, top], [w * .45, top], [w * .62, t + h * .78], [0, t + h * .6]],
         [[0, top], [-w * .45, top], [-w * .62, t + h * .78], [0, t + h * .6]],
         [[0, t + h * .6], [w * .62, t + h * .78], [0, t + h]],
         [[0, t + h * .6], [-w * .62, t + h * .78], [0, t + h]],
-        [[0, by], [b, by], [b * .7, by - b * .7]],
-        [[0, by], [-b, by], [-b * .7, by + b * .7]],
       ];
-      let best = 0;
-      facets.forEach((f, i) => {
-        const fl = Math.pow(Math.max(0, Math.cos(n.yaw * 2 + i * 1.3 + env.tilt * 2)), 14); best = Math.max(best, fl);
+      facets.forEach((f, i) => {                   // facets catch the sun one after another as it turns
+        const fl = Math.pow(Math.max(0, Math.cos(n.yaw * 2 + i * 1.3 + env.tilt * 2)), 10);
         ctx.beginPath(); f.forEach(([x, y], j) => ctx[j ? 'lineTo' : 'moveTo'](x, y)); ctx.closePath();
-        ctx.fillStyle = `rgba(255,255,255,${.06 + fl * .85})`; ctx.fill();
-        if (fl > .5) { ctx.strokeStyle = `hsla(${(i * 60 + n.yaw * 90) % 360},80%,70%,${fl * .3})`; ctx.lineWidth = px; ctx.stroke(); }
+        ctx.fillStyle = `rgba(255,255,250,${fl * .75})`; ctx.fill();
+        ctx.strokeStyle = 'rgba(110,120,150,.35)'; ctx.lineWidth = px * .8; ctx.stroke();
       });
-      n.sparkle = best;
+      edge(n, [120, 130, 160], px, 1);
       break;
     }
     case 'oak': {
+      const col = COL.oak;
       ctx.save(); ctx.scale(sx, 1);
-      ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .003, 0, TAU, true);
-      const g = ctx.createLinearGradient(-n.w, -n.h / 2, n.w, n.h / 2);
-      g.addColorStop(0, '#E4BC8C'); g.addColorStop(1, '#B98653');
-      ctx.fillStyle = g; ctx.fill('evenodd');
-      ctx.save(); ctx.clip('evenodd'); ctx.globalAlpha = .9; ctx.drawImage(TEX.oak, -n.w, -n.h / 2, n.w * 2, n.h);
-      ctx.globalAlpha = 1; ctx.fillStyle = `rgba(60,34,10,${(1 - L.diff) * .35})`; ctx.fillRect(-n.w, -n.h / 2, n.w * 2, n.h); ctx.restore();
-      ctx.strokeStyle = 'rgba(120,80,40,.6)'; ctx.lineWidth = px / Math.abs(sx); ctx.beginPath(); outline(ctx, n); ctx.stroke();
+      pencil(n, col, 1, L, .003, n.h * .6);
+      ctx.save(); ctx.beginPath(); outline(ctx, n); ctx.clip(); ctx.globalAlpha = .8; ctx.drawImage(TEX.oak, -n.w, -n.h / 2, n.w * 2, n.h); ctx.restore();
+      edge(n, col, px, sx);
       ctx.restore();
       break;
     }
   }
-  ctx.strokeStyle = theme.wire; ctx.lineWidth = px * 1.1;          // the loop of wire through the hole
+  ctx.strokeStyle = WIRE; ctx.globalAlpha = .85; ctx.lineWidth = px;    // the loop of wire through the hole
   ctx.beginPath(); ctx.ellipse(0, -n.hole, .0035 * Math.max(.3, Math.abs(cyaw)), .006, 0, 0, TAU); ctx.stroke();
-  if (n.flash > .05) {                                              // a struck piece shimmers for a moment
-    ctx.globalAlpha = n.flash * .45; ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(0, 0, n.rc * .5, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
-  }
-  ctx.restore();
-}
-function specBlob(r, L, n) {
-  const a = .12 + L.spec * .8, x = light.x * r * .45, y = light.y * r * .45;
-  const g = ctx.createRadialGradient(x, y, 0, x, y, r * .75);
-  g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g; ctx.beginPath(); outline(ctx, n); ctx.fill();
-}
-
-/* light through glass lands on the wall: soft coloured pools, and from the crystal and film, flecks of spectrum */
-function drawCaustics() {
-  ctx.save(); ctx.globalCompositeOperation = theme.glow ? 'lighter' : 'screen';
-  for (const n of PIECES) {
-    if (!GLASS[n.kind]) continue;
-    const [x, y, s] = onWall(n.Cp.x, n.Cp.y, n.Cp.z, Q), r = n.rc * SC * s;
-    const [cx, cy] = proj(n.Cp.x, n.Cp.y, n.Cp.z, Q2), ox = x - cx, oy = y - cy;
-    if (n.kind !== 'crystal' && n.kind !== 'film') {
-      const a = (theme.glow ? .2 : .32) * (.5 + .5 * Math.abs(Math.cos(n.yaw)));
-      const g = ctx.createRadialGradient(x - ox * .15, y - oy * .15, 0, x, y, r * .7);
-      g.addColorStop(0, rgba([255, 255, 250], a)); g.addColorStop(.5, rgba(n.c2, a * .5)); g.addColorStop(1, rgba(n.c2, 0));
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * .7, 0, TAU); ctx.fill();
-      continue;
-    }
-    const k = n.kind === 'crystal' ? n.sparkle : Math.pow(Math.abs(Math.sin(n.yaw)), 3) * .6;
-    if (k < .03) continue;
-    const ang = n.yaw * 1.7 + env.tilt * 2, spread = r * (1.6 + Math.sin(n.yaw) * .8);
-    for (let i = 0; i < 7; i++) {
-      const t = i / 6 - .5, qx = x + Math.cos(ang) * spread * t + ox * .6, qy = y + Math.sin(ang) * spread * t + oy * .4, qr = 4 + r * .12;
-      const g = ctx.createRadialGradient(qx, qy, 0, qx, qy, qr);
-      g.addColorStop(0, `hsla(${i * 50},95%,65%,${k * (theme.glow ? .7 : .55)})`); g.addColorStop(1, `hsla(${i * 50},95%,65%,0)`);
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(qx, qy, qr, 0, TAU); ctx.fill();
-    }
-  }
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 
+let frameDt = 1 / 60;
 function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   updateLight();
   for (const n of PIECES) {
-    // the piece's lean in the picture, from its hole to its centre as the camera sees them
     const [ax, ay] = proj(n.S.x, n.S.y, n.S.z, Q), [bx, by] = proj(n.Cp.x, n.Cp.y, n.Cp.z, Q2);
     n.rot = Math.atan2(by - ay, bx - ax) - Math.PI / 2;
   }
-  drawWall();
-  drawShadows();
-  drawCaustics();
+  drawMask();
+  updateGrass(frameDt);
+  drawGrass();
   drawWires();
   const order = PIECES.slice().sort((a, b) => b.Cp.z - a.Cp.z);   // far to near
   for (const n of order) drawPiece(n);
@@ -917,14 +929,12 @@ function hang() {
   env.air = keep; env.t = t;
   REST = bounds();
 }
-hang(); readTheme(); resize(); grain();
+hang(); resize(); grain();
 addEventListener('resize', () => { hang(); resize(); });
-try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme); } catch (e) {}
-new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 let last = performance.now(), acc = 0;
 function frame(now) {
-  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  const dt = Math.min(.05, (now - last) / 1000); last = now; frameDt = dt || 1 / 60;
   // a LERP of 0.05 per frame takes the jitter out of the sensor (or the mouse)
   env.tilt = lerp(env.tilt, env.tiltTarget, .05);
   env.lean = lerp(env.lean, env.leanTarget, .05);
