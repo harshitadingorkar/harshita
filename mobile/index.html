@@ -7,9 +7,9 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="A hanging mobile of brass, oak and blown glass that sways with your phone, turns over when you hover it, and rings when its pieces touch.">
 <style>
-/* Layout: one full-bleed meadow, drawn in coloured pencil. Two small controls sit in the bottom-right corner and fade when you are not using them. One look only: a sunny day. */
+/* Layout: one full-bleed meadow, drawn in WebGL as Gaussian splats. Two small controls sit in the bottom-right corner and fade when you are not using them. One look only: a sunny day. */
 :root{
-  --grass:#7FAE4C; --ink:#2B3150; --ink3:rgba(43,49,80,.35); --hair:rgba(43,49,80,.16);
+  --grass:#C9D8D0; --ink:#2B3150; --ink3:rgba(43,49,80,.35); --hair:rgba(43,49,80,.16);
   --chip:rgba(250,249,236,.78); --pink:#E58FA6; color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -19,7 +19,6 @@ body{background:var(--grass);color:var(--ink);overflow:hidden;
 canvas#room{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 canvas#room.grab{cursor:grab}
 canvas#room.grabbing{cursor:grabbing}
-#grain{position:fixed;inset:0;pointer-events:none;opacity:.16;mix-blend-mode:multiply}
 .controls{position:fixed;z-index:2;display:flex;gap:8px;
   right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
   transition:opacity .8s ease}
@@ -40,7 +39,6 @@ canvas#room.grabbing{cursor:grabbing}
 </head>
 <body>
 <canvas id="room" role="img" aria-label="A hanging mobile of brass, oak and glass. Tilt your device, or move the pointer, to sway it. Tap a piece to ring it; drag to swing it."></canvas>
-<div id="grain" aria-hidden="true"></div>
 
 <div class="controls" id="controls">
   <button id="b-air" type="button" aria-label="Air in the room: draft. Change it.">
@@ -197,7 +195,9 @@ function windAt(x, y, z, out) {
   const n1 = noise3(x * 2.2 + t * .25, y * 2.2, z * 2.2 + t * .18);
   const n2 = noise3(x * 2.2 + 40, y * 2.2 - t * .2, z * 2.2 + t * .18 + 9);
   const n3 = noise3(x * 2.2 - 17, y * 2.2 + 5, z * 2.2 + t * .22 + 31);
-  out.x = lvl * g * (base * .6 + n1 * .9);
+  // the same travelling waves the grass bends to, so a gust crosses the meadow and then reaches the mobile
+  const X = x, Z = -z, wave = .55 * Math.sin(X * 1.3 - t * 1.7 + Math.sin(Z * .8 + t * .3) * 1.5) + .3 * Math.sin(X * 2.9 + Z * 1.7 - t * 2.6) + .15 * Math.sin(X * 5.3 - Z * 3.1 - t * 3.9);
+  out.x = lvl * g * (.65 + .55 * wave + n1 * .3);
   out.y = lvl * g * n2 * .35;
   out.z = lvl * g * (n3 * .9 + base * .2);
   const p = env.pointer;                                       // a hand moving through the air
@@ -427,225 +427,237 @@ async function askMotion() {
   } catch (e) {}
 }
 
-/* ───────────── Camera and the meadow ─────────────
-   You look at the mobile from FOCAL metres away. Behind it a meadow slopes up and away; its shadows
-   land on the grass WALL metres behind the mobile. Everything is drawn the way coloured pencil
-   would draw it: grass as thousands of single strokes, shadows as strokes that turn blue. */
-const cv = document.getElementById('room'), ctx = cv.getContext('2d');
-const mk = document.createElement('canvas'), mctx = mk.getContext('2d', { willReadFrequently: true });  // where the shadows fall
-const ub = document.createElement('canvas'), uctx = ub.getContext('2d');                              // the soft underpainting
-const MKR = .2, UBR = .1, FOCAL = 1.9, WALL = .12;
-const WIRE = '#2B3150';
-let W = 0, H = 0, DPR = 1, SC = 400, OX = 0, OY = 0, YC = .4, REST, MASK = null, mw = 1, mh = 1;
+/* ───────────── The scene, drawn as Gaussian splats ─────────────
+   Everything you see is a soft 3D ellipse (a Gaussian splat) drawn with WebGL: the meadow is long
+   thin ones for blades and wide flat ones for the ground, the hills and clouds are big hazy ones,
+   and the mobile's pieces are made of small ones packed into their shapes. Each splat is projected
+   to the screen as a 2D Gaussian (the 3DGS projection: J·W·Σ·Wᵀ·Jᵀ) and blended back to front.
+
+   World space here is y-up, metres. The physics works in (x right, y down, z away from you);
+   a physics point (x, y, z) sits at (x, TOP - y, -z), where TOP is the anchor's height above the grass. */
+const WALL = .5;                         // the physics keeps pieces this far in front of the meadow
+const cv = document.getElementById('room');
+const gl = cv.getContext('webgl2', { antialias: false, premultipliedAlpha: true, alpha: false, powerPreference: 'high-performance' });
+let W = 0, H = 0, DPR = 1, REST, TOP = 1.5;
+const SUN = (() => { const v = [-.45, .55, .7], m = Math.hypot(...v); return v.map(c => c / m); })();   // toward the sun
+const hexf = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
+const PAL = {
+  grass: ['#4D7752', '#658854', '#7F9B5B', '#9AAD64', '#B1BB71', '#C2C781'].map(hexf),
+  tips: ['#D6DB9A', '#E6E6B4', '#C9D48A'].map(hexf),
+  ground: ['#4A6B47', '#56784C', '#61804F'].map(hexf),
+  hills: ['#7E9C8C', '#8FA99A', '#9FB4A6', '#6F8E80'].map(hexf),
+  flowers: ['#F1B9C6', '#F7F2E4', '#F3DD8C', '#E9A3B6'].map(hexf),
+  cloud: hexf('#F6F2E8'), fog: hexf('#D2DEDB'), skyTop: hexf('#86AEDB'), skyLow: hexf('#DCE7E6'),
+  wire: hexf('#2B3150'),
+};
+const toG = (x, y, z) => [x, TOP - y, -z];
 function bounds() {
   let minX = 0, maxX = 0, maxY = 0;
   for (const n of PIECES) { const r = n.rc + .01; minX = Math.min(minX, n.Cp.x - r); maxX = Math.max(maxX, n.Cp.x + r); maxY = Math.max(maxY, n.Cp.y + r * 1.4); }
   for (const r of RODS) { minX = Math.min(minX, r.L.x, r.R.x); maxX = Math.max(maxX, r.L.x, r.R.x); }
   return { minX, maxX, maxY };
 }
-function resize() {
-  DPR = Math.min(devicePixelRatio || 1, 1.5);   // pencil strokes stay soft at 1.5x, and the phone keeps its frame rate
-  W = innerWidth; H = innerHeight;
-  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-  mw = mk.width = Math.max(1, Math.round(W * MKR)); mh = mk.height = Math.max(1, Math.round(H * MKR));
-  ub.width = Math.max(2, Math.ceil(W * UBR)); ub.height = Math.max(2, Math.ceil(H * UBR));
-  const b = REST, half = Math.max(-b.minX, b.maxX), bottom = 72;
-  SC = Math.min((W - 24) / (half * 2 * 1.08), (H - bottom) / (b.maxY * 1.06));
-  YC = b.maxY * .55;
-  OX = W / 2; OY = Math.max(W < 560 ? 40 : 0, (H - bottom - b.maxY * SC) * .32);
-  makeTextures(); sowGrass();
-}
-// perspective: nearer things (z < 0) are larger, and everything converges toward the middle of the mobile
-const persp = z => FOCAL / (FOCAL + z);
-function proj(x, y, z, out) { const s = persp(z); out[0] = OX + x * s * SC; out[1] = OY + (YC + (y - YC) * s) * SC; out[2] = s; return out; }
-const Q = [0, 0, 1], Q2 = [0, 0, 1];
-function onWall(x, y, z, out) { const t = (WALL - z) / LD.z; return proj(x + LD.x * t, y + LD.y * t, WALL, out); }
-function screenToGround(sx, sy) { const s = persp(WALL); return [(sx - OX) / (SC * s), YC + ((sy - OY) / SC - YC) / s]; }
 
-/* pencil surfaces: hatching for every piece, oak grain, the pressed lines of the film */
-const TEX = {};
-function texCanvas(s) { const c = document.createElement('canvas'); c.width = c.height = s; return c; }
-function makeTextures() {
-  if (TEX.hatch) return;
-  const s = 192;
-  let c = texCanvas(s), x = c.getContext('2d');
-  x.lineCap = 'round';
-  for (let i = 0; i < 1500; i++) {                // short pencil strokes, mostly one direction, like a hand shading
-    const a = -.62 + (Math.random() - .5) * .3, len = 4 + Math.random() * 10, x0 = Math.random() * s, y0 = Math.random() * s;
-    x.strokeStyle = Math.random() < .55 ? `rgba(255,252,236,${.06 + Math.random() * .16})` : `rgba(48,36,40,${.04 + Math.random() * .12})`;
-    x.lineWidth = .5 + Math.random() * .7;
-    x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + Math.cos(a) * len, y0 + Math.sin(a) * len); x.stroke();
-  }
-  TEX.hatch = c;
-  c = texCanvas(s); x = c.getContext('2d');
-  for (let i = 0; i < 46; i++) {
-    const x0 = Math.random() * s; x.strokeStyle = `rgba(120,76,40,${.08 + Math.random() * .16})`; x.lineWidth = .6 + Math.random() * 1.1;
-    x.beginPath(); for (let y = -10; y <= s + 10; y += 8) x.lineTo(x0 + Math.sin(y * .03 + i) * 3 + noise3(i, y * .02, 1) * 5, y); x.stroke();
-  }
-  TEX.oak = c;
-  c = texCanvas(s); x = c.getContext('2d');
-  for (let i = 0; i < 90; i++) {
-    const y0 = Math.random() * s; x.strokeStyle = `rgba(255,255,255,${.08 + Math.random() * .2})`; x.lineWidth = .5;
-    x.beginPath(); for (let xx = -10; xx <= s + 10; xx += 6) x.lineTo(xx, y0 + Math.sin(xx * .05 + i * .7) * 5 + noise3(i * .3, xx * .03, 2) * 6); x.stroke();
-  }
-  TEX.film = c;
+/* ---------- small matrix helpers ---------- */
+function perspective(fovy, aspect, near, far) {
+  const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+  return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0]);
 }
-function grain() {
-  // paper tooth: fine noise with a few longer fibres
-  const N = 200, c = texCanvas(N), x = c.getContext('2d'), d = x.createImageData(N, N);
-  for (let i = 0; i < d.data.length; i += 4) { const v = 150 + Math.random() * 105; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
-  x.putImageData(d, 0, 0);
-  x.strokeStyle = 'rgba(120,110,100,.25)'; x.lineWidth = .5;
-  for (let i = 0; i < 40; i++) { const x0 = Math.random() * N, y0 = Math.random() * N, a = Math.random() * TAU; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + Math.cos(a) * 9, y0 + Math.sin(a) * 9); x.stroke(); }
-  document.getElementById('grain').style.backgroundImage = `url(${c.toDataURL()})`;
+function lookAt(e, c, up) {
+  let zx = e[0] - c[0], zy = e[1] - c[1], zz = e[2] - c[2]; let l = Math.hypot(zx, zy, zz); zx /= l; zy /= l; zz /= l;
+  let xx = up[1] * zz - up[2] * zy, xy = up[2] * zx - up[0] * zz, xz = up[0] * zy - up[1] * zx; l = Math.hypot(xx, xy, xz); xx /= l; xy /= l; xz /= l;
+  const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+  return new Float32Array([xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0, -(xx * e[0] + xy * e[1] + xz * e[2]), -(yx * e[0] + yy * e[1] + yz * e[2]), -(zx * e[0] + zy * e[1] + zz * e[2]), 1]);
+}
+const cam = { pos: [0, 1.6, 3], target: [0, 1, 0], fov: 38 * Math.PI / 180, view: null, proj: null, fx: 1, fy: 1 };
+function toView(p) { const v = cam.view; return [v[0] * p[0] + v[4] * p[1] + v[8] * p[2] + v[12], v[1] * p[0] + v[5] * p[1] + v[9] * p[2] + v[13], v[2] * p[0] + v[6] * p[1] + v[10] * p[2] + v[14]]; }
+function toScreen(p) { const v = toView(p); return [W / 2 + cam.fx * v[0] / -v[2], H / 2 - cam.fy * v[1] / -v[2], -v[2]]; }
+function rayAt(sx, sy) {   // a ray from the eye through a point on screen, in world space
+  const vx = (sx - W / 2) / cam.fx, vy = -(sy - H / 2) / cam.fy, v = cam.view;
+  const d = [v[0] * vx + v[1] * vy - v[2], v[4] * vx + v[5] * vy - v[6], v[8] * vx + v[9] * vy - v[10]];
+  const m = Math.hypot(...d); return [d[0] / m, d[1] / m, d[2] / m];
+}
+function placeCamera() {
+  const b = REST, half = Math.max(-b.minX, b.maxX) * 1.06 + .04, h = b.maxY * 1.06 + .08, aspect = W / H, t = Math.tan(cam.fov / 2);
+  const d = Math.max((h / 2) / t, half / (t * aspect)) + .25, pitch = .3;   // looking down enough to see the grass beneath it
+  TOP = b.maxY + .45;           // the lowest pieces hang just above the tops of the grass
+  cam.target = [0, TOP - b.maxY * .52, 0]; cam.pitch = pitch;
+  cam.pos = [0, cam.target[1] + Math.sin(pitch) * d, Math.cos(pitch) * d];
+  cam.view = lookAt(cam.pos, cam.target, [0, 1, 0]);
+  cam.proj = perspective(cam.fov, aspect, .05, 200);
+  cam.fy = (H / 2) / t; cam.fx = cam.fy;
 }
 
-/* ───────────── Light ─────────────
-   light: direction toward the sun, in view space (z toward you), used for shading.
-   LD: the direction sunlight travels in the world (z toward the meadow), used for shadows.
-   The sun stays put, so tilting the phone moves it across the pieces. */
-const light = { x: -.36, y: -.5, z: .79 }, LD = { x: .36, y: .5, z: .79 };
-function updateLight() {
-  const lx = -.36 - Math.sin(env.tilt) * .8, ly = -.5 - env.lean * .5, lz = .86;
-  const m = Math.hypot(lx, ly, lz); light.x = lx / m; light.y = ly / m; light.z = lz / m;
-  LD.x = -light.x; LD.y = -light.y; LD.z = light.z;
+/* ---------- shaders ---------- */
+const VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 quad;
+layout(location=1) in vec3 c;
+layout(location=2) in vec3 a1;
+layout(location=3) in vec3 a2;
+layout(location=4) in vec3 a3;
+layout(location=5) in vec4 col;
+layout(location=6) in vec4 ex;   // x: how much wind bends it (its height), y: phase, z: kind (0 grass, 1 ground, 2 mobile, 3 sky), w: sheen
+uniform mat4 view, proj;
+uniform vec2 vp;
+uniform float t, lvl, gust, focal;
+uniform vec4 ptr;                // pointer on the grass (x, z) and the push it gives (vx, vz)
+uniform sampler2D shadow;
+uniform vec4 shRect;
+uniform vec3 fogCol, shadeCol;
+out vec4 vCol;
+out vec2 vUV;
+float wave(vec2 p, float t) {
+  return .55 * sin(p.x * 1.3 - t * 1.7 + sin(p.y * .8 + t * .3) * 1.5) + .3 * sin(p.x * 2.9 + p.y * 1.7 - t * 2.6) + .15 * sin(p.x * 5.3 - p.y * 3.1 - t * 3.9);
 }
-function faceLight(yaw, rot) {
-  const nx0 = Math.sin(yaw), nz = Math.cos(yaw);
-  const nx = nx0 * Math.cos(rot), ny = nx0 * Math.sin(rot);
-  const s = nz >= 0 ? 1 : -1;
-  const diff = Math.max(0, s * (nx * light.x + ny * light.y + nz * light.z));
-  let hx = light.x, hy = light.y, hz = light.z + 1; const hm = Math.hypot(hx, hy, hz); hx /= hm; hy /= hm; hz /= hm;
-  const spec = Math.pow(Math.max(0, s * (nx * hx + ny * hy + nz * hz)), 40);
-  return { diff, spec };
-}
-const rgba = (c, a) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
-const darker = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
-const GLASS = { glass: 1, tear: 1, sphere: 1, crystal: 1, film: 1 };
+void main() {
+  vec3 C = c, A1 = a1;
+  vec4 k = col;
+  if (ex.x > 0.) {
+    // the wind travels across the meadow in waves; the taller the blade, the further it lies over
+    float w = lvl * gust * (.65 + .55 * wave(C.xz, t));
+    vec2 d = C.xz - ptr.xy; float f = max(0., 1. - length(d) / .6);
+    vec2 push = ptr.zw * f * f;
+    float bend = w * 2.4 + push.x * .9 + sin(t * 1.6 + ex.y) * .05 + .12;
+    float bz = push.y * .9 + sin(t * 1.1 + ex.y * 1.7) * .03;
+    C.x += bend * ex.x * .5; C.z += bz * ex.x * .5; C.y -= (abs(bend) + abs(bz)) * ex.x * .12;
+    float L = length(a1); A1 += vec3(bend * L * .8, 0., bz * L * .8);
+    k.rgb *= 1. + clamp(bend - .18, 0., 1.) * .45 * ex.w;   // grass laid over shows its paler side to the sun
+  }
+  if (ex.z < 1.5) {
+    // shade on the grass: the mobile's shadow, and slow cloud shadows
+    vec2 uv = (C.xz - shRect.xy) * shRect.zw;
+    float s = (uv.x > 0. && uv.x < 1. && uv.y > 0. && uv.y < 1.) ? texture(shadow, uv).r : 0.;
+    float cl = smoothstep(.25, .75, .5 + .5 * sin(C.x * .32 - t * .05 + sin(C.z * .41) * 1.4) * sin(C.z * .23 + .7 + t * .018));
+    float sh = max(s, cl * .32);
+    k.rgb = mix(k.rgb, k.rgb * shadeCol, min(1., sh * 1.1));
+  }
+  vec4 v = view * vec4(C, 1.);
+  if (v.z > -.06) { gl_Position = vec4(0., 0., 2., 1.); return; }
+  float dist = -v.z;
+  if (ex.z < 2.5) k.rgb = mix(k.rgb, fogCol, clamp(1. - exp(-dist * .028), 0., .7));
+  else if (ex.z > 2.5) k.rgb = mix(k.rgb, fogCol, .25);
+  // project the 3D Gaussian to a 2D one on screen
+  mat3 Wm = mat3(view);
+  mat3 Av = Wm * mat3(A1, a2, a3);
+  mat3 S = Av * transpose(Av);
+  float z = v.z;
+  mat3 J = mat3(focal / -z, 0., 0.,   0., focal / -z, 0.,   focal * v.x / (z * z), focal * v.y / (z * z), 0.);
+  mat3 cov = J * S * transpose(J);
+  float a = cov[0][0] + .3, b = cov[0][1], d = cov[1][1] + .3;
+  float mid = .5 * (a + d), rad = sqrt(max(.25 * (a - d) * (a - d) + b * b, 1e-8));
+  float l1 = min(mid + rad, 40000.), l2 = max(mid - rad, .1);
+  vec2 e1 = abs(b) < 1e-6 ? (a >= d ? vec2(1., 0.) : vec2(0., 1.)) : normalize(vec2(b, l1 - a));
+  vec2 e2 = vec2(-e1.y, e1.x);
+  vec2 off = (quad.x * e1 * sqrt(l1) + quad.y * e2 * sqrt(l2)) * 2.6;
+  vec4 clip = proj * v;
+  clip.xy += off / vp * 2. * clip.w;
+  gl_Position = clip;
+  vUV = quad * 2.6;
+  vCol = k;
+}`;
+const FS = `#version 300 es
+precision mediump float;
+in vec4 vCol; in vec2 vUV;
+out vec4 o;
+void main() {
+  float a = vCol.a * exp(-.5 * dot(vUV, vUV));
+  if (a < .004) discard;
+  o = vec4(vCol.rgb * a, a);
+}`;
+const SKY_VS = `#version 300 es
+layout(location=0) in vec2 quad; out vec2 p; void main() { p = quad; gl_Position = vec4(quad, .999, 1.); }`;
+const SKY_FS = `#version 300 es
+precision mediump float; in vec2 p; uniform vec3 top, low; uniform float horizon; out vec4 o;
+void main() { float h = clamp((p.y - horizon) / (1. - horizon), 0., 1.); o = vec4(mix(low, top, pow(h, .8)), 1.); }`;
 
-/* ───────────── The meadow ─────────────
-   Two pencils' worth of colour: a sunlit ramp from deep grass to the near-white of bent blades
-   catching light, and a shadow ramp of blues. A blade in shadow is drawn from the blue ramp, so a
-   shadow is made of grass, with a ragged edge that moves as the blades move. */
-const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-const SUN = ['#2F6534', '#3B7737', '#4C8A3D', '#629E43', '#80B24C', '#A2C55A', '#C2D66C', '#DCE48E', '#EDEEBE', '#F8F8E6'];
-const SHADE = ['#1E3D8A', '#24489C', '#2C55AE', '#3864BA', '#4C78C5', '#6890CF', '#8CABDA', '#B2C7E5', '#D5E0EF', '#F0F4F9'];
-const SUNc = SUN.map(hex), SHADEc = SHADE.map(hex);
-let BLADES = [], BINS = [];
-function sowGrass() {
-  const n = Math.round(clamp(W * H / 150, 2200, 7500)), scale = clamp(Math.min(W, H) / 720, .75, 1.3);
-  BLADES = [];
-  for (let i = 0; i < n; i++) {
-    const sx = -40 + Math.random() * (W + 50), sy = -10 + Math.random() * (H + 50), depth = clamp(sy / H, 0, 1);
-    const [wx, wy] = screenToGround(sx, sy);
-    BLADES.push({ sx, sy, wx, wy, depth,
-      len: (30 + Math.random() * 52) * (.55 + depth * .8) * scale,
-      // the meadow is combed to the right and a little up, in slow swirls, like long grass lying over
-      lean: -.26 + noise3(wx * 1.3 + 7, wy * 2.2, 2) * .3 + (Math.random() - .5) * .2,
-      thr: .18 + Math.random() * .64, tone: Math.random() * .22, ph: Math.random() * TAU,
-      layer: Math.random() < .42 ? 0 : 1, b: 0, cx: 0, cy: 0, tx: 0, ty: 0,
-      mi: (Math.min(mh - 1, Math.max(0, Math.round(sy * MKR))) * mw + Math.min(mw - 1, Math.max(0, Math.round(sx * MKR)))) * 4 });
-  }
-  BLADES.sort((a, b) => a.sy - b.sy);
-  BINS = Array.from({ length: 40 }, () => []);
+function program(vs, fs) {
+  const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  const p = gl.createProgram(); gl.attachShader(p, mk(gl.VERTEX_SHADER, vs)); gl.attachShader(p, mk(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
 }
-// big slow cloud shadows, heavier toward the top of the meadow, as in a field seen from a hill
-function cloudAt(wx, wy, sy) {
-  const top = clamp(1 - sy / H * 1.6, 0, 1);
-  const c = noise3(wx * 1.1 - env.t * .02, wy * 3, 5.5) * .5 + .5;   // long, low wisps of cloud shadow
-  return clamp((c + top * .18 - .7) * 4.5, 0, 1);
+const STRIDE = 20;   // floats per splat: c3 a1 a2 a3 col4 ex4
+let prog, skyProg, U = {}, SU = {}, quadBuf, meadowVAO, mobileVAO, skyVAO, meadowBuf, mobileBuf, meadowCount = 0, shadowTex;
+function makeVAO(buf) {
+  const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  const sizes = [3, 3, 3, 3, 4, 4]; let off = 0;
+  sizes.forEach((n, i) => { gl.enableVertexAttribArray(i + 1); gl.vertexAttribPointer(i + 1, n, gl.FLOAT, false, STRIDE * 4, off * 4); gl.vertexAttribDivisor(i + 1, 1); off += n; });
+  gl.bindVertexArray(null); return vao;
 }
-// long bright bands where the wind lays the grass over and it shows the sun its paler side; they travel with the wind
-const bandAt = (wx, wy) => noise3(wx * .85 - env.t * (.05 + env.airNow * .9), wy * 3.1, 11) * .5 + .5;
-const patchAt = (wx, wy) => noise3(wx * 1.6 + 3, wy * 1.9, 9) * .5 + .5;
-const maskAt = i => MASK ? 1 - MASK[i] / 255 : 0;
-
-function updateGrass(dt) {
-  const k = 1 - Math.pow(.015, dt), t = env.t;
-  for (const B of BINS) B.length = 0;
-  for (const b of BLADES) {
-    windAt(b.wx, b.wy, WALL, tmp);
-    // blades lag the air a little, and never stand quite still
-    const target = clamp(tmp.x * 3.4, -.5, 1.35) + Math.sin(t * 1.5 + b.ph) * .06 + Math.sin(t * .6 + b.wx * 4) * .05;
-    b.b += (target - b.b) * k;
-    const sheen = clamp(b.b, 0, 1.3) * .42;                     // bent grass shows its paler side to the sun
-    const mob = maskAt(b.mi), shade = Math.max(cloudAt(b.wx, b.wy, b.sy), mob);
-    const inShade = shade > b.thr;
-    const band = bandAt(b.wx, b.wy);
-    let L = inShade ? .12 + b.tone + band * .6 + sheen * .35 - mob * .3
-                    : .2 + b.tone + band * .62 + sheen * .4 + patchAt(b.wx, b.wy) * .12 + b.depth * .05;
-    const idx = clamp(Math.floor(L * 10), 0, 9);
-    BINS[b.layer * 20 + (inShade ? 10 : 0) + idx].push(b);
-    const a = b.lean + b.b * .45, c = b.lean - .12 + b.b * .18;
-    b.tx = b.sx + Math.cos(a) * b.len; b.ty = b.sy + Math.sin(a) * b.len;
-    b.cx = b.sx + Math.cos(c) * b.len * .55; b.cy = b.sy + Math.sin(c) * b.len * .55;
-  }
-}
-function drawGrass() {
-  // underpainting: the same light and shade, soft, so no paper shows between strokes
-  const gw = ub.width, gh = ub.height, img = uctx.createImageData(gw, gh), d = img.data;
-  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
-    const sx = (gx + .5) / UBR, sy = (gy + .5) / UBR, [wx, wy] = screenToGround(sx, sy);
-    const mi = (Math.min(mh - 1, Math.round(sy * MKR)) * mw + Math.min(mw - 1, Math.round(sx * MKR))) * 4;
-    const sh = clamp(Math.max(cloudAt(wx, wy, sy) * .5, maskAt(mi) * .6), 0, 1), p = bandAt(wx, wy);   // the strokes carry most of the blue
-    const s0 = SUNc[3], s1 = SUNc[8], h0 = SHADEc[2], h1 = SHADEc[7], o = (gy * gw + gx) * 4;
-    for (let c = 0; c < 3; c++) d[o + c] = lerp(lerp(s0[c], s1[c], p), lerp(h0[c], h1[c], p), sh);
-    d[o + 3] = 255;
-  }
-  uctx.putImageData(img, 0, 0);
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(ub, 0, 0, W, H);
-  ctx.lineCap = 'round';
-  for (let layer = 0; layer < 2; layer++) {
-    ctx.lineWidth = layer ? 1 : 2.2; ctx.globalAlpha = layer ? .7 : .34;
-    for (let r = 0; r < 2; r++) for (let i = 0; i < 10; i++) {
-      const list = BINS[layer * 20 + r * 10 + i]; if (!list.length) continue;
-      ctx.strokeStyle = (r ? SHADE : SUN)[i];
-      ctx.beginPath();
-      for (const b of list) { ctx.moveTo(b.sx, b.sy); ctx.quadraticCurveTo(b.cx, b.cy, b.tx, b.ty); }
-      ctx.stroke();
-    }
-  }
-  ctx.globalAlpha = 1;
-}
-
-/* where the mobile's shadow falls on the grass: a small grey map the blades read their shade from */
-function a2(c, r, k, P3) {
-  const [lx, ly] = P3(r.L.x, r.L.y, r.L.z, Q), [rx, ry] = P3(r.R.x, r.R.y, r.R.z, Q2);
-  const [hx, hy] = P3(r.H.x, r.H.y, r.H.z, [0, 0, 1]);
-  c.moveTo(lx * k, ly * k); c.quadraticCurveTo((2 * hx - (lx + rx) / 2) * k, (2 * hy - (ly + ry) / 2) * k, rx * k, ry * k);
-}
-const rodPath = a2;
-function stringPath(c, k, P3) {
-  for (const cn of outer) {
-    const a = cn.a, b = cn.b;
-    if (a === ANCHOR) { const [bx, by] = P3(b.x, b.y, b.z, Q2), [ax] = P3(0, 0, 0, Q); c.moveTo(ax * k, -20 * k); c.lineTo(bx * k, by * k); continue; }
-    const [ax, ay] = P3(a.x, a.y, a.z, Q), [bx, by] = P3(b.x, b.y, b.z, Q2);
-    c.moveTo(ax * k, ay * k); c.lineTo(bx * k, by * k);
-  }
-}
-const camP = (x, y, z, o) => proj(x, y, z, o);
-const wallP = (x, y, z, o) => onWall(x, y, z, o);
-function drawMask() {
-  const k = MKR;
-  mctx.setTransform(1, 0, 0, 1, 0, 0);
-  mctx.fillStyle = '#fff'; mctx.fillRect(0, 0, mw, mh);
-  mctx.strokeStyle = 'rgba(0,0,0,.6)'; mctx.lineWidth = 1.2;
-  mctx.beginPath(); for (const r of RODS) rodPath(mctx, r, k, wallP); stringPath(mctx, k, wallP); mctx.stroke();
-  for (const n of PIECES) {
-    const [x, y, s] = onWall(n.Cp.x, n.Cp.y, n.Cp.z, Q);
-    const gap = clamp((WALL - n.Cp.z) / WALL, .2, 2.2), soft = 1 + (gap - 1) * .1;
-    mctx.save(); mctx.translate(x * k, y * k); mctx.rotate(n.rot); mctx.scale(k * SC * s * soft, k * SC * s * soft);
-    const sx = (n.kind === 'sphere' || n.kind === 'tear') ? 1 : Math.max(.08, Math.abs(Math.cos(n.yaw)));
-    mctx.scale(sx, 1);
-    mctx.fillStyle = `rgba(0,0,0,${(GLASS[n.kind] ? (n.kind === 'crystal' ? .25 : .45) : .92) * clamp(1.2 - gap * .3, .5, 1)})`;
-    mctx.beginPath(); outline(mctx, n); mctx.fill();
-    mctx.restore();
-  }
-  MASK = mctx.getImageData(0, 0, mw, mh).data;
+function initGL() {
+  prog = program(VS, FS); skyProg = program(SKY_VS, SKY_FS);
+  for (const n of ['view', 'proj', 'vp', 't', 'lvl', 'gust', 'focal', 'ptr', 'shadow', 'shRect', 'fogCol', 'shadeCol']) U[n] = gl.getUniformLocation(prog, n);
+  for (const n of ['top', 'low', 'horizon']) SU[n] = gl.getUniformLocation(skyProg, n);
+  quadBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  meadowBuf = gl.createBuffer(); mobileBuf = gl.createBuffer();
+  meadowVAO = makeVAO(meadowBuf); mobileVAO = makeVAO(mobileBuf);
+  skyVAO = gl.createVertexArray(); gl.bindVertexArray(skyVAO); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); gl.bindVertexArray(null);
+  shadowTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, shadowTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
 
-/* silhouette of a piece, in its own metres, centre of mass at the origin */
+/* ---------- the meadow: built once per camera, sorted far to near ---------- */
+function rnd(seed) { let s = seed | 0; return () => { s = s + 1831565813 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const pickc = (arr, r) => arr[Math.min(arr.length - 1, Math.floor(r * arr.length))];
+function vary(c, r, amt) { const k = 1 + (r - .5) * amt; return [c[0] * k, c[1] * k, c[2] * k]; }
+function buildMeadow() {
+  const R = rnd(761103), out = [];
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const N = +new URLSearchParams(location.search).get('splats') || (coarse ? 42000 : 78000);   // ?splats= lowers it for testing
+  const push = (c, a1, a2, a3, col, alpha, ex) => out.push(c[0], c[1], c[2], ...a1, ...a2, ...a3, col[0], col[1], col[2], alpha, ...ex);
+  // where the camera's view meets the grass: spread splats evenly over the picture, not over the ground
+  const near = Math.max(.35, cam.pos[1] / Math.tan(cam.fov / 2 + cam.pitch) * .75), far = 45;
+  const groundPoint = (u, w) => {
+    const dist = near * Math.pow(far / near, u), half = dist * Math.tan(cam.fov / 2) * (W / H) * 1.25 + .5;
+    return [cam.pos[0] + (w - .5) * 2 * half, cam.pos[2] - dist, dist];
+  };
+  // the ground beneath: wide flat splats
+  for (let i = 0; i < N * .06; i++) {
+    const [x, z, dist] = groundPoint(Math.pow(R(), .9), R()), s = .1 + dist * .045;
+    push([x, 0, z], [s * (1 + R()), 0, 0], [0, 0, s * (.8 + R() * .6)], [0, s * .05, 0], vary(pickc(PAL.ground, R()), R(), .25), .9, [0, 0, 1, 0]);
+  }
+  // blades: long thin splats, leaning with the meadow's comb; far ones are drawn bigger, the way a painter would
+  for (let i = 0; i < N; i++) {
+    const [x, z, dist] = groundPoint(Math.pow(R(), 1.15), R()), sf = Math.pow(Math.max(1, dist / 3.2), .6);
+    const hgt = (.14 + R() * .28) * sf, lean = .22 + (R() - .5) * .5, side = (R() - .5) * .4;
+    const ux = Math.sin(lean), uy = Math.cos(lean), uz = side * .4;
+    const top = R();
+    const col = top < .12 ? vary(pickc(PAL.tips, R()), R(), .12) : vary(pickc(PAL.grass, Math.min(.999, R() * .8 + top * .3)), R(), .18);
+    const wb = (.006 + R() * .006) * sf;
+    push([x + ux * hgt * .5, uy * hgt * .5, z], [ux * hgt * .42, uy * hgt * .42, uz * hgt * .3], [uy * wb, -ux * wb, 0], [0, 0, .006 * sf], col, .62 + R() * .3, [hgt, R() * 6.28, 0, 1]);
+  }
+  // flowers, sparse, held up at the tops of the grass
+  for (let i = 0; i < N * .012; i++) {
+    const [x, z, dist] = groundPoint(Math.pow(R(), 1.4), R()), sf = Math.pow(Math.max(1, dist / 3.2), .6), s = (.012 + R() * .012) * sf, y = (.18 + R() * .22) * sf;
+    push([x, y, z], [s, 0, 0], [0, s, 0], [0, 0, s], vary(pickc(PAL.flowers, R()), R(), .1), .9, [y * .9, R() * 6.28, 0, .3]);
+  }
+  // hills on the horizon, and clouds above them
+  for (let i = 0; i < 520; i++) {
+    const x = (R() - .5) * 140, z = -48 - R() * 30, h = 3 + Math.pow(R(), 1.6) * 12 + Math.sin(x * .05) * 3, s = 2.2 + R() * 3.5;
+    push([x, h * R(), z], [s * 1.6, 0, 0], [0, s * .9, 0], [0, 0, s], vary(pickc(PAL.hills, R()), R(), .12), .55, [0, 0, 1, 0]);
+  }
+  for (let i = 0; i < 70; i++) {
+    const x = (R() - .5) * 170, z = -75 - R() * 40, y = 16 + R() * 18, s = 3 + R() * 6;
+    push([x, y, z], [s * 2.2, 0, 0], [0, s * .7, 0], [0, 0, s], vary(PAL.cloud, R(), .05), .32, [0, 0, 3, 0]);
+  }
+  // back to front, from this camera
+  const n = out.length / STRIDE, key = new Float32Array(n), idx = new Uint32Array(n);
+  for (let i = 0; i < n; i++) { const o = i * STRIDE, dx = out[o] - cam.pos[0], dy = out[o + 1] - cam.pos[1], dz = out[o + 2] - cam.pos[2]; key[i] = -(dx * dx + dy * dy + dz * dz); idx[i] = i; }
+  idx.sort((a, b) => key[a] - key[b]);
+  const data = new Float32Array(out.length);
+  for (let j = 0; j < n; j++) data.set(out.slice(idx[j] * STRIDE, idx[j] * STRIDE + STRIDE), j * STRIDE);
+  gl.bindBuffer(gl.ARRAY_BUFFER, meadowBuf); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  meadowCount = n;
+}
+
+/* ---------- the mobile, as splats: each piece filled with small Gaussians in its own shape ---------- */
+const COL = { brass: [214, 164, 70], oak: [208, 154, 102], crystal: [236, 240, 248] };
+const shapeCtx = document.createElement('canvas').getContext('2d');
+let MOB = null, mobData = null, mobSorted = null, mobKey = null, mobIdx = null;
 function outline(c, n) {
   switch (n.kind) {
     case 'brass': case 'glass': case 'sphere': c.arc(0, 0, n.r, 0, TAU); break;
@@ -666,170 +678,166 @@ function outline(c, n) {
       c.bezierCurveTo(-w * .68, t + h * .25, -w * .55, t, 0, t); break; }
   }
 }
-
-/* ───────────── Drawing the mobile, in pencil ───────────── */
-function drawWires() {
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  // every line is gone over twice, a hair apart, the way a pencil line is
-  for (const [dx, dy, a, w] of [[0, 0, .9, 1], [.6, .35, .3, .8]]) {
-    ctx.save(); ctx.translate(dx, dy); ctx.globalAlpha = a; ctx.strokeStyle = WIRE;
-    ctx.lineWidth = w; ctx.beginPath(); stringPath(ctx, 1, camP); ctx.stroke();
-    for (const r of RODS) { ctx.lineWidth = 1.6 * w * persp((r.L.z + r.R.z) / 2); ctx.beginPath(); rodPath(ctx, r, 1, camP); ctx.stroke(); }
-    ctx.restore();
-  }
-  ctx.globalAlpha = .85; ctx.strokeStyle = WIRE; ctx.lineWidth = 1;
-  ctx.beginPath();
-  for (const r of RODS) for (const p of [r.L, r.R]) { const [x, y, s] = proj(p.x, p.y, p.z, Q); ctx.moveTo(x + 1.7 * s, y); ctx.arc(x, y, 1.7 * s, 0, TAU); }
-  ctx.stroke(); ctx.globalAlpha = 1;
-}
-const COL = { brass: [214, 164, 70], oak: [208, 154, 102], crystal: [236, 240, 248] };
-/* a flat colour, shaded with pencil strokes: lighter toward the sun, a little darker away from it */
-function pencil(n, col, alpha, L, holeR, reach) {
-  ctx.beginPath(); outline(ctx, n); if (holeR) ctx.arc(0, -n.hole, holeR, 0, TAU, true);
-  ctx.fillStyle = rgba(col, alpha); ctx.fill('evenodd');
-  ctx.save(); ctx.clip('evenodd');
-  const R = reach;
-  ctx.globalAlpha = .9; ctx.drawImage(TEX.hatch, -R, -R, R * 2, R * 2); ctx.globalAlpha = 1;
-  const g = ctx.createLinearGradient(light.x * R, light.y * R, -light.x * R, -light.y * R);
-  g.addColorStop(0, `rgba(255,252,236,${.2 + L.diff * .3 + L.spec * .45})`);
-  g.addColorStop(.55, 'rgba(255,252,236,0)');
-  g.addColorStop(1, rgba(darker(col, .55), .3 * alpha));
-  ctx.fillStyle = g; ctx.fillRect(-R, -R, R * 2, R * 2);
-  ctx.restore();
-}
-function edge(n, col, px, sx) {
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = rgba(darker(col, .62), .7); ctx.lineWidth = px * 1.05 / Math.abs(sx || 1);
-  ctx.beginPath(); outline(ctx, n); ctx.stroke();
-  ctx.save(); ctx.translate(px * .7, px * .4); ctx.strokeStyle = rgba(darker(col, .62), .28); ctx.beginPath(); outline(ctx, n); ctx.stroke(); ctx.restore();
-}
-/* two or three short white strokes where the sun catches, as you would leave paper showing */
-function glints(r, L, px, k = 1) {
-  const a = Math.atan2(light.y, light.x), alpha = (.35 + L.spec * .6 + L.diff * .15) * k;
-  ctx.strokeStyle = `rgba(255,255,248,${alpha})`; ctx.lineCap = 'round';
-  ctx.lineWidth = px * 1.8; ctx.beginPath(); ctx.arc(0, 0, r * .74, a - .55, a + .05); ctx.stroke();
-  ctx.lineWidth = px * 1.3; ctx.beginPath(); ctx.arc(0, 0, r * .58, a - .25, a - .02); ctx.stroke();
-}
-function drawPiece(n) {
-  const [cx, cy, ps] = proj(n.Cp.x, n.Cp.y, n.Cp.z, Q);
-  n.X = cx; n.Y = cy; n.R = n.rc * SC * ps;
-  const L = faceLight(n.yaw, n.rot);
-  const cyaw = Math.cos(n.yaw), sx = Math.sign(cyaw || 1) * Math.max(.05, Math.abs(cyaw));
-  ctx.save(); ctx.translate(cx, cy); ctx.rotate(n.rot);
-  const s = SC * ps; ctx.scale(s, s);
-  const px = 1 / s;
-  switch (n.kind) {
-    case 'brass': {
-      const col = COL.brass;
-      ctx.save(); ctx.scale(sx, 1);
-      pencil(n, col, 1, L, .0035, n.r * 1.2);
-      // a band of sheen sweeps across as it turns toward the sun
-      ctx.save(); ctx.beginPath(); outline(ctx, n); ctx.clip();
-      const band = Math.sin(n.yaw * 1.6 + env.tilt) * n.r * 1.2;
-      const sg = ctx.createLinearGradient(band - n.r * .5, -n.r, band + n.r * .5, n.r);
-      sg.addColorStop(0, 'rgba(255,248,214,0)'); sg.addColorStop(.5, `rgba(255,248,214,${.12 + L.spec * .55})`); sg.addColorStop(1, 'rgba(255,248,214,0)');
-      ctx.fillStyle = sg; ctx.fillRect(-n.r, -n.r, n.r * 2, n.r * 2); ctx.restore();
-      edge(n, col, px, sx);
-      ctx.restore();
-      if (Math.abs(cyaw) < .2) { ctx.strokeStyle = rgba(darker(col, .7), .9); ctx.lineWidth = px * 2; ctx.beginPath(); ctx.moveTo(0, -n.r); ctx.lineTo(0, n.r); ctx.stroke(); }
-      break;
-    }
-    case 'glass': {
-      ctx.save(); ctx.scale(sx, 1);
-      pencil(n, n.c1, .62, L, .0032, n.r * 1.2);
-      ctx.strokeStyle = rgba(n.rim, .32); ctx.lineWidth = n.r * .1;    // the thicker rim reads deeper
-      ctx.beginPath(); ctx.arc(0, 0, n.r * .94, 0, TAU); ctx.stroke();
-      edge(n, n.rim, px, sx);
-      glints(n.r, L, px / Math.abs(sx));
-      ctx.restore();
-      if (Math.abs(cyaw) < .22) { ctx.strokeStyle = rgba(n.rim, .9); ctx.lineWidth = px * 2.2; ctx.beginPath(); ctx.moveTo(0, -n.r); ctx.lineTo(0, n.r); ctx.stroke(); }
-      break;
-    }
-    case 'film': {
-      n.hue = ((330 + n.yaw * 80 + env.tilt * 50 + L.diff * 30) % 360 + 360) % 360;
-      ctx.save(); ctx.scale(sx, 1);
-      ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .0028, 0, TAU, true);
-      const g = ctx.createLinearGradient(-n.rx, -n.ry, n.rx, n.ry), h = n.hue;
-      g.addColorStop(0, `hsla(${h},62%,80%,.7)`); g.addColorStop(.5, `hsla(${(h + 60) % 360},60%,84%,.65)`); g.addColorStop(1, `hsla(${(h + 130) % 360},55%,76%,.7)`);
-      ctx.fillStyle = g; ctx.fill('evenodd');
-      ctx.save(); ctx.clip('evenodd'); ctx.drawImage(TEX.hatch, -n.rx, -n.rx, n.rx * 2, n.rx * 2); ctx.globalAlpha = .8; ctx.drawImage(TEX.film, -n.rx, -n.ry, n.rx * 2, n.ry * 2); ctx.restore();
-      edge(n, [150, 120, 170], px, sx);
-      glints(n.ry, L, px / Math.abs(sx), .8);
-      ctx.restore();
-      break;
-    }
-    case 'sphere': {
-      const r = n.r;
-      pencil(n, n.c1, .55, L, 0, r * 1.2);
-      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.clip(); ctx.rotate(.35);
-      for (let i = 0; i < 7; i++) {                 // swirled ribs, turning with the globe
-        const ph = i / 7 * Math.PI + n.yaw, sxr = Math.cos(ph);
-        if (sxr < 0) continue;
-        ctx.strokeStyle = rgba(n.rim, .1 + sxr * .25); ctx.lineWidth = px * 1.2;
-        ctx.beginPath(); ctx.ellipse(0, 0, Math.abs(Math.sin(ph)) * r * 1.05 + px, r * 1.1, 0, 0, TAU); ctx.stroke();
-      }
-      ctx.restore();
-      edge(n, n.rim, px, 1);
-      glints(r, L, px, 1.1);
-      ctx.fillStyle = rgba(COL.brass, 1); ctx.fillRect(-r * .15, -r - .004, r * .3, .006);
-      break;
-    }
-    case 'tear': {
-      pencil(n, n.c1, .6, L, 0, n.h * .7);
-      edge(n, n.rim, px, 1);
-      const hx = Math.sin(n.yaw) * n.w * .4 - n.w * .35;
-      ctx.strokeStyle = `rgba(255,255,248,${.45 + L.spec * .5})`; ctx.lineWidth = px * 1.8; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(hx, -n.h * .05); ctx.quadraticCurveTo(hx - n.w * .1, n.h * .12, hx + n.w * .05, n.h * .3); ctx.stroke();
-      break;
-    }
-    case 'crystal': {
-      pencil(n, COL.crystal, .45, L, 0, n.h * .7);
-      const w = n.w, h = n.h, t = -h * .55, b = w * .55, by = t + b, top = by + b + h * .04;
-      const facets = [
-        [[0, top], [w * .45, top], [w * .62, t + h * .78], [0, t + h * .6]],
-        [[0, top], [-w * .45, top], [-w * .62, t + h * .78], [0, t + h * .6]],
-        [[0, t + h * .6], [w * .62, t + h * .78], [0, t + h]],
-        [[0, t + h * .6], [-w * .62, t + h * .78], [0, t + h]],
-      ];
-      facets.forEach((f, i) => {                   // facets catch the sun one after another as it turns
-        const fl = Math.pow(Math.max(0, Math.cos(n.yaw * 2 + i * 1.3 + env.tilt * 2)), 10);
-        ctx.beginPath(); f.forEach(([x, y], j) => ctx[j ? 'lineTo' : 'moveTo'](x, y)); ctx.closePath();
-        ctx.fillStyle = `rgba(255,255,250,${fl * .75})`; ctx.fill();
-        ctx.strokeStyle = 'rgba(110,120,150,.35)'; ctx.lineWidth = px * .8; ctx.stroke();
-      });
-      edge(n, [120, 130, 160], px, 1);
-      break;
-    }
-    case 'oak': {
-      const col = COL.oak;
-      ctx.save(); ctx.scale(sx, 1);
-      pencil(n, col, 1, L, .003, n.h * .6);
-      ctx.save(); ctx.beginPath(); outline(ctx, n); ctx.clip(); ctx.globalAlpha = .8; ctx.drawImage(TEX.oak, -n.w, -n.h / 2, n.w * 2, n.h); ctx.restore();
-      edge(n, col, px, sx);
-      ctx.restore();
-      break;
-    }
-  }
-  ctx.strokeStyle = WIRE; ctx.globalAlpha = .85; ctx.lineWidth = px;    // the loop of wire through the hole
-  ctx.beginPath(); ctx.ellipse(0, -n.hole, .0035 * Math.max(.3, Math.abs(cyaw)), .006, 0, 0, TAU); ctx.stroke();
-  ctx.globalAlpha = 1;
-  ctx.restore();
-}
-
-let frameDt = 1 / 60;
-function render() {
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  updateLight();
+function inside(n, u, v, k = 1) { shapeCtx.setTransform(1000 * k, 0, 0, 1000 * k, 500, 500); shapeCtx.beginPath(); outline(shapeCtx, n); return shapeCtx.isPointInPath(500 + u * 1000, 500 + v * 1000); }
+function baseColor(n) { return (n.c1 || COL[n.kind] || [210, 200, 230]).map(c => c / 255); }
+function buildMobile() {
+  const R = rnd(1773962975), list = [];
   for (const n of PIECES) {
-    const [ax, ay] = proj(n.S.x, n.S.y, n.S.z, Q), [bx, by] = proj(n.Cp.x, n.Cp.y, n.Cp.z, Q2);
-    n.rot = Math.atan2(by - ay, bx - ax) - Math.PI / 2;
+    const spacing = n.kind === 'crystal' || n.rc < .035 ? .0028 : .0038, ext = n.rc * 1.6, col = baseColor(n), rim = n.rim ? n.rim.map(c => c / 255) : col.map(c => c * .7);
+    n.splats = [];
+    for (let v = -ext; v <= ext; v += spacing) for (let u = -ext; u <= ext; u += spacing) {
+      const ju = u + (R() - .5) * spacing * .5, jv = v + (R() - .5) * spacing * .5;
+      if (!inside(n, ju, jv)) continue;
+      const edge = !inside(n, ju, jv, 1.07);       // near the outline: deeper colour, as thicker glass and a worked edge read
+      const c = edge ? vary(rim, R(), .1) : vary(col, R(), n.kind === 'brass' || n.kind === 'oak' ? .14 : .08);
+      const s = spacing * (edge ? .36 : .5) * (.85 + R() * .3);
+      n.splats.push({ u: ju, v: jv, s, c, a: GLASS[n.kind] ? (edge ? .62 : .3) : .9, edge });
+    }
+    // a hole drilled near the top, and the wire loop through it
+    n.splats.push({ u: 0, v: -n.hole, s: .0025, c: PAL.wire, a: .9, edge: true, loop: true });
+    list.push(...n.splats);
   }
-  drawMask();
-  updateGrass(frameDt);
-  drawGrass();
-  drawWires();
-  const order = PIECES.slice().sort((a, b) => b.Cp.z - a.Cp.z);   // far to near
-  for (const n of order) drawPiece(n);
+  // the wires: each rod is a run of thin splats along its bent curve; each string a run along its length
+  MOB = { pieceCount: list.length + PIECES.length * 3, wireCount: RODS.length * 34 + outer.length * 40 + 60 };
+  const total = MOB.pieceCount + MOB.wireCount;
+  mobData = new Float32Array(total * STRIDE); mobSorted = new Float32Array(total * STRIDE);
+  mobKey = new Float32Array(total); mobIdx = new Uint32Array(total);
+}
+const GLASS = { glass: 1, tear: 1, sphere: 1, crystal: 1, film: 1 };
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const norm = a => { const m = Math.hypot(...a) || 1; return [a[0] / m, a[1] / m, a[2] / m]; };
+function pieceFrame(n) {
+  // down: from the hole to the centre; right and face turn about it with the piece's yaw
+  const S = toG(n.S.x, n.S.y, n.S.z), Cc = toG(n.Cp.x, n.Cp.y, n.Cp.z), down = norm(sub(Cc, S));
+  let r0 = norm(sub([1, 0, 0], mul(down, down[0]))); const f0 = cross(r0, down);
+  const cy = Math.cos(n.yaw), sy = Math.sin(n.yaw);
+  let right = add(mul(r0, cy), mul(f0, sy)), face = add(mul(f0, cy), mul(r0, -sy));
+  if (n.kind === 'sphere' || n.kind === 'tear' || n.kind === 'crystal') {   // round things look the same from every side: face the eye
+    const toEye = norm(sub(cam.pos, Cc)); right = norm(cross(down, toEye)); face = cross(right, down);
+    if (dot(right, [1, 0, 0]) < 0) { right = mul(right, -1); face = mul(face, -1); }
+  }
+  return { C: Cc, down, right, face };
+}
+let mobN = 0;
+function writeSplat(arr, i, c, a1, a2, a3, col, alpha) {
+  const o = i * STRIDE;
+  arr[o] = c[0]; arr[o + 1] = c[1]; arr[o + 2] = c[2];
+  arr[o + 3] = a1[0]; arr[o + 4] = a1[1]; arr[o + 5] = a1[2];
+  arr[o + 6] = a2[0]; arr[o + 7] = a2[1]; arr[o + 8] = a2[2];
+  arr[o + 9] = a3[0]; arr[o + 10] = a3[1]; arr[o + 11] = a3[2];
+  arr[o + 12] = col[0]; arr[o + 13] = col[1]; arr[o + 14] = col[2]; arr[o + 15] = alpha;
+  arr[o + 16] = 0; arr[o + 17] = 0; arr[o + 18] = 2; arr[o + 19] = 0;
+}
+function wireRun(p0, p1, step, w) {
+  const d = sub(p1, p0), L = Math.hypot(...d), n = Math.max(1, Math.min(60, Math.ceil(L / step))), dir = mul(d, 1 / L);
+  const side = norm(cross(dir, [0, 0, 1])), deep = norm(cross(dir, side));
+  for (let i = 0; i < n && mobN < mobKey.length; i++) {
+    const c = add(p0, mul(d, (i + .5) / n));
+    writeSplat(mobData, mobN++, c, mul(dir, L / n * .42), mul(side, w), mul(deep, w), PAL.wire, .85);
+  }
+}
+function updateMobile() {
+  mobN = 0;
+  const eye = cam.pos;
+  for (const n of PIECES) {
+    const F = pieceFrame(n); n.F = F;
+    // light: a flat face turned toward the sun is brighter; the side that faces you catches a highlight
+    const nd = Math.abs(dot(F.face, SUN)), toEye = norm(sub(eye, F.C)), half = norm(add(SUN, toEye));
+    const spec = Math.pow(Math.abs(dot(F.face, half)), 28), lit = .78 + nd * .32;
+    const thin = n.kind === 'sphere' ? .3 : .12;
+    for (const s of n.splats) {
+      const c = add(F.C, add(mul(F.right, s.u), mul(F.down, s.v)));
+      // a highlight sits on the upper sun-side of each piece
+      const hl = s.loop ? 0 : Math.max(0, -(s.u * .7 + s.v) / (n.rc * 1.2)) * spec * (GLASS[n.kind] ? .9 : .55);
+      const k = s.loop ? s.c : [Math.min(1, s.c[0] * lit + hl), Math.min(1, s.c[1] * lit + hl), Math.min(1, s.c[2] * lit + hl)];
+      writeSplat(mobData, mobN++, c, mul(F.right, s.s), mul(F.down, s.s), mul(F.face, s.s * thin), k, s.a);
+    }
+  }
+  // a soft blue shadow lying on the grass under each piece, along the sun's rays, as Sillage's crow casts on its floor
+  for (const n of PIECES) {
+    const F = n.F, g = toGround(F.C), ru = dirGround(F.right), dv = dirGround(F.down), r = n.rc;
+    const wgt = GLASS[n.kind] ? .55 : 1, h = F.C[1];
+    const soft = 1 + h * .35;                       // the further it hangs above the grass, the softer its shadow
+    for (const [k, a] of [[.7, .22], [1.1, .14], [1.6, .08]]) {
+      const ax = [ru[0] * r * k * soft, 0, ru[1] * r * k * soft], az = [dv[0] * r * k * soft, 0, dv[1] * r * k * soft];
+      writeSplat(mobData, mobN++, [g[0], .16, g[1]], ax, az, [0, .004, 0], [.2, .27, .5], a * wgt);
+    }
+  }
+  const w = .0011;
+  for (const r of RODS) {           // each rod: a curve through its hook, as a bent wire would be
+    const L = toG(r.L.x, r.L.y, r.L.z), R2 = toG(r.R.x, r.R.y, r.R.z), Hh = toG(r.H.x, r.H.y, r.H.z);
+    const ctrl = sub(mul(Hh, 2), mul(add(L, R2), .5));
+    let prev = L;
+    for (let i = 1; i <= 16; i++) { const t = i / 16, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, c = t * t; const p = add(add(mul(L, a), mul(ctrl, b)), mul(R2, c)); wireRun(prev, p, .02, w * 1.25); prev = p; }
+  }
+  for (const cn of outer) {
+    const a = cn.a === ANCHOR ? toG(0, -3, 0) : toG(cn.a.x, cn.a.y, cn.a.z), b = toG(cn.b.x, cn.b.y, cn.b.z);
+    wireRun(a, b, .025, w * .8);
+  }
+  // sort back to front from the eye
+  for (let i = 0; i < mobN; i++) { const o = i * STRIDE, dx = mobData[o] - eye[0], dy = mobData[o + 1] - eye[1], dz = mobData[o + 2] - eye[2]; mobKey[i] = -(dx * dx + dy * dy + dz * dz); mobIdx[i] = i; }
+  const idx = mobIdx.subarray(0, mobN); idx.sort((a, b) => mobKey[a] - mobKey[b]);
+  for (let j = 0; j < mobN; j++) mobSorted.set(mobData.subarray(idx[j] * STRIDE, idx[j] * STRIDE + STRIDE), j * STRIDE);
+  gl.bindBuffer(gl.ARRAY_BUFFER, mobileBuf); gl.bufferData(gl.ARRAY_BUFFER, mobSorted.subarray(0, mobN * STRIDE), gl.DYNAMIC_DRAW);
+  // where each piece is on screen, for hover and touch
+  for (const n of PIECES) { const [x, y, d] = toScreen(n.F.C); n.X = x; n.Y = y; n.R = n.rc * cam.fy / d; }
+}
+
+/* ---------- the shadow on the grass: each piece pressed flat along the sun's rays ---------- */
+const SH = { size: 512, x0: -4, z0: -10, w: 9, h: 11 };
+const shc = document.createElement('canvas'); shc.width = shc.height = SH.size;
+const shx = shc.getContext('2d');
+const toGround = p => { const k = p[1] / SUN[1]; return [p[0] - SUN[0] * k, p[2] - SUN[2] * k]; };
+const dirGround = d => { const k = d[1] / SUN[1]; return [d[0] - SUN[0] * k, d[2] - SUN[2] * k]; };
+function drawShadowMap() {
+  const s = SH.size / SH.w, sz = SH.size / SH.h, X = x => (x - SH.x0) * s, Z = z => (z - SH.z0) * sz;
+  shx.setTransform(1, 0, 0, 1, 0, 0); shx.fillStyle = '#000'; shx.fillRect(0, 0, SH.size, SH.size);
+  try { shx.filter = 'blur(1.6px)'; } catch (e) {}
+  shx.strokeStyle = 'rgba(255,255,255,.55)'; shx.lineWidth = 1.1; shx.beginPath();
+  for (const r of RODS) { const a = toGround(toG(r.L.x, r.L.y, r.L.z)), m = toGround(toG(r.H.x, r.H.y, r.H.z)), b = toGround(toG(r.R.x, r.R.y, r.R.z)); shx.moveTo(X(a[0]), Z(a[1])); shx.quadraticCurveTo(X(2 * m[0] - (a[0] + b[0]) / 2), Z(2 * m[1] - (a[1] + b[1]) / 2), X(b[0]), Z(b[1])); }
+  for (const cn of outer) { if (cn.a === ANCHOR) continue; const a = toGround(toG(cn.a.x, cn.a.y, cn.a.z)), b = toGround(toG(cn.b.x, cn.b.y, cn.b.z)); shx.moveTo(X(a[0]), Z(a[1])); shx.lineTo(X(b[0]), Z(b[1])); }
+  shx.stroke();
+  for (const n of PIECES) {
+    const F = n.F, g = toGround(F.C), ru = dirGround(F.right), dv = dirGround(F.down);
+    shx.setTransform(ru[0] * s, ru[1] * sz, dv[0] * s, dv[1] * sz, X(g[0]), Z(g[1]));
+    shx.fillStyle = `rgba(255,255,255,${GLASS[n.kind] ? (n.kind === 'crystal' ? .3 : .5) : .95})`;
+    shx.beginPath(); outline(shx, n); shx.fill();
+  }
+  shx.setTransform(1, 0, 0, 1, 0, 0); try { shx.filter = 'none'; } catch (e) {}
+  gl.bindTexture(gl.TEXTURE_2D, shadowTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, shc);
+}
+
+/* ---------- each frame ---------- */
+let frameDt = 1 / 60, ptrG = [0, 0, 0, 0];
+function resize() {
+  DPR = Math.min(devicePixelRatio || 1, matchMedia('(pointer: coarse)').matches ? 1.5 : 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  placeCamera(); buildMeadow(); buildMobile();
+}
+function render() {
+  gl.viewport(0, 0, cv.width, cv.height);
+  updateMobile(); drawShadowMap();
+  // the sky, then everything else back to front
+  gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
+  gl.useProgram(skyProg);
+  const hz = toScreen([0, 0, -200])[1];
+  gl.uniform3fv(SU.top, PAL.skyTop); gl.uniform3fv(SU.low, PAL.skyLow); gl.uniform1f(SU.horizon, 1 - 2 * hz / H);
+  gl.bindVertexArray(skyVAO); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(prog);
+  gl.uniformMatrix4fv(U.view, false, cam.view); gl.uniformMatrix4fv(U.proj, false, cam.proj);
+  gl.uniform2f(U.vp, W, H); gl.uniform1f(U.focal, cam.fy);
+  gl.uniform1f(U.t, env.t); gl.uniform1f(U.lvl, env.airNow); gl.uniform1f(U.gust, env.gust);
+  gl.uniform4fv(U.ptr, ptrG);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shadowTex); gl.uniform1i(U.shadow, 0);
+  gl.uniform4f(U.shRect, SH.x0, SH.z0, 1 / SH.w, 1 / SH.h);
+  gl.uniform3fv(U.fogCol, PAL.fog); gl.uniform3f(U.shadeCol, .4, .52, .88);
+  gl.bindVertexArray(meadowVAO); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, meadowCount);
+  gl.bindVertexArray(mobileVAO); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, mobN);
+  gl.bindVertexArray(null);
 }
 
 /* ───────────── Pointer: tilt, hover, tap and drag ───────────── */
@@ -839,18 +847,27 @@ function pick(sx, sy, pad) {
   for (const n of PIECES) { if (n.X == null) continue; const d = Math.hypot(sx - n.X, sy - n.Y); if (d < n.R + pad && d < bd - 4) { bd = d; best = n; } }
   return best;
 }
-function grabTarget(n) {
-  const s = persp(n.Cp.z);
-  return { x: (env.pointer.sx - OX) / (SC * s), y: YC + ((env.pointer.sy - OY) / SC - YC) / s };
+function hitPlaneZ(sx, sy, zG) {        // where the pointer's ray crosses an upright plane at depth zG (world)
+  const d = rayAt(sx, sy), t = (zG - cam.pos[2]) / d[2];
+  return [cam.pos[0] + d[0] * t, cam.pos[1] + d[1] * t];
 }
+function grabTarget(n) { const [x, y] = hitPlaneZ(env.pointer.sx, env.pointer.sy, -n.Cp.z); return { x, y: TOP - y }; }
+let lastG = null;
 function onMove(e) {
   const p = env.pointer, now = performance.now();
-  const wx = (e.clientX - OX) / SC, wy = (e.clientY - OY) / SC;
+  const [gx, gy] = hitPlaneZ(e.clientX, e.clientY, 0), wx = gx, wy = TOP - gy;
   const dt = Math.max(8, now - lastPT) / 1000;
   if (lastPT && p.inside) { p.vx = lerp(p.vx, clamp((wx - p.x) / dt, -3, 3), .5); p.vy = lerp(p.vy, clamp((wy - p.y) / dt, -3, 3), .5); }
   p.x = wx; p.y = wy; p.sx = e.clientX; p.sy = e.clientY; p.inside = true; p.type = e.pointerType; lastPT = now;
+  // and where it skims the grass, so a quick sweep parts the meadow
+  const d = rayAt(e.clientX, e.clientY);
+  if (d[1] < -.01) {
+    const t = -(cam.pos[1] - .2) / d[1], g = [cam.pos[0] + d[0] * t, cam.pos[2] + d[2] * t];
+    if (lastG) { ptrG[2] = clamp(lerp(ptrG[2], (g[0] - lastG[0]) / dt * .25, .5), -2, 2); ptrG[3] = clamp(lerp(ptrG[3], (g[1] - lastG[1]) / dt * .25, .5), -2, 2); }
+    ptrG[0] = g[0]; ptrG[1] = g[1]; lastG = g;
+  }
   if (grabbed) grabT = grabTarget(grabbed);
-  // no gyroscope: the mouse tilts the room, across for left and right, up and down for toward the wall
+  // no gyroscope: the mouse tilts the world, across for left and right, up and down for toward you
   if (!hasGyro && e.pointerType === 'mouse') {
     env.tiltTarget = ((e.clientX / W) - .5) * 2 * (16 * Math.PI / 180);
     env.leanTarget = ((e.clientY / H) - .5) * 2 * (10 * Math.PI / 180);
@@ -858,7 +875,7 @@ function onMove(e) {
   wake();
 }
 cv.addEventListener('pointermove', onMove);
-cv.addEventListener('pointerleave', () => { env.pointer.inside = false; if (!hasGyro) { env.tiltTarget = 0; env.leanTarget = 0; } });
+cv.addEventListener('pointerleave', () => { env.pointer.inside = false; lastG = null; if (!hasGyro) { env.tiltTarget = 0; env.leanTarget = 0; } });
 cv.addEventListener('pointerdown', e => {
   onMove(e); env.pointer.down = true;
   const n = pick(e.clientX, e.clientY, 22);
@@ -874,13 +891,14 @@ function endPointer(e) {
     ring(n, .7);
   }
   grabbed = null; downAt = null;
-  if (e.pointerType !== 'mouse') env.pointer.inside = false;
+  if (e.pointerType !== 'mouse') { env.pointer.inside = false; lastG = null; }
 }
 cv.addEventListener('pointerup', endPointer);
 cv.addEventListener('pointercancel', endPointer);
 
 function updateHover() {
   const p = env.pointer, mouse = p.inside && p.type === 'mouse' && !grabbed;
+  ptrG[2] *= .93; ptrG[3] *= .93;
   for (const n of PIECES) {
     // magnetic damping: near the cursor the air around a piece thickens and goes still, so it settles
     let target = 0;
@@ -929,8 +947,9 @@ function hang() {
   env.air = keep; env.t = t;
   REST = bounds();
 }
-hang(); resize(); grain();
-addEventListener('resize', () => { hang(); resize(); });
+if (gl) initGL(); else cv.style.background = 'linear-gradient(#9DB8D6, #E2E9DE 30%, #7F9B5B 34%, #4D7752)';
+hang(); if (gl) resize();
+addEventListener('resize', () => { hang(); if (gl) resize(); });
 
 let last = performance.now(), acc = 0;
 function frame(now) {
@@ -943,7 +962,7 @@ function frame(now) {
   updateHover();
   acc += dt;
   while (acc >= 1 / 60) { step(1 / 60); acc -= 1 / 60; }
-  render();
+  if (gl) render();
   Sound.air(env.airNow * 2, env.gust);
   idleT += dt; if (idleT > 4) controls.classList.add('idle');
   requestAnimationFrame(frame);
