@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Brass and Glass</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A hanging mobile of brass, oak and blown glass that sways with your phone, turns over when you hover it, and rings when its pieces touch.">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+/* Layout: one full-bleed room. The wall is the canvas; four quiet corners hold the name, the readout and the controls. */
+:root{
+  --wall:#E9E5DE; --wall-lit:#F6F2EA; --shade:#5E564C; --wire:#2E2C28;
+  --ink:#1D1C19; --ink2:rgba(29,28,25,.56); --ink3:rgba(29,28,25,.3); --hair:rgba(29,28,25,.14);
+  --chip:rgba(246,242,234,.72);
+  --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --sans:'Instrument Sans',ui-sans-serif,system-ui,sans-serif;
+  --mono:'Geist Mono',ui-monospace,Menlo,Consolas,monospace;
+  --glow:0;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --wall:#1B1A1D; --wall-lit:#3A3127; --shade:#000000; --wire:#A79F92;
+  --ink:#ECE6DA; --ink2:rgba(236,230,218,.58); --ink3:rgba(236,230,218,.3); --hair:rgba(236,230,218,.16);
+  --chip:rgba(30,28,30,.7); --glow:1; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --wall:#1B1A1D; --wall-lit:#3A3127; --shade:#000000; --wire:#A79F92;
+  --ink:#ECE6DA; --ink2:rgba(236,230,218,.58); --ink3:rgba(236,230,218,.3); --hair:rgba(236,230,218,.16);
+  --chip:rgba(30,28,30,.7); --glow:1; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--wall);color:var(--ink);font:400 13px/1.45 var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+canvas#room{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:default}
+canvas#room.grab{cursor:grab}
+canvas#room.grabbing{cursor:grabbing}
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.06;mix-blend-mode:multiply}
+:root[data-theme="dark"] #grain{mix-blend-mode:screen;opacity:.05}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #grain{mix-blend-mode:screen;opacity:.05}}
+.corner{position:fixed;z-index:2;pointer-events:none}
+.corner > *{pointer-events:auto}
+.tl{top:calc(18px + env(safe-area-inset-top,0px));left:max(18px,env(safe-area-inset-left,0px))}
+.bl{bottom:calc(18px + env(safe-area-inset-bottom,0px));left:max(18px,env(safe-area-inset-left,0px));right:max(18px,env(safe-area-inset-right,0px));
+  display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+h1{margin:0;font:italic 400 26px/1 var(--serif);letter-spacing:-.005em;text-wrap:balance}
+.sub{margin-top:6px;color:var(--ink2);max-width:30ch}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.readout{color:var(--ink2);display:flex;flex-direction:column;gap:2px;min-width:0}
+.readout b{font-weight:400;color:var(--ink)}
+.hint{color:var(--ink3)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.controls button{font:inherit;font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--chip);
+  border:1px solid var(--hair);border-radius:999px;padding:8px 13px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:border-color .2s,background-color .2s}
+.controls button:hover{border-color:var(--ink3)}
+.controls button:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
+.controls button.wake{border-color:var(--ink2)}
+.controls button .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ink3);margin-right:7px;vertical-align:1px}
+.controls button.on .dot{background:#C9A44C;box-shadow:0 0 6px #C9A44C}
+#tag{position:fixed;z-index:3;pointer-events:none;color:var(--ink);background:var(--chip);border:1px solid var(--hair);
+  border-radius:3px;padding:5px 8px;white-space:nowrap;opacity:0;transform:translateY(3px);transition:opacity .25s,transform .25s;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#tag.show{opacity:1;transform:none}
+#tag i{font:italic 400 14px/1 var(--serif);margin-right:6px}
+@media (max-width:520px){h1{font-size:22px}.sub{font-size:12px}}
+</style>
+</head>
+<body>
+<canvas id="room" aria-label="A hanging mobile of brass, oak and glass. Tilt your device, or move the pointer, to sway it."></canvas>
+<div id="grain" aria-hidden="true"></div>
+
+<div class="corner tl">
+  <h1>Brass and Glass</h1>
+  <p class="sub">Nine pieces on eight rods. Every rod is balanced by the weight hanging under it.</p>
+</div>
+
+<div class="corner bl">
+  <div class="readout mono" aria-live="off">
+    <span>tilt <b id="r-tilt">+0.0°</b> · air <b id="r-air">0.00</b> m/s</span>
+    <span class="hint" id="hint">move to tilt the room · hover a piece to turn it · drag to swing</span>
+  </div>
+  <div class="controls">
+    <button id="b-air" type="button" aria-label="Change the air in the room"><span class="dot"></span><span id="air-label">air: draft</span></button>
+    <button id="b-wake" class="wake" type="button"><span class="dot"></span><span id="wake-label">sound off</span></button>
+  </div>
+</div>
+<div id="tag" class="mono" role="status"></div>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+
+/* ───────────── Noise: a smooth 3D value noise for the air currents ───────────── */
+function hash(i, j, k) {
+  let h = (Math.imul(i, 374761393) + Math.imul(j, 668265263) + Math.imul(k, 1440662683)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+const sm = t => t * t * (3 - 2 * t);
+function noise3(x, y, z) {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+  const u = sm(x - xi), v = sm(y - yi), w = sm(z - zi);
+  const c = (a, b, d) => hash(xi + a, yi + b, zi + d);
+  return lerp(
+    lerp(lerp(c(0,0,0), c(1,0,0), u), lerp(c(0,1,0), c(1,1,0), u), v),
+    lerp(lerp(c(0,0,1), c(1,0,1), u), lerp(c(0,1,1), c(1,1,1), u), v), w) * 2 - 1;
+}
+
+/* ───────────── The sculpture ─────────────
+   Units: world lengths are roughly metres, masses are grams.
+   rod(length, string drop, [left, right], bias) — the hook position on every rod is solved
+   from the masses below it, so the mobile hangs balanced. bias tips a rod a little, the way
+   a hand-bent mobile never hangs perfectly level. */
+const rod = (len, drop, kids, bias = 0) => ({ type: 'rod', len, drop, kids, bias, g: len * 9 });
+const piece = (kind, o) => Object.assign({ type: 'piece', kind, drop: .026 }, o);
+
+const TREE = rod(.50, .16, [
+  rod(.30, .09, [
+    piece('brass', { r: .074, g: 64, name: 'Hammered brass', note: 0, z: -.3, drop: .03 }),
+    rod(.27, .12, [
+      piece('glass', { r: .052, g: 15, name: 'Sea glass, frosted', c1: [150, 196, 160], c2: [236, 244, 232], rim: [92, 146, 108], note: 3, z: .5 }),
+      rod(.19, .15, [
+        piece('tear', { w: .026, h: .085, g: 9, name: 'Lilac teardrop, blown', c1: [190, 168, 226], c2: [244, 238, 252], rim: [134, 104, 190], note: 6, z: .2 }),
+        piece('glass', { r: .029, g: 4, name: 'Amber glass', c1: [232, 172, 74], c2: [250, 232, 190], rim: [184, 122, 36], note: 8, z: -.1 })
+      ], .02)
+    ], -.03)
+  ], .01),
+  rod(.33, .17, [
+    rod(.25, .10, [
+      piece('sphere', { r: .046, g: 22, name: 'Ribbed globe, blown', c1: [150, 178, 210], c2: [236, 242, 250], rim: [92, 124, 168], note: 2, z: .4, drop: .035 }),
+      rod(.19, .16, [
+        piece('film', { rx: .05, ry: .032, g: 3, name: 'Dichroic film', note: 7, z: -.4 }),
+        piece('crystal', { w: .028, h: .096, g: 12, name: 'Cut crystal pendalogue', note: 9, z: .3 })
+      ], -.02)
+    ], .02),
+    rod(.20, .05, [
+      piece('brass', { r: .042, g: 21, name: 'Small brass', note: 4, z: .1 }),
+      piece('oak', { w: .036, h: .118, g: 24, name: 'White oak paddle', note: 1, z: -.2, drop: .03 })
+    ], -.025)
+  ], -.02)
+]);
+
+/* ───────────── Physics: Verlet particles + distance constraints ─────────────
+   Each rod is a rigid triangle (left tip, right tip, hook loop just above), hung by a string
+   from its parent's tip. Each piece is a two-particle pendulum (its drilled hole and its
+   centre of mass). Every piece also turns about its string (yaw), which is what makes
+   flat glass and brass flash as they face the light. */
+const P = [], C = [], RODS = [], PIECES = [];
+let DROPK = 1;   // on a tall screen the strings get longer, so the mobile hangs as a taller cascade
+const part = (x, y, g, area = 0) => { const p = { x, y, px: x, py: y, m: g, im: g > 0 ? 1 / g : 0, area, resist: 1, still: 0, wx: 0, wy: 0 }; P.push(p); return p; };
+const link = (a, b, k = 1) => C.push({ a, b, len: Math.hypot(b.x - a.x, b.y - a.y), k });
+
+function massOf(n) {
+  if (n.type === 'piece') return n.g;
+  n.M = n.g + massOf(n.kids[0]) + massOf(n.kids[1]);
+  return n.M;
+}
+function pieceGeom(n) {
+  // hole: distance from the hole to the centre of mass; area: the face that catches air
+  switch (n.kind) {
+    case 'brass': case 'glass': return { hole: n.r * .82, area: Math.PI * n.r * n.r, rc: n.r };
+    case 'film': return { hole: n.ry * .8, area: Math.PI * n.rx * n.ry, rc: Math.max(n.rx, n.ry) * .9 };
+    case 'sphere': return { hole: n.r + .01, area: Math.PI * n.r * n.r, rc: n.r };
+    case 'tear': return { hole: n.h * .55, area: n.w * n.h * 1.4, rc: n.w * 1.1 };
+    case 'crystal': return { hole: n.h * .55, area: n.w * n.h * .9, rc: n.w * 1.2 };
+    case 'oak': return { hole: n.h * .44, area: n.w * n.h * 1.6, rc: n.w * 1.15 };
+  }
+}
+function build(n, ax, ay, parent) {
+  if (n.type === 'piece') {
+    const g = pieceGeom(n); Object.assign(n, g);
+    n.S = part(ax, ay + n.drop * (DROPK > 1 ? 1.3 : 1), n.g * .08);
+    n.Cp = part(ax, n.S.y + n.hole, n.g * .92, n.area);
+    link(parent, n.S); link(n.S, n.Cp);
+    n.yaw = (Math.random() - .5) * .8; n.yw = 0; n.hue = 200; n.hover = 0; n.lastRing = 0; n.flash = 0;
+    n.flutter = clamp(n.area / n.g * 1100, .35, 3.2);
+    n.id = PIECES.length; PIECES.push(n);
+    return;
+  }
+  const ML = mass(n.kids[0]), MR = mass(n.kids[1]);
+  const f = clamp((n.g / 2 + MR) / (n.g + ML + MR) + n.bias, .08, .92);
+  const hk = n.len * .07;
+  const hx = ax, hy = ay + n.drop * DROPK;
+  n.H = part(hx, hy, n.g * .1, .0004);
+  n.L = part(hx - f * n.len, hy + hk, n.g * .45 , .0008);
+  n.R = part(hx + (1 - f) * n.len, hy + hk, n.g * .45, .0008);
+  n.f = f;
+  if (parent) link(parent, n.H);
+  link(n.L, n.R); link(n.H, n.L); link(n.H, n.R);
+  RODS.push(n);
+  build(n.kids[0], n.L.x, n.L.y, n.L);
+  build(n.kids[1], n.R.x, n.R.y, n.R);
+}
+const mass = n => n.type === 'piece' ? n.g : n.M;
+massOf(TREE);
+let ANCHOR;
+const inner = new Set();
+function assemble(tall) {
+  DROPK = tall ? 1.85 : 1;
+  P.length = 0; C.length = 0; RODS.length = 0; PIECES.length = 0; inner.clear();
+  ANCHOR = part(0, 0, 0);
+  build(TREE, 0, 0, ANCHOR);
+  for (const r of RODS) for (const cn of C) if ((cn.a === r.L && cn.b === r.R) || (cn.a === r.H && (cn.b === r.L || cn.b === r.R))) inner.add(cn);
+  for (const n of PIECES) for (const cn of C) if (cn.a === n.S && cn.b === n.Cp) inner.add(cn);
+}
+
+/* environment */
+const G = 3.1;                 // gravity, slowed so a 30 cm rod sways over a couple of seconds
+const AIR = 1900, BASE = .12;  // air drag per unit area, and a little drag on everything
+const env = {
+  tilt: 0, tiltTarget: 0, lean: 0, leanTarget: 0,   // sensor gravity, smoothed
+  ix: 0, iy: 0,                // inertial push from shaking the phone
+  spin: 0,                     // body rotation rate (rad/s) from the gyroscope
+  air: 1, airLevels: [['still', 0], ['draft', .1], ['breeze', .24], ['gusts', .5]],
+  airNow: 0, t: 0, gust: 0,
+  pointer: { x: 0, y: 0, vx: 0, vy: 0, inside: false, type: 'mouse', down: false },
+};
+try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) env.air = 0; } catch (e) {}
+
+function windAt(x, y, out) {
+  const t = env.t, lvl = env.airNow;
+  if (lvl > 0) {
+    const base = .55 + .45 * noise3(t * .045, 3.1, 0);           // slow drift of the whole room
+    const g = .55 + .9 * Math.max(0, noise3(t * .11, 7.7, 2));    // gusts come and go
+    env.gust = g;
+    const n1 = noise3(x * 2.2 + t * .25, y * 2.2, t * .18);
+    const n2 = noise3(x * 2.2 + 40, y * 2.2 - t * .2, t * .18 + 9);
+    out.x = lvl * g * (base * .7 + n1 * .9);
+    out.y = lvl * g * n2 * .35;
+  } else { out.x = 0; out.y = 0; }
+  // the hand moving through the air
+  const p = env.pointer;
+  if (p.inside) {
+    const dx = x - p.x, dy = y - p.y, d2 = dx * dx + dy * dy, R = .16;
+    if (d2 < R * R) { const f = (1 - Math.sqrt(d2) / R) ** 2 * (p.down ? 1.1 : .55); out.x += p.vx * f; out.y += p.vy * f; }
+  }
+  return out;
+}
+
+const SUB = 10, ITER = 2;
+const tmp = { x: 0, y: 0 };
+let grabbed = null;
+function step(dt) {
+  env.t += dt;
+  env.airNow = lerp(env.airNow, env.airLevels[env.air][1], .02);
+  const gx = Math.sin(env.tilt) * G, gy = Math.cos(env.tilt) * G;
+  for (const p of P) { if (p.area) { windAt(p.x, p.y, tmp); p.wx = tmp.x * (1 - p.still); p.wy = tmp.y * (1 - p.still); } }
+  const h = dt / SUB, h2 = h * h;
+  for (let s = 0; s < SUB; s++) {
+    for (const p of P) {
+      if (!p.im) continue;
+      const vx = (p.x - p.px) / h, vy = (p.y - p.py) / h;
+      let ax = gx + env.ix, ay = gy + env.iy;
+      const k = (AIR * p.area * p.resist) / p.m + BASE;
+      ax += k * (p.wx - vx); ay += k * (p.wy - vy);
+      p.px = p.x; p.py = p.y;
+      p.x += vx * h + ax * h2; p.y += vy * h + ay * h2;
+    }
+    if (grabbed) { const q = grabbed.Cp; q.x += (env.pointer.x - q.x) * .18; q.y += (env.pointer.y - q.y) * .18; }
+    for (let it = 0; it < ITER; it++) {
+      for (const c of C) {
+        const a = c.a, b = c.b, dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1e-9;
+        const w = a.im + b.im; if (!w) continue;
+        const s2 = (d - c.len) / (d * w) * c.k;
+        a.x += dx * s2 * a.im; a.y += dy * s2 * a.im; b.x -= dx * s2 * b.im; b.y -= dy * s2 * b.im;
+      }
+    }
+    if (s % 2 === 0) collide(h * 2);
+  }
+  // yaw: each piece turns on its string
+  for (const n of PIECES) {
+    const vx = (n.Cp.x - n.Cp.px) / h;
+    const air = Math.hypot(n.Cp.wx, n.Cp.wy);
+    const nz = noise3(n.id * 13.7, env.t * .35, 4.2);
+    let acc = -1.1 * Math.sin(2 * n.yaw)              // the string's twist settles it face-on or face-back
+      - 1.5 * n.yw                                     // air resistance to turning
+      + nz * air * n.flutter * 22                     // eddies catch one edge more than the other
+      + vx * n.flutter * .9 * Math.cos(n.yaw);        // swinging sideways makes a flat piece twist
+    n.yw += acc * dt; n.yw -= env.spinKick || 0;
+    n.yaw += n.yw * dt;
+    n.flash *= .9;
+  }
+  env.spinKick = 0;
+}
+
+/* Pieces touch: a soft push apart, and a note if they meet hard enough */
+function collide(h) {
+  for (let i = 0; i < PIECES.length; i++) for (let j = i + 1; j < PIECES.length; j++) {
+    const A = PIECES[i], B = PIECES[j];
+    if (Math.abs(A.z - B.z) > .75) continue;        // they hang at different depths and pass each other
+    const a = A.Cp, b = B.Cp, dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), min = (A.rc + B.rc) * .82;
+    if (d >= min || d < 1e-6) continue;
+    const nx = dx / d, ny = dy / d, over = min - d, w = a.im + b.im;
+    const rv = ((b.x - b.px) - (a.x - a.px)) * nx + ((b.y - b.py) - (a.y - a.py)) * ny;
+    a.x -= nx * over * a.im / w; a.y -= ny * over * a.im / w; b.x += nx * over * b.im / w; b.y += ny * over * b.im / w;
+    const speed = -rv / (h / 2);
+    if (speed > .05) { ring(A, speed); ring(B, speed); }
+  }
+}
+
+/* ───────────── Sound ───────────── */
+const Sound = (() => {
+  let ctx = null, out = null, send = null, airGain = null, airBand = null, on = false, voices = 0;
+  const PENTA = [0, 2, 4, 7, 9];
+  const freq = i => 146.83 * Math.pow(2, (Math.floor(i / 5) * 12 + PENTA[i % 5]) / 12); // D pentatonic
+  const TIMBRE = {
+    brass:   { mul: 2, parts: [[1, 1, 4.2], [1.004, .7, 4], [2.756, .45, 2], [5.404, .2, 1], [8.93, .1, .5]] },
+    glass:   { mul: 4, parts: [[1, 1, 2.2], [2.71, .4, 1], [5.15, .18, .45], [8.4, .08, .25]] },
+    sphere:  { mul: 4, parts: [[1, 1, 2.6], [2.32, .5, 1.3], [4.25, .2, .6], [6.63, .1, .3]] },
+    tear:    { mul: 4, parts: [[1, 1, 2], [2.32, .45, 1], [4.25, .2, .5]] },
+    film:    { mul: 2, parts: [[1, .7, .25], [3.1, .3, .12]] },
+    crystal: { mul: 8, parts: [[1, 1, 1.8], [2.32, .5, 1], [4.25, .3, .5], [6.63, .15, .3], [9.4, .08, .2]] },
+    oak:     { mul: 1, parts: [[1, 1, .2], [2.6, .45, .09], [4.1, .2, .05]], knock: true },
+  };
+  function impulse(sec) {
+    const n = ctx.sampleRate * sec, b = ctx.createBuffer(2, n, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3.2); }
+    return b;
+  }
+  function init() {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+    ctx = new AC();
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3;
+    const master = ctx.createGain(); master.gain.value = .9;
+    master.connect(comp); comp.connect(ctx.destination);
+    out = ctx.createGain(); out.gain.value = 1; out.connect(master);
+    const verb = ctx.createConvolver(); verb.buffer = impulse(3);
+    send = ctx.createGain(); send.gain.value = .38; send.connect(verb);
+    const wet = ctx.createGain(); wet.gain.value = .5; verb.connect(wet); wet.connect(master);
+    // the room's air: soft brown noise, opened up as the wind rises
+    const nb = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate), d = nb.getChannelData(0);
+    let last = 0; for (let i = 0; i < d.length; i++) { last = (last + .02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+    const src = ctx.createBufferSource(); src.buffer = nb; src.loop = true;
+    airBand = ctx.createBiquadFilter(); airBand.type = 'bandpass'; airBand.frequency.value = 500; airBand.Q.value = .5;
+    airGain = ctx.createGain(); airGain.gain.value = 0;
+    src.connect(airBand); airBand.connect(airGain); airGain.connect(master); src.start();
+    return true;
+  }
+  function ringPiece(n, strength, pan) {
+    if (!on || !ctx || voices > 28) return;
+    const T = TIMBRE[n.kind], f0 = freq(n.note) * T.mul, t = ctx.currentTime + .005;
+    const g = clamp(strength, .02, 1) * .16;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    const bus = ctx.createGain(); bus.gain.value = 1;
+    if (p) { p.pan.value = clamp(pan, -.9, .9); bus.connect(p); p.connect(out); p.connect(send); } else { bus.connect(out); bus.connect(send); }
+    let end = 0;
+    for (const [r, a, dec] of T.parts) {
+      const o = ctx.createOscillator(), e = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f0 * r;
+      e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(g * a, t + .003);
+      e.gain.exponentialRampToValueAtTime(.0001, t + dec);
+      o.connect(e); e.connect(bus); o.start(t); o.stop(t + dec + .05); end = Math.max(end, dec);
+      voices++; o.onended = () => voices--;
+    }
+    if (T.knock) {
+      const nb = ctx.createBuffer(1, ctx.sampleRate * .05, ctx.sampleRate), d = nb.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 4);
+      const s = ctx.createBufferSource(); s.buffer = nb; const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.2;
+      const e = ctx.createGain(); e.gain.value = g * 1.4; s.connect(bp); bp.connect(e); e.connect(bus); s.start(t);
+    }
+  }
+  return {
+    get on() { return on; },
+    toggle() {
+      if (!ctx && !init()) return false;
+      on = !on;
+      if (on && ctx.state === 'suspended') ctx.resume();
+      if (!on) airGain.gain.setTargetAtTime(0, ctx.currentTime, .2);
+      return on;
+    },
+    ring: ringPiece,
+    air(level, gust) {
+      if (!on || !ctx) return;
+      airGain.gain.setTargetAtTime(Math.min(.5, Math.pow(level * gust, 1.2) * .9), ctx.currentTime, .4);
+      airBand.frequency.setTargetAtTime(280 + 700 * level * gust, ctx.currentTime, .4);
+    },
+  };
+})();
+function ring(n, speed) {
+  const now = env.t;
+  if (now - n.lastRing < .12) return;
+  n.lastRing = now; n.flash = 1;
+  Sound.ring(n, speed / .9, n.Cp.x / .5);
+}
+
+/* ───────────── Sensors ─────────────
+   The phone's tilt changes the direction of gravity; it never moves anything directly.
+   deviceorientation (beta, gamma) gives gravity in the phone's frame; we take the part of it
+   that lies in the screen and smooth it with a LERP of 0.05 per frame. devicemotion adds
+   shakes (inertia) and body spins (the pieces lag on their strings). */
+let hasGyro = false;
+function screenAngle() { const a = (screen.orientation && screen.orientation.angle) ?? window.orientation ?? 0; return ((a % 360) + 360) % 360; }
+function onOrient(e) {
+  if (e.beta == null || e.gamma == null) return;
+  hasGyro = true;
+  const b = e.beta * Math.PI / 180, g = e.gamma * Math.PI / 180;
+  // gravity in device coordinates (x right, y up, z out of the screen)
+  const dx = Math.cos(b) * Math.sin(g), dy = -Math.sin(b), dz = -Math.cos(b) * Math.cos(g);
+  let sx, sy; // gravity in screen coordinates (x right, y down)
+  switch (screenAngle()) {
+    case 90: sx = -dy; sy = -dx; break;
+    case 180: sx = -dx; sy = dy; break;
+    case 270: sx = dy; sy = dx; break;
+    default: sx = dx; sy = -dy;
+  }
+  const inPlane = Math.hypot(sx, sy);
+  let tilt = Math.atan2(sx, Math.max(.05, sy));
+  tilt *= clamp((inPlane - .15) / .45, 0, 1);       // lying flat: no clear "down", so ease back to hanging straight
+  env.tiltTarget = clamp(tilt, -1, 1);
+  env.leanTarget = clamp(dz, -1, 1);
+}
+let lastSpin = 0;
+function onMotion(e) {
+  const a = e.acceleration;
+  if (a && a.x != null) {
+    const ang = screenAngle(); let x = a.x, y = a.y;
+    if (ang === 90) [x, y] = [-y, x]; else if (ang === 180) [x, y] = [-x, -y]; else if (ang === 270) [x, y] = [y, -x];
+    // the phone accelerates one way, the hanging pieces are left behind: push the other way
+    env.ix = lerp(env.ix, clamp(-x * .32, -6, 6), .35);
+    env.iy = lerp(env.iy, clamp(y * .32, -6, 6), .35);
+  }
+  const r = e.rotationRate;
+  if (r) {
+    const ang = screenAngle();
+    const spin = ((ang === 90 || ang === 270) ? (r.beta || 0) : (r.gamma || 0)) * Math.PI / 180;
+    env.spinKick = (env.spinKick || 0) + (spin - lastSpin) * .8; lastSpin = spin;
+  }
+}
+addEventListener('deviceorientation', onOrient);
+addEventListener('devicemotion', onMotion);
+async function askMotion() {
+  try {
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') await DeviceOrientationEvent.requestPermission();
+    if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') await DeviceMotionEvent.requestPermission();
+  } catch (e) {}
+}
+
+/* ───────────── Canvas, view and theme ───────────── */
+const cv = document.getElementById('room'), ctx = cv.getContext('2d');
+const sh = document.createElement('canvas'), sctx = sh.getContext('2d');  // low-res shadow layer: upscaling blurs it for free
+const SHR = .34;
+let W = 0, H = 0, DPR = 1, SC = 400, OX = 0, OY = 0, theme = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const get = k => cs.getPropertyValue(k).trim();
+  theme = { wall: get('--wall'), lit: get('--wall-lit'), shade: get('--shade'), wire: get('--wire'), glow: +get('--glow') || 0 };
+}
+function bounds() {
+  let minX = 0, maxX = 0, maxY = 0;
+  for (const n of PIECES) { const r = n.rc + .01; minX = Math.min(minX, n.Cp.x - r); maxX = Math.max(maxX, n.Cp.x + r); maxY = Math.max(maxY, n.Cp.y + r * 1.4); }
+  for (const r of RODS) { minX = Math.min(minX, r.L.x); maxX = Math.max(maxX, r.R.x); }
+  return { minX, maxX, maxY };
+}
+let REST;
+function resize() {
+  DPR = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  sh.width = Math.max(1, Math.round(W * SHR)); sh.height = Math.max(1, Math.round(H * SHR));
+  const b = REST, half = Math.max(-b.minX, b.maxX);
+  const top = 0, bottom = W < 560 ? 120 : 96;
+  SC = Math.min((W - 24) / (half * 2 * 1.02), (H - top - bottom) / (b.maxY * 1.04));
+  OX = W / 2; OY = top + Math.max(0, (H - bottom - b.maxY * SC) * .3);
+  if (W < 560) OY = Math.max(OY, 70);
+  makeTextures();
+}
+const toS = (x, y) => [OX + x * SC, OY + y * SC];
+
+/* pre-rendered surfaces: brushed brass, oak grain, the fine lines in dichroic film */
+const TEX = {};
+function texCanvas(s) { const c = document.createElement('canvas'); c.width = c.height = s; return c; }
+function makeTextures() {
+  const s = 256;
+  let c = texCanvas(s), x = c.getContext('2d');
+  for (let i = 0; i < 520; i++) {           // brushed, slightly hammered brass
+    const y = Math.random() * s, a = (Math.random() - .5) * .25, len = 40 + Math.random() * 200, x0 = Math.random() * s - 40;
+    x.strokeStyle = Math.random() < .5 ? `rgba(255,244,210,${.05 + Math.random() * .12})` : `rgba(90,60,10,${.04 + Math.random() * .1})`;
+    x.lineWidth = .4 + Math.random() * .8; x.beginPath(); x.moveTo(x0, y); x.lineTo(x0 + Math.cos(a) * len, y + Math.sin(a) * len); x.stroke();
+  }
+  for (let i = 0; i < 26; i++) { const g = x.createRadialGradient(Math.random() * s, Math.random() * s, 0, Math.random() * s, Math.random() * s, 14 + Math.random() * 20);
+    g.addColorStop(0, 'rgba(255,240,200,.08)'); g.addColorStop(1, 'rgba(255,240,200,0)'); x.fillStyle = g; x.fillRect(0, 0, s, s); }
+  TEX.brass = c;
+  c = texCanvas(s); x = c.getContext('2d');      // white oak: long grain plus medullary flecks
+  for (let i = 0; i < 70; i++) {
+    const x0 = Math.random() * s; x.strokeStyle = `rgba(110,70,30,${.06 + Math.random() * .14})`; x.lineWidth = .5 + Math.random() * 1.4;
+    x.beginPath(); for (let y = -10; y <= s + 10; y += 8) x.lineTo(x0 + Math.sin(y * .03 + i) * 4 + noise3(i, y * .02, 1) * 6, y); x.stroke();
+  }
+  for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(255,236,200,${.08 + Math.random() * .12})`; x.fillRect(Math.random() * s, Math.random() * s, .8 + Math.random() * 1.6, 3 + Math.random() * 9); }
+  TEX.oak = c;
+  c = texCanvas(s); x = c.getContext('2d');      // film: the fine pressed lines of iridescent acetate
+  for (let i = 0; i < 140; i++) {
+    const y0 = Math.random() * s; x.strokeStyle = `rgba(255,255,255,${.06 + Math.random() * .18})`; x.lineWidth = .5;
+    x.beginPath(); for (let xx = -10; xx <= s + 10; xx += 6) x.lineTo(xx, y0 + Math.sin(xx * .05 + i * .7) * 5 + noise3(i * .3, xx * .03, 2) * 6); x.stroke();
+  }
+  TEX.film = c;
+}
+function grain() {
+  const c = texCanvas(160), x = c.getContext('2d'), d = x.createImageData(160, 160);
+  for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+  x.putImageData(d, 0, 0);
+  document.getElementById('grain').style.backgroundImage = `url(${c.toDataURL()})`;
+}
+
+/* ───────────── Light ───────────── */
+const light = { x: -.42, y: -.62, z: .66 };
+function updateLight() {
+  // the room's window stays put in the world; tilting the phone moves it across the glass
+  const lx = -.42 - Math.sin(env.tilt) * .9, ly = -.62 + env.lean * .5, lz = .66;
+  const m = Math.hypot(lx, ly, lz); light.x = lx / m; light.y = ly / m; light.z = lz / m;
+}
+function faceLight(yaw, rot) {
+  // a flat face with normal (sin yaw, 0, cos yaw), turned in the picture plane by rot
+  const nx0 = Math.sin(yaw), nz = Math.cos(yaw);
+  const nx = nx0 * Math.cos(rot), ny = nx0 * Math.sin(rot);
+  const s = nz >= 0 ? 1 : -1;
+  const diff = Math.max(0, s * (nx * light.x + ny * light.y + nz * light.z));
+  let hx = light.x, hy = light.y, hz = light.z + 1; const hm = Math.hypot(hx, hy, hz); hx /= hm; hy /= hm; hz /= hm;
+  const spec = Math.pow(Math.max(0, s * (nx * hx + ny * hy + nz * hz)), 60);
+  return { diff, spec, back: s < 0 };
+}
+const rgba = (c, a) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+
+/* ───────────── Drawing ───────────── */
+function drawWall() {
+  ctx.fillStyle = theme.wall; ctx.fillRect(0, 0, W, H);
+  // a soft patch of window light (or lamplight at night) that slides as the phone tilts
+  const cx = W * (.18 - Math.sin(env.tilt) * .5), cy = H * (.12 + env.lean * .1), r = Math.max(W, H) * .85;
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  g.addColorStop(0, theme.lit); g.addColorStop(.55, theme.wall); g.addColorStop(1, theme.wall);
+  ctx.globalAlpha = .9; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+  const v = ctx.createRadialGradient(W / 2, H * .45, Math.min(W, H) * .3, W / 2, H * .5, Math.max(W, H) * .8);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, theme.glow ? 'rgba(0,0,0,.45)' : 'rgba(60,50,40,.12)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+}
+
+function shadowOffset(z) {
+  // the mobile hangs ~25 cm off the wall; the shadow lands down and away from the light
+  const d = (.07 + z * .025) * SC;
+  return [-light.x * d * 1.1, -light.y * d * .9];
+}
+
+function rodPath(c, r, k, ox, oy) {
+  const [lx, ly] = toS(r.L.x, r.L.y), [rx, ry] = toS(r.R.x, r.R.y), [hx, hy] = toS(r.H.x, r.H.y);
+  const cx = 2 * hx - (lx + rx) / 2, cy = 2 * hy - (ly + ry) / 2;   // a curve that passes through the hook
+  c.moveTo((lx + ox) * k, (ly + oy) * k); c.quadraticCurveTo((cx + ox) * k, (cy + oy) * k, (rx + ox) * k, (ry + oy) * k);
+}
+function strings(c, k, ox, oy) {
+  for (const cn of C) {
+    const a = cn.a, b = cn.b;
+    if (isRodInner(cn) || isPieceInner(cn)) continue;
+    const [ax, ay] = cn.a === ANCHOR ? [OX, -20] : toS(a.x, a.y), [bx, by] = toS(b.x, b.y);
+    c.moveTo((ax + ox) * k, (ay + oy) * k); c.lineTo((bx + ox) * k, (by + oy) * k);
+  }
+}
+const isRodInner = cn => inner.has(cn), isPieceInner = () => false;
+
+function drawShadows() {
+  const k = SHR;
+  sctx.setTransform(1, 0, 0, 1, 0, 0);
+  sctx.globalCompositeOperation = 'source-over';
+  sctx.fillStyle = '#fff'; sctx.fillRect(0, 0, sh.width, sh.height);
+  const [ox, oy] = shadowOffset(0);
+  sctx.strokeStyle = theme.glow ? 'rgba(0,0,0,.5)' : 'rgba(70,62,52,.42)'; sctx.lineWidth = Math.max(.7, 1.6 * k * 1.6);
+  sctx.beginPath(); for (const r of RODS) rodPath(sctx, r, k, ox, oy); strings(sctx, k, ox, oy); sctx.stroke();
+  for (const n of PIECES) {
+    const [o2x, o2y] = shadowOffset(n.z);
+    const [cx, cy] = toS(n.Cp.x, n.Cp.y);
+    sctx.save(); sctx.translate((cx + o2x) * k, (cy + o2y) * k); sctx.rotate(n.rot); sctx.scale(k * SC, k * SC);
+    const sx = Math.max(.06, Math.abs(Math.cos(n.yaw)));
+    const glass = n.kind === 'glass' || n.kind === 'tear' || n.kind === 'sphere' || n.kind === 'crystal' || n.kind === 'film';
+    if (glass) {
+      const col = n.c1 || (n.kind === 'film' ? hueRGB(n.hue) : [200, 205, 215]);
+      sctx.fillStyle = rgba([col[0] * .78, col[1] * .78, col[2] * .78], n.kind === 'crystal' ? .18 : .32);
+      sctx.strokeStyle = rgba([col[0] * .5, col[1] * .5, col[2] * .5], .4); sctx.lineWidth = .006;
+    } else { sctx.fillStyle = theme.glow ? 'rgba(0,0,0,.6)' : 'rgba(80,68,54,.5)'; sctx.strokeStyle = 'rgba(0,0,0,0)'; }
+    const sxx = n.kind === 'sphere' || n.kind === 'tear' ? 1 : sx;
+    sctx.scale(sxx, 1); sctx.beginPath(); outline(sctx, n); sctx.fill(); if (glass) sctx.stroke();
+    sctx.restore();
+  }
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(sh, 0, 0, W, H); ctx.restore();
+}
+
+/* silhouette of a piece, in its own metres, centre of mass at the origin */
+function outline(c, n) {
+  switch (n.kind) {
+    case 'brass': case 'glass': c.arc(0, 0, n.r, 0, TAU); break;
+    case 'film': c.ellipse(0, 0, n.rx, n.ry, 0, 0, TAU); break;
+    case 'sphere': c.arc(0, 0, n.r, 0, TAU); break;
+    case 'tear': { const w = n.w, h = n.h, t = -h * .55;
+      c.moveTo(0, t); c.bezierCurveTo(w * .25, t + h * .2, w, t + h * .38, w, t + h * .68);
+      c.bezierCurveTo(w, t + h * .92, w * .5, t + h, 0, t + h);
+      c.bezierCurveTo(-w * .5, t + h, -w, t + h * .92, -w, t + h * .68);
+      c.bezierCurveTo(-w, t + h * .38, -w * .25, t + h * .2, 0, t); break; }
+    case 'crystal': { const w = n.w, h = n.h, t = -h * .55;
+      // octagon bead, then the faceted drop below it
+      const b = w * .55, by = t + b;
+      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + Math.PI / 8; c[i ? 'lineTo' : 'moveTo'](Math.cos(a) * b, by + Math.sin(a) * b); } c.closePath();
+      const top = by + b + h * .04;
+      c.moveTo(-w * .45, top); c.lineTo(w * .45, top); c.lineTo(w * .62, t + h * .78); c.lineTo(0, t + h); c.lineTo(-w * .62, t + h * .78); c.closePath(); break; }
+    case 'oak': { const w = n.w, h = n.h, t = -h * .45;
+      c.moveTo(0, t); c.bezierCurveTo(w * .62, t, w * .7, t + h * .3, w * .85, t + h * .62);
+      c.bezierCurveTo(w * 1.02, t + h * .95, w * .4, t + h, 0, t + h);
+      c.bezierCurveTo(-w * .55, t + h, -w * .98, t + h * .9, -w * .82, t + h * .55);
+      c.bezierCurveTo(-w * .68, t + h * .25, -w * .55, t, 0, t); break; }
+  }
+}
+function hueRGB(h) {
+  const f = (n) => { const k = (n + h / 30) % 12; return .62 - .3 * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  return [f(0) * 255, f(8) * 255, f(4) * 255];
+}
+
+function drawWires() {
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = theme.wire; ctx.lineWidth = 1;
+  ctx.beginPath(); strings(ctx, 1, 0, 0); ctx.stroke();
+  ctx.lineWidth = 1.7;
+  ctx.beginPath(); for (const r of RODS) rodPath(ctx, r, 1, 0, 0); ctx.stroke();
+  // a thin highlight along the top of each rod
+  ctx.strokeStyle = theme.glow ? 'rgba(255,236,200,.35)' : 'rgba(255,250,240,.45)'; ctx.lineWidth = .6;
+  ctx.beginPath(); for (const r of RODS) rodPath(ctx, r, 1, 0, -.6); ctx.stroke();
+  // curled tips and hook loops
+  ctx.strokeStyle = theme.wire; ctx.lineWidth = 1.1;
+  ctx.beginPath();
+  for (const r of RODS) for (const p of [r.L, r.R, r.H]) { const [x, y] = toS(p.x, p.y); ctx.moveTo(x + 1.8, y); ctx.arc(x, y, 1.8, 0, TAU); }
+  ctx.stroke();
+}
+
+function glassBody(n, rad, k) {
+  const c1 = n.c1, c2 = n.c2, a = .5 + .2 * theme.glow;
+  const g = ctx.createLinearGradient(0, -rad, 0, rad);
+  g.addColorStop(0, rgba(c2, a * .85)); g.addColorStop(1, rgba(c1, a));
+  return g;
+}
+
+function drawPiece(n) {
+  const [cx, cy] = toS(n.Cp.x, n.Cp.y);
+  const L = faceLight(n.yaw, n.rot);
+  const cyaw = Math.cos(n.yaw), sx = Math.sign(cyaw || 1) * Math.max(.05, Math.abs(cyaw));
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(n.rot);
+  const s = SC;
+  const lift = 1 + env.lean * .03 * (n.z + 1);                 // leaning the phone brings the lower pieces a touch closer
+  ctx.scale(s * lift, s * lift);
+  const px = 1 / (s * lift);                                    // one screen pixel, in metres
+  switch (n.kind) {
+    case 'brass': {
+      ctx.save(); ctx.scale(sx, 1);
+      ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .0035, 0, TAU, true);
+      const g = ctx.createLinearGradient(-n.r, -n.r, n.r, n.r);
+      g.addColorStop(0, '#E9CF84'); g.addColorStop(.45, '#C9A44C'); g.addColorStop(1, '#8E6B25');
+      ctx.fillStyle = g; ctx.fill('evenodd');
+      ctx.save(); ctx.clip('evenodd');
+      ctx.globalAlpha = .8; ctx.drawImage(TEX.brass, -n.r, -n.r, n.r * 2, n.r * 2); ctx.globalAlpha = 1;
+      // the face darkens as it turns from the light, and a band of sheen sweeps across as it turns
+      ctx.fillStyle = `rgba(40,26,4,${(1 - L.diff) * .5})`; ctx.fillRect(-n.r, -n.r, n.r * 2, n.r * 2);
+      const band = Math.sin(n.yaw * 1.6 + env.tilt) * n.r * 1.3;
+      const sg = ctx.createLinearGradient(band - n.r * .6, -n.r, band + n.r * .6, n.r);
+      const sa = .18 + L.spec * .7;
+      sg.addColorStop(0, 'rgba(255,246,214,0)'); sg.addColorStop(.5, `rgba(255,246,214,${sa})`); sg.addColorStop(1, 'rgba(255,246,214,0)');
+      ctx.fillStyle = sg; ctx.fillRect(-n.r, -n.r, n.r * 2, n.r * 2);
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(110,80,24,.7)'; ctx.lineWidth = px * 1.1 / Math.abs(sx); ctx.beginPath(); outline(ctx, n); ctx.stroke();
+      ctx.restore();
+      if (Math.abs(cyaw) < .2) { ctx.strokeStyle = '#B48E3C'; ctx.lineWidth = px * 2; ctx.beginPath(); ctx.moveTo(0, -n.r); ctx.lineTo(0, n.r); ctx.stroke(); }
+      break;
+    }
+    case 'glass': {
+      ctx.save(); ctx.scale(sx, 1);
+      ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .0032, 0, TAU, true);
+      ctx.fillStyle = glassBody(n, n.r); ctx.fill('evenodd');
+      // a fire-polished edge is thicker, so it reads deeper in colour
+      ctx.strokeStyle = rgba(n.rim, .55); ctx.lineWidth = n.r * .14;
+      ctx.beginPath(); ctx.arc(0, 0, n.r * .93, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = rgba(n.rim, .8); ctx.lineWidth = px * 1.1 / Math.abs(sx);
+      ctx.beginPath(); outline(ctx, n); ctx.stroke();
+      specBlob(n.r, L, n);
+      ctx.restore();
+      if (Math.abs(cyaw) < .22) { ctx.strokeStyle = rgba(n.rim, .9); ctx.lineWidth = px * 2.4; ctx.beginPath(); ctx.moveTo(0, -n.r); ctx.lineTo(0, n.r); ctx.stroke(); }
+      break;
+    }
+    case 'film': {
+      // thin-film colour: the hue slides as the angle to the light changes
+      n.hue = (200 + n.yaw * 95 + env.tilt * 60 + L.diff * 40) % 360;
+      ctx.save(); ctx.scale(sx, 1);
+      ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .0028, 0, TAU, true);
+      const g = ctx.createLinearGradient(-n.rx, -n.ry, n.rx, n.ry);
+      const h = n.hue;
+      g.addColorStop(0, `hsla(${h},70%,64%,.55)`); g.addColorStop(.5, `hsla(${(h + 70) % 360},75%,70%,.5)`); g.addColorStop(1, `hsla(${(h + 150) % 360},65%,58%,.6)`);
+      ctx.fillStyle = g; ctx.fill('evenodd');
+      ctx.save(); ctx.clip('evenodd'); ctx.globalAlpha = .7; ctx.drawImage(TEX.film, -n.rx, -n.ry, n.rx * 2, n.ry * 2); ctx.restore();
+      ctx.strokeStyle = `hsla(${(h + 40) % 360},60%,40%,.6)`; ctx.lineWidth = px / Math.abs(sx); ctx.beginPath(); outline(ctx, n); ctx.stroke();
+      specBlob(n.ry, L, n);
+      ctx.restore();
+      break;
+    }
+    case 'sphere': {
+      const r = n.r;
+      const g = ctx.createRadialGradient(-r * .25, -r * .3, r * .1, 0, 0, r);
+      g.addColorStop(0, rgba(n.c2, .18 + .1 * theme.glow)); g.addColorStop(.75, rgba(n.c1, .38 + .1 * theme.glow)); g.addColorStop(1, rgba(n.rim, .7));
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fillStyle = g; ctx.fill();
+      // swirled ribs, turning with the globe
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.clip(); ctx.rotate(.35);
+      for (let i = 0; i < 9; i++) {
+        const ph = i / 9 * Math.PI + n.yaw, sxr = Math.cos(ph);
+        if (sxr < 0) continue;
+        ctx.strokeStyle = rgba(n.rim, .12 + sxr * .22); ctx.lineWidth = px * 1.4;
+        ctx.beginPath(); ctx.ellipse(0, 0, Math.abs(Math.sin(ph)) * r * 1.05 + px, r * 1.1, 0, 0, TAU); ctx.stroke();
+      }
+      ctx.restore();
+      ctx.strokeStyle = rgba(n.rim, .75); ctx.lineWidth = px * 1.1; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
+      // window reflection and a bright point, where the light is
+      const hx = light.x * r * .55, hy = light.y * r * .55;
+      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.beginPath(); ctx.ellipse(hx, hy, r * .16, r * .09, -.6, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(-hx * .9, -hy * .9, r * .09, r * .05, -.6, 0, TAU); ctx.fill();
+      // the neck cap
+      ctx.fillStyle = '#B9974A'; ctx.fillRect(-r * .16, -r - .004, r * .32, .006);
+      break;
+    }
+    case 'tear': {
+      ctx.beginPath(); outline(ctx, n);
+      const g = ctx.createLinearGradient(-n.w, 0, n.w, 0);
+      const a = .45 + .12 * theme.glow, edge = rgba(n.rim, a + .2), mid = rgba(n.c2, a * .55);
+      g.addColorStop(0, edge); g.addColorStop(.35, mid); g.addColorStop(.65, rgba(n.c1, a * .6)); g.addColorStop(1, edge);
+      ctx.fillStyle = g; ctx.fill();
+      ctx.strokeStyle = rgba(n.rim, .8); ctx.lineWidth = px * 1.1; ctx.stroke();
+      const hx = Math.sin(n.yaw) * n.w * .45 - n.w * .35;
+      ctx.fillStyle = `rgba(255,255,255,${.4 + L.spec * .5})`;
+      ctx.beginPath(); ctx.ellipse(hx, n.h * .05, n.w * .1, n.h * .22, 0, 0, TAU); ctx.fill();
+      break;
+    }
+    case 'crystal': {
+      ctx.beginPath(); outline(ctx, n);
+      ctx.fillStyle = theme.glow ? 'rgba(220,228,240,.22)' : 'rgba(225,232,240,.4)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(120,130,145,.8)'; ctx.lineWidth = px * 1.1; ctx.stroke();
+      // facets light up one after another as it turns
+      const w = n.w, h = n.h, t = -h * .55, b = w * .55, by = t + b, top = by + b + h * .04;
+      const facets = [
+        [[0, top], [w * .45, top], [w * .62, t + h * .78], [0, t + h * .6]],
+        [[0, top], [-w * .45, top], [-w * .62, t + h * .78], [0, t + h * .6]],
+        [[0, t + h * .6], [w * .62, t + h * .78], [0, t + h]],
+        [[0, t + h * .6], [-w * .62, t + h * .78], [0, t + h]],
+        [[0, by], [b, by], [b * .7, by - b * .7]],
+        [[0, by], [-b, by], [-b * .7, by + b * .7]],
+      ];
+      facets.forEach((f, i) => {
+        const fl = Math.pow(Math.max(0, Math.cos(n.yaw * 2 + i * 1.3 + env.tilt * 2)), 14);
+        ctx.beginPath(); f.forEach(([x, y], j) => ctx[j ? 'lineTo' : 'moveTo'](x, y)); ctx.closePath();
+        ctx.fillStyle = `rgba(255,255,255,${.06 + fl * .85})`; ctx.fill();
+        if (fl > .5) { ctx.strokeStyle = `hsla(${(i * 60 + n.yaw * 90) % 360},80%,70%,${fl * .3})`; ctx.lineWidth = px; ctx.stroke(); }
+      });
+      n.sparkle = Math.max(...facets.map((_, i) => Math.pow(Math.max(0, Math.cos(n.yaw * 2 + i * 1.3 + env.tilt * 2)), 14)));
+      break;
+    }
+    case 'oak': {
+      ctx.save(); ctx.scale(sx, 1);
+      ctx.beginPath(); outline(ctx, n); ctx.arc(0, -n.hole, .003, 0, TAU, true);
+      const g = ctx.createLinearGradient(-n.w, -n.h / 2, n.w, n.h / 2);
+      g.addColorStop(0, '#E4BC8C'); g.addColorStop(1, '#B98653');
+      ctx.fillStyle = g; ctx.fill('evenodd');
+      ctx.save(); ctx.clip('evenodd'); ctx.globalAlpha = .9; ctx.drawImage(TEX.oak, -n.w, -n.h / 2, n.w * 2, n.h);
+      ctx.globalAlpha = 1; ctx.fillStyle = `rgba(60,34,10,${(1 - L.diff) * .35})`; ctx.fillRect(-n.w, -n.h / 2, n.w * 2, n.h); ctx.restore();
+      ctx.strokeStyle = 'rgba(120,80,40,.6)'; ctx.lineWidth = px / Math.abs(sx); ctx.beginPath(); outline(ctx, n); ctx.stroke();
+      ctx.restore();
+      break;
+    }
+  }
+  // the loop of wire through the hole
+  ctx.strokeStyle = theme.wire; ctx.lineWidth = px * 1.1;
+  ctx.beginPath(); ctx.ellipse(0, -n.hole, .0035 * Math.max(.3, Math.abs(cyaw)), .006, 0, 0, TAU); ctx.stroke();
+  if (n.flash > .05) {   // a struck piece shimmers for a moment
+    ctx.globalAlpha = n.flash * .5; ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(0, 0, n.rc * .5, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+}
+function specBlob(r, L, n) {
+  const a = .12 + L.spec * .8;
+  const x = light.x * r * .45, y = light.y * r * .45;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r * .75);
+  g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.beginPath(); outline(ctx, n); ctx.fill();
+}
+
+/* light through glass lands on the wall: soft coloured pools, and from the crystal and film, flecks of spectrum */
+function drawCaustics() {
+  ctx.save(); ctx.globalCompositeOperation = theme.glow ? 'lighter' : 'screen';
+  for (const n of PIECES) {
+    const glass = n.kind === 'glass' || n.kind === 'sphere' || n.kind === 'tear';
+    const [cx, cy] = toS(n.Cp.x, n.Cp.y), [ox, oy] = shadowOffset(n.z);
+    const x = cx + ox, y = cy + oy, r = n.rc * SC;
+    if (glass) {
+      const col = n.c2, a = (theme.glow ? .2 : .32) * (.5 + .5 * Math.abs(Math.cos(n.yaw)));
+      const g = ctx.createRadialGradient(x - ox * .15, y - oy * .15, 0, x, y, r * .7);
+      g.addColorStop(0, rgba([255, 255, 250], a)); g.addColorStop(.5, rgba(col, a * .5)); g.addColorStop(1, rgba(col, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * .7, 0, TAU); ctx.fill();
+    }
+    if (n.kind === 'crystal' || n.kind === 'film') {
+      const k = n.kind === 'crystal' ? (n.sparkle || 0) : Math.pow(Math.abs(Math.sin(n.yaw)), 3) * .6;
+      if (k < .03) continue;
+      const ang = n.yaw * 1.7 + env.tilt * 2, spread = r * (1.6 + Math.sin(n.yaw) * .8);
+      for (let i = 0; i < 7; i++) {
+        const t = i / 6 - .5, px2 = x + Math.cos(ang) * spread * t + ox * .6, py2 = y + Math.sin(ang) * spread * t + oy * .4;
+        const g = ctx.createRadialGradient(px2, py2, 0, px2, py2, 4 + r * .12);
+        g.addColorStop(0, `hsla(${i * 50},95%,65%,${k * (theme.glow ? .7 : .55)})`); g.addColorStop(1, `hsla(${i * 50},95%,65%,0)`);
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px2, py2, 4 + r * .12, 0, TAU); ctx.fill();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+function render() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  updateLight();
+  for (const n of PIECES) n.rot = Math.atan2(n.Cp.y - n.S.y, n.Cp.x - n.S.x) - Math.PI / 2;
+  drawWall();
+  drawShadows();
+  drawCaustics();
+  drawWires();
+  const order = PIECES.slice().sort((a, b) => a.z - b.z);
+  for (const n of order) drawPiece(n);
+}
+
+/* ───────────── Pointer: tilt, hover, tap and drag ───────────── */
+const tag = document.getElementById('tag');
+let hovered = null, downAt = null, lastPX = 0, lastPY = 0, lastPT = 0;
+function toW(x, y) { return [(x - OX) / SC, (y - OY) / SC]; }
+function pick(wx, wy, pad) {
+  let best = null, bd = Infinity;
+  for (const n of PIECES) { const d = Math.hypot(wx - n.Cp.x, wy - n.Cp.y); if (d < n.rc + pad && d < bd) { bd = d; best = n; } }
+  return best;
+}
+function onMove(e) {
+  const p = env.pointer, now = performance.now();
+  const [wx, wy] = toW(e.clientX, e.clientY);
+  const dt = Math.max(8, now - lastPT) / 1000;
+  if (lastPT) { p.vx = lerp(p.vx, clamp((wx - p.x) / dt, -3, 3), .5); p.vy = lerp(p.vy, clamp((wy - p.y) / dt, -3, 3), .5); }
+  p.x = wx; p.y = wy; p.inside = true; p.type = e.pointerType; lastPT = now;
+  // no gyroscope: the mouse's place across the screen tilts the room
+  if (!hasGyro && e.pointerType === 'mouse') env.tiltTarget = ((e.clientX / W) - .5) * 2 * (16 * Math.PI / 180);
+}
+cv.addEventListener('pointermove', onMove);
+cv.addEventListener('pointerleave', () => { env.pointer.inside = false; if (!hasGyro) env.tiltTarget = 0; });
+cv.addEventListener('pointerdown', e => {
+  onMove(e); env.pointer.down = true;
+  const n = pick(env.pointer.x, env.pointer.y, 22 / SC);
+  downAt = { x: e.clientX, y: e.clientY, t: performance.now(), n };
+  if (n) { grabbed = n; cv.setPointerCapture(e.pointerId); cv.classList.add('grabbing'); }
+});
+function endPointer(e) {
+  env.pointer.down = false; cv.classList.remove('grabbing');
+  if (downAt && downAt.n && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 8 && performance.now() - downAt.t < 350) {
+    const n = downAt.n;      // a tap: flick it, turn it over, and let it ring
+    n.yw += (Math.random() < .5 ? -1 : 1) * 8;
+    n.Cp.px -= (Math.random() - .5) * .006; n.Cp.py += .002;
+    ring(n, .7);
+  }
+  grabbed = null; downAt = null;
+  if (e.pointerType !== 'mouse') env.pointer.inside = false;
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+
+function updateHover() {
+  const p = env.pointer;
+  for (const n of PIECES) {
+    // magnetic damping: near the cursor, the air around a piece thickens and it comes to rest
+    let target = 0;
+    if (p.inside && p.type === 'mouse' && !grabbed) {
+      const d = Math.hypot(p.x - n.Cp.x, p.y - n.Cp.y), R = n.rc + 60 / SC;
+      if (d < R) target = Math.pow(1 - d / R, 1.5);
+    }
+    n.hover = lerp(n.hover, target, .12);
+    n.Cp.resist = 1 + n.hover * 40; n.S.resist = 1 + n.hover * 40;
+    n.Cp.still = n.hover; n.S.still = n.hover;
+  }
+  const h = (p.inside && p.type === 'mouse' && !grabbed) ? pick(p.x, p.y, 10 / SC) : grabbed;
+  if (h !== hovered) {
+    if (h && !grabbed) { h.yw += (p.vx >= 0 ? 1 : -1) * 8.5; ring(h, .18); }   // hover turns it over
+    hovered = h;
+    cv.classList.toggle('grab', !!h);
+    if (h) { tag.innerHTML = `<i></i>`; tag.firstChild.textContent = h.name; tag.append(` ${h.g} g`); }
+    tag.classList.toggle('show', !!h);
+  }
+  if (hovered) {
+    const [sx, sy] = toS(hovered.Cp.x, hovered.Cp.y);
+    const right = sx < W - 220;
+    tag.style.left = (right ? sx + hovered.rc * SC + 14 : sx - hovered.rc * SC - 14 - tag.offsetWidth) + 'px';
+    tag.style.top = (sy - 12) + 'px';
+  }
+}
+
+/* ───────────── Controls ───────────── */
+const bAir = document.getElementById('b-air'), airLabel = document.getElementById('air-label');
+const bWake = document.getElementById('b-wake'), wakeLabel = document.getElementById('wake-label');
+const coarse = matchMedia('(pointer: coarse)').matches;
+function paintAir() { airLabel.textContent = 'air: ' + env.airLevels[env.air][0]; bAir.classList.toggle('on', env.air > 0); }
+bAir.addEventListener('click', () => { env.air = (env.air + 1) % env.airLevels.length; paintAir(); });
+function paintWake() {
+  if (!Sound.on) wakeLabel.textContent = coarse ? 'sound and tilt' : 'sound off';
+  else wakeLabel.textContent = 'sound on';
+  bWake.classList.toggle('on', Sound.on);
+}
+bWake.addEventListener('click', async () => {
+  if (coarse && !hasGyro) await askMotion();
+  Sound.toggle(); paintWake();
+});
+if (coarse) document.getElementById('hint').textContent = 'tilt your phone · tap a piece · drag to swing';
+paintAir(); paintWake();
+
+const rTilt = document.getElementById('r-tilt'), rAir = document.getElementById('r-air');
+let readT = 0;
+function readout(dt) {
+  readT += dt; if (readT < .15) return; readT = 0;
+  const deg = env.tilt * 180 / Math.PI;
+  rTilt.textContent = (deg >= 0 ? '+' : '−') + Math.abs(deg).toFixed(1) + '°';
+  rAir.textContent = (env.airNow * (env.gust || 1)).toFixed(2);
+}
+
+/* ───────────── Run ───────────── */
+// let it settle into balance before the first frame, so it opens hanging still
+let TALL = null;
+function hang() {
+  const tall = innerHeight / innerWidth > 1.25;
+  if (tall === TALL) return;
+  TALL = tall; grabbed = null; hovered = null;
+  assemble(tall);
+  const keep = env.air, t = env.t; env.air = 0; env.airNow = 0;
+  for (let i = 0; i < 600; i++) step(1 / 60);
+  env.air = keep; env.t = t;
+  REST = bounds();
+}
+hang(); readTheme(); resize(); grain();
+addEventListener('resize', () => { hang(); resize(); });
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme); } catch (e) {}
+new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+let last = performance.now(), acc = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  // LERP smoothing of 0.05 per frame takes the jitter out of the sensor (or the mouse)
+  env.tilt = lerp(env.tilt, env.tiltTarget, .05);
+  env.lean = lerp(env.lean, env.leanTarget, .05);
+  env.ix *= .9; env.iy *= .9;
+  env.pointer.vx *= .92; env.pointer.vy *= .92;
+  updateHover();
+  acc += dt;
+  while (acc >= 1 / 60) { step(1 / 60); acc -= 1 / 60; }
+  render();
+  Sound.air(env.airNow * 2, env.gust || 1);
+  readout(dt);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.__mobile = { env, PIECES, RODS, step };
+})();
+</script>
+</body>
+</html>
