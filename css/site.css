@@ -1895,3 +1895,6 @@ body.show-index .settings{z-index:46}
 .i-about:hover .wisp .b,.i-about:focus-visible .wisp .b{opacity:1;translate:0 0;filter:blur(0)}
 .i-about:hover{color:var(--ink)}
 .i-about:hover .wk-arrow{color:var(--ox)}
+
+/* the mobile, live inside its sheet */
+.c-hero iframe.mobile-frame{display:block;width:min(1040px,calc(100vw - 48px));height:min(72vh,680px);border:0;background:var(--ground)}
