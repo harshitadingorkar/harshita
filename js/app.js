@@ -185,6 +185,12 @@ function bindPoint(e) {
 
 /* ---------- sheet ---------- */
 const sheet = $('#sheet'), veil = $('#veil'); let sheetOpen = false, lastFocus = null;
+/* Smooth scrolling with Lenis (github.com/darkroomengineering/lenis). A wheel or trackpad glides instead of stepping;
+   a finger keeps the phone's own scrolling, which is already the smoothest there is. The work and the case sheets are
+   their own scrolling panes, so each gets one, measured live because their contents are swapped in and out. */
+const smoothScroll = el => (window.Lenis && !RM) ? new window.Lenis({ wrapper: el, content: el, autoRaf: true, lerp: .085, wheelMultiplier: .95, allowNestedScroll: true, __experimental__naiveDimensions: true }) : null;
+const ixScroll = smoothScroll($('#index')), sheetScroll = smoothScroll(sheet);
+const toTop = (lenis, el, immediate) => lenis ? lenis.scrollTo(0, { immediate, force: true, duration: 1.1 }) : el.scrollTo({ top: 0, behavior: immediate || RM ? 'auto' : 'smooth' });
 let curP = null, fromR = null;
 const ptEl = p => $$('.pt').find(e => e._p === p);
 function srcRect(p) { const m = $('.pfig.in', plate)?.firstElementChild; if (m) return m.getBoundingClientRect(); const d = ptEl(p); return d ? d.querySelector('.dot').getBoundingClientRect() : null; }
@@ -206,7 +212,7 @@ function dockFor(cur) {
   const show=q=>{cap.classList.add('switching');sub.classList.add('switching');setTimeout(()=>{cap.textContent=q?`${q.org} — ${q.title}`:'';sub.textContent=q?.line||'';cap.classList.remove('switching');sub.classList.remove('switching');},160);};
   show(null);
   const items = S.points.filter(thumbSrc).sort((x, y) => (x.type==='work'?0:1)-(y.type==='work'?0:1) || qOrder[x.quad] - qOrder[y.quad]).map((q, i) => h('button', { class: q === cur ? 'on' : '', style: '--i:' + i, 'aria-label': q.title, onmouseenter: () => show(q), onmouseleave: () => show(null), onclick: e => { const r = e.currentTarget.getBoundingClientRect(); ready.then(() => open(q, r)); } }, h('img', { src: thumbSrc(q), alt: '' })));
-  return [h('div', { class: 'c-dock', role: 'navigation', 'aria-label': 'Everything else' }, items), h('div',{class:'c-caption'},cap,sub)];
+  return [h('div', { class: 'c-dock', role: 'navigation', 'aria-label': 'Everything else', 'data-lenis-prevent': '' }, items), h('div',{class:'c-caption'},cap,sub)];
 }
 function grow(card, from) {
   let went = false; const go = () => { if (went) return; went = true; card.style.visibility = '';
@@ -226,7 +232,11 @@ function openSheet(quadKey, kicker, title, ...content) {
   const work=p&&p.type==='work';
   const head=work?h('header',{class:'case-head'},h('p',{class:'mono'},`${p.org} · ${p.year} · ${p.role}`),h('h2',{class:'s-title'},p.title),h('p',{class:'case-line'},p.line)):null;
   sheet.replaceChildren(...[h('div', { class: 'c-top' }, h('button', { class: 'c-x', onclick: closeSheet, 'aria-label': 'Close' }, '×'), dock), h('div', { class: 'c-namewrap' }, name), head, hero ? h('div', { class: 'c-hero' + (hero.tagName === 'VIDEO' ? ' v' : '') }, hero) : null, p && p.credit ? h('p', { class: 'c-cap c-credit' }, p.credit) : null, h('div', { class: 'body' }, title&&!work ? [h('p', { class: 'c-kick c-in' }, kicker), h('h2', { class: 's-title c-in' }, title)] : null, ...content)].filter(Boolean));
-  sheet.scrollTop = 0; sheetOpen = true; sheet.classList.add('on'); body.classList.add('case-open'); sheet.focus({ preventScroll: true });
+  if (work) { const i = WORK_ORDER.indexOf(p.id), nx = i < 0 ? null : S.points.find(q => q.id === WORK_ORDER[(i + 1) % WORK_ORDER.length]);
+    if (nx && nx !== p) sheet.append(h('nav', { class: 'c-next', 'aria-label': 'Next piece' }, h('button', { type: 'button', onclick: e => { const im = e.currentTarget.querySelector('img'); ready.then(() => open(nx, (im || e.currentTarget).getBoundingClientRect())); } },
+      h('span', { class: 'c-next-k' }, 'Next'), h('span', { class: 'c-next-t' }, nx.title, h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b'))), h('span', { class: 'c-next-m' }, [nx.org, nx.year].filter(Boolean).join(' · ')),
+      (nx.still || nx.img) ? h('span', { class: 'c-next-img' }, h('img', { src: A(nx.still || nx.img), alt: '', loading: 'lazy' })) : null))); }
+  sheet.scrollTop = 0; toTop(sheetScroll, sheet, true); sheetOpen = true; sheet.classList.add('on'); body.classList.add('case-open'); sheet.focus({ preventScroll: true });
   const card = $('.c-hero', sheet); if (card) grow(card, from);
   const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: sheet, threshold: 0, rootMargin: '0px 0px -6% 0px' });
   setTimeout(() => $$('.reveal,.crop', sheet).forEach((el, i) => { el.style.transitionDelay = Math.min(i, 6) * 45 + 'ms'; io.observe(el); }), RM || !card ? 0 : 280);
@@ -691,7 +701,7 @@ function buildIndex(ix) {
     h('span', { class: 'wk-meta' }, [p.org, p.year].filter(Boolean).join(' · ')),
     h('span', { class: 'wk-title' }, p.title),
     h('span', { class: 'wk-line' }, p.card || p.line)); r._p = p; return r; };
-  const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); ix.scrollTop = 0; } }, label);
+  const toMap = label => h('button', { type: 'button', class: 'wk-tomap', onclick: () => { toggleIndex(false); toTop(ixScroll, ix, true); } }, label);
   const out = (href, txt) => h('a', { href, target: '_blank', rel: 'noopener' }, txt);
   const lately = h('dl', { class: 'wk-lately' });
   // the first screen: the drawing alone in the middle; the line about my work at the foot (it opens the about page), and how to reach me beside it
@@ -704,7 +714,15 @@ function buildIndex(ix) {
     h('section', { class: 'wk-sec' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), h('div', { class: 'wk-grid' }, work.map(card))),
     h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Off the clock'), lately,
       // the resemblance field (kinField) rests until there's more work to arrange
-      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →')))));
+      h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →'))),
+    // the end of the page: how to reach me, said plainly, and a way back up
+    h('footer', { class: 'wk-end' }, h('p', { class: 'wk-end-k' }, 'Say hello'),
+      h('p', { class: 'wk-end-line' }, 'Always glad to talk about agents, tools for thinking, and making them feel kind.'),
+      contactLinks(), h('div', { class: 'wk-end-foot' }, h('span', {}, 'Harshita Shyale · San Francisco'), h('button', { type: 'button', class: 'wk-top', onclick: () => toTop(ixScroll, ix) }, 'Back to top ↑')))));
+  if (!RM && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: ix, rootMargin: '0px 0px -8% 0px' });
+    $$('.wk-sec .wk-lab, .wk-card, .wk-lately, .wk-offline, .wk-end > *', ix).forEach(el => { el.classList.add('rv'); io.observe(el); });
+  }
   // what I'm watching and keeping lately, from Letterboxd and Are.na
   const row = (k, ...v) => [h('dt', {}, k), h('dd', {}, ...v)];
   ready.then(() => {
@@ -758,7 +776,7 @@ function toggleIndex(on) {
   const moving = !!indexMotion.phase;
   if (!moving && on === body.classList.contains('show-index')) return;
   cancelIndexMotion();
-  $$('button', views).forEach(b => b.classList.toggle('on', (b.dataset.v === 'work') === on)); placePill();
+  $$('button', views).forEach(b => b.classList.toggle('on', (b.dataset.v === 'work') === on)); placePill(); requestAnimationFrame(() => requestAnimationFrame(markScrolled));
   hidePlate(); pill.classList.remove('on');
   if (on) { body.classList.remove('show-index'); crossfadeIndex(true); }
   else if (body.classList.contains('show-index')) crossfadeIndex(false);
@@ -792,6 +810,9 @@ buildPlane(); renderIndex(); document.fonts && document.fonts.ready.then(layout)
 // On a phone the map is only a list, so the work opens first.
 const startOnWork = location.hash === '#work' || mobile();
 if (startOnWork) { $$('button', views).forEach(b => b.classList.toggle('on', b.dataset.v === 'work')); body.classList.add('show-index'); requestAnimationFrame(placePill); }
+// once the page moves, the bar gets a frosted ground so words don't slide under it
+const markScrolled = () => body.classList.toggle('scrolled', (body.classList.contains('show-index') ? $('#index').scrollTop : scrollY) > 8);
+$('#index').addEventListener('scroll', markScrolled, { passive: true }); addEventListener('scroll', markScrolled, { passive: true });
 window.refreshPortfolio = () => { buildPlane(); renderIndex(); layout(); };
 let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); $('#index')._built = false; renderIndex(); } else layout(); });
 const intro = $('#intro');
