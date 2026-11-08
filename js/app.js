@@ -237,7 +237,7 @@ function closeSheet() {
   const a2 = d && d.querySelector('.dot').getBoundingClientRect(), b = card && card.getBoundingClientRect();
   if (!RM && card && a2 && a2.width && b.bottom > 0 && !body.classList.contains('show-index')) card.animate([{ transform: 'none' }, { transform: `translate(${a2.left - b.left}px,${a2.top - b.top}px) scale(${a2.width / b.width},${a2.height / b.height})`, opacity: 0, filter: 'blur(4px)' }], { duration: 520, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = fin;
   else setTimeout(fin, RM ? 0 : 320);
-  lastFocus && lastFocus.focus({ preventScroll: true });
+  lastFocus && lastFocus.focus({ preventScroll: true, focusVisible: false });
 }
 sheet.addEventListener('click', e => { if (e.target === sheet || e.target.classList.contains('c-top') || e.target.classList.contains('c-namewrap')) closeSheet(); });
 veil.onclick = closeSheet;
@@ -788,8 +788,9 @@ $('#home').onclick = e => { e.preventDefault(); ready.then(openProfile); };
 /* boot */
 plane.addEventListener('click', e => { if (!e.target.closest('.pt,.mark,button,a') && active) setFilter(null); });
 buildPlane(); renderIndex(); document.fonts && document.fonts.ready.then(layout);
-// people arrive on the map; the work has its own address, #work (harshitashyale.com/work for the CV)
-const startOnWork = location.hash === '#work';
+// people arrive on the map; the work has its own address, #work (harshitashyale.com/work for the CV).
+// On a phone the map is only a list, so the work opens first.
+const startOnWork = location.hash === '#work' || mobile();
 if (startOnWork) { $$('button', views).forEach(b => b.classList.toggle('on', b.dataset.v === 'work')); body.classList.add('show-index'); requestAnimationFrame(placePill); }
 window.refreshPortfolio = () => { buildPlane(); renderIndex(); layout(); };
 let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); $('#index')._built = false; renderIndex(); } else layout(); });

@@ -1898,3 +1898,17 @@ body.show-index .settings{z-index:46}
 
 /* the mobile, live inside its sheet */
 .c-hero iframe.mobile-frame{display:block;width:min(1040px,calc(100vw - 48px));height:min(72vh,680px);border:0;background:var(--ground)}
+
+/* ---------- phones: nothing hangs past the edge, and a tap doesn't leave hover states stuck ---------- */
+@media (max-width:760px){
+  /* the arrow after the line used to hang outside it on a negative margin, which pushed narrow phones (360px) sideways and zoomed the page out */
+  .wk-arrow,.i-about .wk-arrow{margin-right:0}
+  /* on the work, the map's list underneath has nothing to do; hiding it stops the page behind from scrolling too */
+  body.show-index:not(.index-crossfade) #plane{display:none}
+}
+@media (hover:none){
+  .wk-about:hover .wisp .a,.i-about:hover .wisp .a{opacity:1;translate:none;filter:none}
+  .wk-about:hover .wisp .b,.i-about:hover .wisp .b{opacity:0}
+  .wk-about:hover,.i-about:hover{color:inherit}
+  .wk-about:focus:not(:focus-visible),.i-about:focus:not(:focus-visible){outline:none}
+}
