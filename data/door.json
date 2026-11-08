@@ -1,4 +1,6 @@
 [
+  { "date": "2026-11-08", "type": "making", "text": "Starting to make one small visual thing a week. It doesn’t have to be good. It just has to get made." },
+  { "date": "2026-11-07", "type": "making", "text": "Brass and Glass: a hanging mobile of wire, brass, glass and oak that turns slowly over a meadow.", "img": "assets/mobile.jpg", "alt": "Brass and Glass, a hanging mobile of brass wire, glass and oak.", "link": "../mobile/" },
   { "date": "2026-11-05", "type": "making", "text": "Apartment: a little building for me and a few close friends, where you can see whose light is on.", "img": "assets/door/apartment.jpg", "alt": "The Apartment building at night: three floors of windows, two lit.", "more": ["assets/door/apartment-kindle.jpg"] },
   { "date": "2026-10-30", "type": "writing", "text": "Opened the door: started this page, a running note of what I’m working on." },
   { "date": "2026-10-29", "type": "design", "text": "Rebuilding my site as a map of everything I keep and make." },
