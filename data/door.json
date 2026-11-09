@@ -1,9 +1,16 @@
 [
+  { "date": "2026-11-08", "type": "design", "text": "A watch that came to me in a dream: a thin leather strap, and a flap over a small peephole. Lift it, look through, and that’s how you read the time." },
+  { "date": "2026-11-07", "type": "making", "text": "Brass and glass: a hanging mobile of wire, brass, oak and blown glass. It sways with your phone and rings when the pieces touch." },
   { "date": "2026-11-05", "type": "making", "text": "Apartment: a little building for me and a few close friends, where you can see whose light is on.", "img": "assets/door/apartment.jpg", "alt": "The Apartment building at night: three floors of windows, two lit.", "more": ["assets/door/apartment-kindle.jpg"] },
   { "date": "2026-10-30", "type": "writing", "text": "Opened the door: started this page, a running note of what I’m working on." },
   { "date": "2026-10-29", "type": "design", "text": "Rebuilding my site as a map of everything I keep and make." },
   { "date": "2026-10-29", "type": "making", "text": "Working on a hand-made mark for the site, to replace the one that was there." },
   { "date": "2026-10-29", "type": "making", "text": "Steel Angadi: a series on the steel that ran our homes. No. 01 is my school dabba, and you can open it.", "img": "assets/door/steel-angadi.jpg", "alt": "A three-tier steel dabba on a wooden school desk.", "more": ["assets/door/steel-angadi-plate.jpg"] },
+  { "date": "2026-10-28", "type": "making", "text": "A talking oracle in a glass terrarium globe, with a projector, an iPad and a Tim Burton mood, for Halloween fortune readings." },
   { "date": "2026-10-24", "type": "design", "text": "Tree Walk: a walking app that helps you learn the names of the trees on your street." },
+  { "date": "2026-10-24", "type": "design", "text": "A tailor’s order slip with a fabric swatch stapled on, as a web page. Each swatch means something when you hover it." },
+  { "date": "2026-10-18", "type": "writing", "text": "A first draft of a comedy play, The Tale of Bryan the Bard. Thinking about making it a bit more Indian, and showing it to Pratidhwani." },
+  { "date": "2026-10-16", "type": "making", "text": "Helping dress the lobby for Pratidhwani’s Neha and Neel at Seattle Public Theater: Diwali fabrics, lamps, candles and flowers." },
+  { "date": "2026-10-05", "type": "making", "text": "A cuckoo-style clock outside the house that tells you the time as you walk by." },
   { "date": "2026-01-25", "type": "design", "text": "Shared margins: a small library of books I love. Borrow one, write in the margins, give it back." }
 ]
