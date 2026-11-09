@@ -91,8 +91,6 @@ window.SITE = {
     { id: 'wobblefoot', type: 'making', title: 'Sir Wobblefoot', org: 'ceramics', year: '', meta: 'ceramics', quad: 'br', x: .74, y: -.78, tags: ['clay'], kind: 'clay',
       line: 'A small bowl in an oxblood glaze, standing on two feet, toes and all.', img: 'wobblefoot.jpg', sheet: 'wobblefoot-sheet.jpg', images: ['wobblefoot.jpg', 'wobblefoot-01.jpg', 'wobblefoot-02.jpg'],
       alt: 'Sir Wobblefoot: a small hand-built bowl in a deep oxblood glaze, standing on two sculpted feet with toes.' },
-    { id: 'mobile', type: 'making', title: 'Brass and Glass', org: 'a hanging mobile', year: '', meta: 'a hanging mobile, to tilt and ring', hint: 'tilt your phone, or move the cursor', quad: 'br', x: .64, y: -.26, tags: ['making'], kind: 'mobile',
-      line: 'Nine pieces of brass, oak and glass on eight rods, each rod balanced by the weight under it. Tilt your phone or move the cursor to sway it, tap a piece to ring it, drag one to swing the lot.', img: 'mobile.jpg', alt: 'A hanging mobile of brass discs, an oak paddle and blown glass, casting shadows on a pale wall.' },
     { id: 'door', type: 'making', title: 'The door’s open', org: 'what I’m working on now', year: '', meta: 'working with the door open', hint: 'what I’m working on now, a line at a time', quad: 'tl', x: -.3, y: .14, tags: ['writing'], kind: 'door',
       line: 'What I’m working on right now, a line at a time, before it’s finished.' },
   ],
