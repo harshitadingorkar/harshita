@@ -74,3 +74,6 @@ h1{font:italic 400 clamp(34px,6vw,46px)/1.05 var(--voice);letter-spacing:-.02em;
 @keyframes in{from{opacity:0;translate:0 4px;filter:blur(3px)}}
 @media (max-width:560px){.row{grid-template-columns:52px minmax(0,1fr)}.kind{grid-column:2;text-align:left;margin-top:-2px}.intro{margin:64px 0 52px}}
 @media (prefers-reduced-motion:reduce){.row{animation:none}}
+
+.reel{margin-top:10px}
+.reel video{display:block;width:min(100%,240px);aspect-ratio:3/4;object-fit:cover;border:3px solid #FBF8F0;border-radius:2px;box-shadow:0 8px 16px -10px rgba(0,0,0,.55);background:var(--hair)}
