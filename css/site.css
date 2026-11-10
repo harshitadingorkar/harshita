@@ -1895,3 +1895,9 @@ body.show-index .settings{z-index:46}
 .i-about:hover .wisp .b,.i-about:focus-visible .wisp .b{opacity:1;translate:0 0;filter:blur(0)}
 .i-about:hover{color:var(--ink)}
 .i-about:hover .wk-arrow{color:var(--ox)}
+
+/* ---------- Round 51: the dock shows its pictures plainly ---------- */
+.c-dock button{opacity:1;height:40px;box-shadow:0 0 0 1px var(--hair2);transition:translate .22s var(--e-dm),box-shadow .2s ease}
+.c-dock button img{max-width:68px}
+.c-dock button.on{box-shadow:0 0 0 2px var(--ink)}
+.c-dock button:hover{translate:0 -2px}

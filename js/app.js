@@ -257,65 +257,10 @@ function shortCase(c, point, kicker) {
     c.note ? h('p', { class: 'c-note reveal' }, c.note) : null,
     c.q ? h('p', { class: 'c-q reveal', 'data-case-id':point?.case, 'data-case-path':'q' }, c.q) : null,
     c.problem ? h('p', { class: 'c-p reveal', 'data-case-id':point?.case, 'data-case-path':'problem' }, c.problem) : null,
-    numbers(), quote(), research(), ...steps('github-stacked-step-'), learned(), closing(),
+    numbers(), quote(), research(), ...steps('step-'), learned(), closing(),
   ].filter(Boolean);
-  if (!point || point.case !== 'github') return h('div', { class: 'short' }, ...stackedContent());
-
-  const initialLayout = mobile() ? 'stacked' : 'side-by-side';
-  const root = h('div', { class: 'short github-case', 'data-layout': initialLayout });
-  const sideButton = h('button', { class: 'side-by-side', 'aria-pressed': String(initialLayout === 'side-by-side') }, 'side-by-side');
-  const stackedButton = h('button', { class: 'stacked', 'aria-pressed': String(initialLayout === 'stacked') }, 'stacked');
-  const layoutSwitch = h('div', { class: 'github-layout-switch mono' }, h('span', {}, 'layout: '), sideButton, ' / ', stackedButton);
-  const tocLinks = new Map();
-  const toc = h('nav', { class: 'github-toc', 'aria-label': 'Case study sections' },
-    h('p', { class: 'mono' }, 'in this study'),
-    (c.steps || []).map(s => {
-      const link = h('button', { type: 'button', onclick: () => {
-        const target = $(`#github-step-${s.n}`, root), box = target.getBoundingClientRect(), sheetBox = sheet.getBoundingClientRect();
-        sheet.scrollTo({ top: sheet.scrollTop + box.top - sheetBox.top - 96, behavior: RM ? 'auto' : 'smooth' });
-      } }, h('span', { class: 'mono' }, s.n), ' ' + s.t);
-      tocLinks.set(s.n, link); return link;
-    }));
-  const side = h('aside', { class: 'github-side' },
-    h('p', { class: 'c-kick' }, kicker), h('h2', { class: 's-title' }, point.title),
-    c.facts ? h('p', { class: 'c-facts reveal' }, c.facts) : null,
-    c.q ? h('p', { class: 'c-q reveal' }, c.q) : null,
-    numbers(), toc);
-  const story = h('div', { class: 'github-story' },
-    c.problem ? h('p', { class: 'c-p reveal' }, c.problem) : null,
-    quote(), research(), ...steps('github-step-'), learned(), closing());
-  const layout = h('div', { class: 'github-layout', 'data-layout': initialLayout }, side, story);
-  const stacked = h('div', { class: 'github-stacked' },
-    h('p', { class: 'c-kick c-in' }, kicker), h('h2', { class: 's-title c-in' }, point.title),
-    ...stackedContent());
-  const setLayout = value => {
-    if (mobile() && value === 'side-by-side') value = 'stacked';
-    root.dataset.layout = value; layout.dataset.layout = value;
-    sideButton.classList.toggle('on', value === 'side-by-side'); sideButton.setAttribute('aria-pressed', String(value === 'side-by-side'));
-    stackedButton.classList.toggle('on', value === 'stacked'); stackedButton.setAttribute('aria-pressed', String(value === 'stacked'));
-  };
-  sideButton.onclick = () => setLayout('side-by-side'); stackedButton.onclick = () => setLayout('stacked');
-  root.append(layoutSwitch, layout, stacked); setLayout(initialLayout);
-
-  const sideSteps = $$('.c-step[data-step]', story);
-  const setActive = n => tocLinks.forEach((link, key) => link.classList.toggle('active', key === n));
-  setActive(c.steps && c.steps[0] ? c.steps[0].n : '');
-  if ('IntersectionObserver' in window) requestAnimationFrame(() => {
-    if (!story.isConnected) return;
-    const updateActive = () => {
-      const top = sheet.getBoundingClientRect().top + 110;
-      const inView = sideSteps.filter(step => { const rect = step.getBoundingClientRect(); return rect.top <= top && rect.bottom > top; });
-      const activeStep = inView[inView.length - 1] || sideSteps.find(step => step.getBoundingClientRect().bottom > top);
-      if (activeStep) setActive(activeStep.dataset.step);
-    };
-    if (sheet._scrollSpyCleanup) sheet._scrollSpyCleanup();
-    const observer = new IntersectionObserver(updateActive, { root: sheet, rootMargin: '-90px 0px -62% 0px', threshold: 0 });
-    sideSteps.forEach(step => observer.observe(step));
-    sheet.addEventListener('scroll', updateActive, { passive: true });
-    sheet._scrollSpyCleanup = () => { observer.disconnect(); sheet.removeEventListener('scroll', updateActive); };
-    updateActive();
-  });
-  return root;
+  // every case reads the same way, GitHub included
+  return h('div', { class: 'short' }, ...stackedContent());
 }
 const caseHTML = id => DATA.cases && DATA.cases[id] ? h('div', { class: 'prose reveal', html: DATA.cases[id].html }) : null;
 
@@ -331,11 +276,6 @@ function open(p, rect) {
   curP = p; fromR = rect || srcRect(p);
   const K = kick(p), line = h('p', { class: 's-line reveal' }, p.line);
   const sc = p.case && DATA.short && DATA.short[p.case] ? shortCase(DATA.short[p.case], p, K) : null;
-  if (p.case === 'github' && sc) {
-    openSheet(p.quad, K, '', sc);
-    $('.body', sheet).classList.add('wide');
-    return;
-  }
   if (p.study) return openStudy(p, K);
   // Sir Wobblefoot is only to be looked at: the turnaround, large, and nothing else
   if (p.id === 'wobblefoot') return openSheet(p.quad, null, null);
@@ -786,8 +726,12 @@ $('#home').onclick = e => { e.preventDefault(); ready.then(openProfile); };
 plane.addEventListener('click', e => { if (!e.target.closest('.pt,.mark,button,a') && active) setFilter(null); });
 buildPlane(); renderIndex(); document.fonts && document.fonts.ready.then(layout);
 // people arrive on the map; the work has its own address, #work (harshitashyale.com/work for the CV)
-const startOnWork = location.hash === '#work';
+// a piece can be linked to directly: #p-github opens it over the work
+window.openPiece = id => { const p = S.points.find(x => x.id === id); if (p) ready.then(() => open(p, null)); };
+const piece = location.hash.startsWith('#p-') ? location.hash.slice(3) : '';
+const startOnWork = location.hash === '#work' || !!piece;
 if (startOnWork) { $$('button', views).forEach(b => b.classList.toggle('on', b.dataset.v === 'work')); body.classList.add('show-index'); requestAnimationFrame(placePill); }
+if (piece) window.openPiece(piece);
 window.refreshPortfolio = () => { buildPlane(); renderIndex(); layout(); };
 let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); $('#index')._built = false; renderIndex(); } else layout(); });
 const intro = $('#intro');
