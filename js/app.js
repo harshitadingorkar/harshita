@@ -195,6 +195,8 @@ function heroFor(p) {
     h('img', { src: A(p.still), alt: p.vcap || p.title }), h('span', { class: 'hero-play' }, 'play the film'));
   if (p.youtube) return h('iframe', { class: 'yt', src: `https://www.youtube-nocookie.com/embed/${p.youtube}?rel=0&modestbranding=1`, title: p.title, loading: 'lazy', allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin' });
   if (p.id === 'wobblefoot') return h('div', { class: 'turn-hero', role: 'img', 'aria-label': p.alt || p.title, style: `background-image:url("${A(p.sheet)}")` });
+  // the mobile hangs live in the sheet, to play with right there
+  if (p.kind === 'mobile') return h('iframe', { class: 'mobile-frame', src: 'mobile/', title: 'Brass and Glass, a hanging mobile you can tilt and ring', allow: 'accelerometer; gyroscope; autoplay' });
   if (p.video) return Object.assign(h('video', { src: A(p.video), poster: p.img ? A(p.img) : null, muted: true, loop: true, playsinline: true, autoplay: !RM, controls: RM, 'aria-label': p.vcap || p.title }), { muted: true, defaultMuted: true });
   if (p.kind === 'films' || (p.kind === 'room' && p.room === 'odds')) return plateFor(p);
   return p.img ? h('img', { src: A(p.img), alt: p.alt || '' }) : null;
@@ -286,6 +288,7 @@ function open(p, rect) {
   if (p.kind === 'room' && p.room === 'theatre') return openSheet('br', K, p.title, line, h('div', { class: 'gallery' }, S.theatre.map(([f, ar, c]) => h('figure', { class: 'reveal', style: ar > 1.8 ? 'grid-column:1/-1' : '' }, h('img', { src: A(f), alt: c || 'A photograph from one of her plays', loading: 'lazy' }), c ? h('figcaption', {}, c) : null))));
   if (p.kind === 'room') return openSheet('bl', K, p.title, line, h('p', { class: 'credit' }, 'visual notes, kept since college.'), h('div', { class: 'masonry' }, S.odds.map(f => h('div', { class: 'blk reveal' }, h('img', { src: A(f), alt: 'A visual note', loading: 'lazy' })))));
   if (p.kind === 'clay') return openClay(p, K, line);
+  if (p.kind === 'mobile') return openSheet('br', K, p.title, line, h('p', { class: 'reveal', style: 'margin-top:18px' }, h('a', { href: 'mobile/', class: 'mono', style: 'border-bottom:1px solid currentColor' }, 'open it full screen →')));
   if (p.kind === 'toy') return openPlayground(K, line);
 }
 

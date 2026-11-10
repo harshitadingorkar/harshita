@@ -1,0 +1,1258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Brass and Glass</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A hanging mobile of brass, oak and blown glass that sways with your phone, turns over when you hover it, and rings when its pieces touch.">
+<style>
+/* Layout: one full-bleed meadow, drawn in WebGL as Gaussian splats. Two small controls sit in the bottom-right corner and fade when you are not using them. One look only: a sunny day. */
+:root{
+  --grass:#C9D8D0; --ink:#2B3150; --ink3:rgba(43,49,80,.35); --hair:rgba(43,49,80,.16);
+  --chip:rgba(250,249,236,.78); --pink:#E58FA6; color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--grass);color:var(--ink);overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+canvas#room{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+canvas#room.grab{cursor:grab}
+canvas#room.grabbing{cursor:grabbing}
+.controls{position:fixed;z-index:2;display:flex;gap:8px;
+  right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  transition:opacity .8s ease}
+.controls.idle{opacity:.22}
+.controls button{width:40px;height:40px;display:grid;place-items:center;padding:0;color:var(--ink);background:var(--chip);
+  border:1px solid var(--hair);border-radius:50%;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:border-color .2s}
+.controls button:hover{border-color:var(--ink3)}
+.controls button:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
+.controls svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.controls .w{transition:opacity .3s,stroke .3s;opacity:.25}
+.controls .w.on{opacity:1;stroke:var(--pink)}
+#b-sound .wave{opacity:0;transition:opacity .3s}
+#b-sound.on .wave{opacity:1;stroke:var(--pink)}
+#b-sound .x{transition:opacity .3s}
+#b-sound.on .x{opacity:0}
+@media (prefers-reduced-motion: reduce){.controls{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="room" role="img" aria-label="A hanging mobile of brass, oak and glass. Tilt your device, or move the pointer, to sway it. Tap a piece to ring it; drag to swing it."></canvas>
+
+<div class="controls" id="controls">
+  <button id="b-air" type="button" aria-label="Air in the room: draft. Change it.">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path class="w" d="M3 6.5c2.2-1.6 4.4 1.6 6.6 0s4.4 1.6 6.6 0"/><path class="w" d="M3 10.5c2.2-1.6 4.4 1.6 6.6 0s4.4 1.6 6.6 0"/><path class="w" d="M3 14.5c2.2-1.6 4.4 1.6 6.6 0s4.4 1.6 6.6 0"/></svg>
+  </button>
+  <button id="b-sound" type="button" aria-label="Turn sound on" aria-pressed="false">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 8v4h3l4 3.2V4.8l-4 3.2z"/><path class="wave" d="M13.2 7.6a3.4 3.4 0 0 1 0 4.8"/><path class="wave" d="M15.3 5.6a6.2 6.2 0 0 1 0 8.8"/><path class="x" d="M13.5 8.2l3.6 3.6M17.1 8.2l-3.6 3.6"/></svg>
+  </button>
+</div>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
+
+/* ───────────── Noise: smooth 3D value noise for the air currents ───────────── */
+function hash(i, j, k) {
+  let h = (Math.imul(i, 374761393) + Math.imul(j, 668265263) + Math.imul(k, 1440662683)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+const sm = t => t * t * (3 - 2 * t);
+function noise3(x, y, z) {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+  const u = sm(x - xi), v = sm(y - yi), w = sm(z - zi);
+  const c = (a, b, d) => hash(xi + a, yi + b, zi + d);
+  return lerp(
+    lerp(lerp(c(0,0,0), c(1,0,0), u), lerp(c(0,1,0), c(1,1,0), u), v),
+    lerp(lerp(c(0,0,1), c(1,0,1), u), lerp(c(0,1,1), c(1,1,1), u), v), w) * 2 - 1;
+}
+
+/* ───────────── The sculpture ─────────────
+   World units are metres (x right, y down, z away from you toward the wall); masses are grams.
+   rod(length, string drop, [left, right], bias, rest turn). The hook on every rod is solved from
+   the masses below it, so the mobile balances. bias tips a rod a little, as hand-bent mobiles do,
+   and the rest turn is the angle its string's twist settles it at, so the mobile has depth at rest. */
+const rod = (len, drop, kids, bias = 0, turn = 0) => ({ type: 'rod', len, drop, kids, bias, turn, g: len * 9 });
+const piece = (kind, o) => Object.assign({ type: 'piece', kind, drop: .026, face: 0 }, o);
+
+const TREE = rod(.50, .16, [
+  rod(.30, .09, [
+    piece('brass', { r: .074, g: 64, name: 'Hammered brass', note: 0, face: .35, drop: .03 }),
+    rod(.27, .12, [
+      piece('glass', { r: .052, g: 15, name: 'Pink glass, frosted', c1: [242, 168, 186], c2: [252, 236, 240], rim: [196, 104, 132], note: 3, face: -.5 }),
+      rod(.19, .15, [
+        piece('tear', { w: .026, h: .085, g: 9, name: 'Lilac teardrop, blown', c1: [200, 178, 234], c2: [244, 238, 252], rim: [128, 100, 182], note: 6 }),
+        piece('glass', { r: .029, g: 4, name: 'Amber glass', c1: [246, 206, 120], c2: [252, 240, 206], rim: [190, 132, 50], note: 8, face: .7 })
+      ], .02, .55)
+    ], -.03, -.4)
+  ], .01, .3),
+  rod(.33, .17, [
+    rod(.25, .10, [
+      piece('sphere', { r: .046, g: 22, name: 'Ribbed globe, blown', c1: [196, 222, 244], c2: [240, 246, 252], rim: [96, 132, 182], note: 2, drop: .035 }),
+      rod(.19, .16, [
+        piece('film', { rx: .05, ry: .032, g: 3, name: 'Dichroic film', note: 7, face: -.8 }),
+        piece('crystal', { w: .028, h: .096, g: 12, name: 'Cut crystal pendalogue', note: 9 })
+      ], -.02, -.5)
+    ], .02, .45),
+    rod(.20, .05, [
+      piece('brass', { r: .042, g: 21, name: 'Small brass', note: 4, face: -.3 }),
+      piece('oak', { w: .036, h: .118, g: 24, name: 'White oak paddle', note: 1, face: .5, drop: .03 })
+    ], -.025, -.35)
+  ], -.02, -.25)
+], 0, .12);
+
+/* ───────────── Physics: Verlet particles + distance constraints, in 3D ─────────────
+   Each rod is a rigid triangle (left tip, right tip, the hook loop just above) hung by a string
+   from its parent's tip, so it can tip, swing and turn on its string all at once. Each piece is a
+   two-particle pendulum (its drilled hole and its centre of mass), plus a turn about its own
+   string, which is what makes flat brass and glass flash as they face the light. */
+const P = [], C = [], RODS = [], PIECES = [];
+let DROPK = 1;   // on a tall screen the strings get longer, so the mobile hangs as a taller cascade
+const part = (x, y, z, g, area = 0) => { const p = { x, y, z, px: x, py: y, pz: z, m: g, im: g > 0 ? 1 / g : 0, area, resist: 1, still: 0, wx: 0, wy: 0, wz: 0 }; P.push(p); return p; };
+const link = (a, b) => C.push({ a, b, len: Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) });
+
+function massOf(n) {
+  if (n.type === 'piece') return n.g;
+  n.M = n.g + massOf(n.kids[0]) + massOf(n.kids[1]);
+  return n.M;
+}
+const mass = n => n.type === 'piece' ? n.g : n.M;
+function pieceGeom(n) {
+  // hole: distance from the hole to the centre of mass; area: the face that catches air; rc: reach
+  switch (n.kind) {
+    case 'brass': case 'glass': return { hole: n.r * .82, area: Math.PI * n.r * n.r, rc: n.r };
+    case 'film': return { hole: n.ry * .8, area: Math.PI * n.rx * n.ry, rc: Math.max(n.rx, n.ry) * .9 };
+    case 'sphere': return { hole: n.r + .01, area: Math.PI * n.r * n.r, rc: n.r };
+    case 'tear': return { hole: n.h * .55, area: n.w * n.h * 1.4, rc: n.w * 1.1 };
+    case 'crystal': return { hole: n.h * .55, area: n.w * n.h * .9, rc: n.w * 1.2 };
+    case 'oak': return { hole: n.h * .44, area: n.w * n.h * 1.6, rc: n.w * 1.15 };
+  }
+}
+function build(n, a) {
+  if (n.type === 'piece') {
+    Object.assign(n, pieceGeom(n));
+    n.S = part(a.x, a.y + n.drop * (DROPK > 1 ? 1.3 : 1), a.z, n.g * .08);
+    n.Cp = part(a.x, n.S.y + n.hole, a.z, n.g * .92, n.area);
+    link(a, n.S); link(n.S, n.Cp);
+    n.yaw = n.face; n.yw = 0; n.hue = 200; n.hover = 0; n.lastRing = -1; n.flash = 0; n.sparkle = 0;
+    n.flutter = clamp(n.area / n.g * 1100, .35, 3.2);
+    n.id = PIECES.length; PIECES.push(n);
+    return;
+  }
+  const ML = mass(n.kids[0]), MR = mass(n.kids[1]);
+  const f = clamp((n.g / 2 + MR) / (n.g + ML + MR) + n.bias, .08, .92);
+  const hk = n.len * .07, c = Math.cos(n.turn), s = Math.sin(n.turn);
+  const hx = a ? a.x : 0, hy = (a ? a.y : 0) + n.drop * DROPK, hz = a ? a.z : 0;
+  n.H = part(hx, hy, hz, n.g * .1, .0004);
+  n.L = part(hx - f * n.len * c, hy + hk, hz - f * n.len * s, n.g * .45, .0008);
+  n.R = part(hx + (1 - f) * n.len * c, hy + hk, hz + (1 - f) * n.len * s, n.g * .45, .0008);
+  n.f = f; n.rL = f * n.len; n.rR = (1 - f) * n.len;
+  link(a || ANCHOR, n.H);
+  link(n.L, n.R); link(n.H, n.L); link(n.H, n.R);
+  RODS.push(n);
+  build(n.kids[0], n.L);
+  build(n.kids[1], n.R);
+}
+massOf(TREE);
+let ANCHOR;
+const outer = [];   // strings and links, the lines drawn between the parts
+function assemble(tall) {
+  DROPK = tall ? 1.85 : 1;
+  P.length = 0; C.length = 0; RODS.length = 0; PIECES.length = 0; outer.length = 0;
+  ANCHOR = part(0, 0, 0, 0);
+  build(TREE, null);
+  const inner = new Set();
+  for (const r of RODS) for (const cn of C) if ((cn.a === r.L && cn.b === r.R) || (cn.a === r.H && (cn.b === r.L || cn.b === r.R))) inner.add(cn);
+  for (const n of PIECES) for (const cn of C) if (cn.a === n.S && cn.b === n.Cp) inner.add(cn);
+  for (const cn of C) if (!inner.has(cn)) outer.push(cn);
+}
+
+/* environment */
+const G = 3.1;                  // gravity, slowed so a 30 cm rod sways over a couple of seconds
+const AIR = 1900, BASE = .12;   // air drag per unit of face area, and a little drag on everything
+const TWIST = .9;               // how firmly a rod's string turns it back to its rest angle
+const env = {
+  tilt: 0, tiltTarget: 0, lean: 0, leanTarget: 0,  // sensor gravity, smoothed
+  ix: 0, iy: 0, iz: 0,          // inertial push from moving the phone
+  spinKick: 0,                  // change in the body's turning speed this frame
+  air: 1, airLevels: [['still', .015], ['draft', .1], ['breeze', .24], ['gusts', .5]],
+  airNow: .1, t: 0, gust: 1,
+  pointer: { x: 0, y: 0, sx: 0, sy: 0, vx: 0, vy: 0, inside: false, type: 'mouse', down: false },
+};
+try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) env.air = 0; } catch (e) {}
+
+function windAt(x, y, z, out) {
+  const t = env.t, lvl = env.airNow;
+  const base = .55 + .45 * noise3(t * .045, 3.1, 0);          // slow drift of the whole room
+  const g = .55 + .9 * Math.max(0, noise3(t * .11, 7.7, 2));   // gusts come and go
+  env.gust = g;
+  const n1 = noise3(x * 2.2 + t * .25, y * 2.2, z * 2.2 + t * .18);
+  const n2 = noise3(x * 2.2 + 40, y * 2.2 - t * .2, z * 2.2 + t * .18 + 9);
+  const n3 = noise3(x * 2.2 - 17, y * 2.2 + 5, z * 2.2 + t * .22 + 31);
+  // the same travelling waves the grass bends to, so a gust crosses the meadow and then reaches the mobile
+  const X = x, Z = -z, wave = .55 * Math.sin(X * 1.3 - t * 1.7 + Math.sin(Z * .8 + t * .3) * 1.5) + .3 * Math.sin(X * 2.9 + Z * 1.7 - t * 2.6) + .15 * Math.sin(X * 5.3 - Z * 3.1 - t * 3.9);
+  out.x = lvl * g * (.65 + .55 * wave + n1 * .3);
+  out.y = lvl * g * n2 * .35;
+  out.z = lvl * g * (n3 * .9 + base * .2);
+  const p = env.pointer;                                       // a hand moving through the air
+  if (p.inside) {
+    const dx = x - p.x, dy = y - p.y, d2 = dx * dx + dy * dy, R = .16;
+    if (d2 < R * R) { const f = (1 - Math.sqrt(d2) / R) ** 2 * (p.down ? 1.1 : .55); out.x += p.vx * f; out.y += p.vy * f; out.z += Math.hypot(p.vx, p.vy) * f * .4; }
+  }
+  return out;
+}
+
+const SUB = 10, ITER = 2;
+const tmp = { x: 0, y: 0, z: 0 };
+let grabbed = null, grabT = null;
+function step(dt) {
+  env.t += dt;
+  env.airNow = lerp(env.airNow, env.airLevels[env.air][1], .02);
+  const ct = Math.cos(env.tilt), st = Math.sin(env.tilt), cl = Math.cos(env.lean), sl = Math.sin(env.lean);
+  const gx = st * cl * G, gy = ct * cl * G, gz = sl * G;
+  for (const p of P) if (p.area) { windAt(p.x, p.y, p.z, tmp); p.wx = tmp.x * (1 - p.still); p.wy = tmp.y * (1 - p.still); p.wz = tmp.z * (1 - p.still); }
+  const h = dt / SUB, h2 = h * h;
+  // turning your body: the rods and pieces keep still in the room, so in the phone they turn the other way
+  if (env.spinKick) {
+    const dw = -env.spinKick;
+    for (const r of RODS) for (const p of [r.L, r.R]) { const rx = p.x - r.H.x, rz = p.z - r.H.z; p.px -= -dw * rz * h; p.pz -= dw * rx * h; }
+    for (const n of PIECES) n.yw += dw;
+    env.spinKick = 0;
+  }
+  for (let s = 0; s < SUB; s++) {
+    for (const p of P) {
+      if (!p.im) continue;
+      const vx = (p.x - p.px) / h, vy = (p.y - p.py) / h, vz = (p.z - p.pz) / h;
+      const k = (AIR * p.area * p.resist) / p.m + BASE;
+      const ax = gx + env.ix + k * (p.wx - vx), ay = gy + env.iy + k * (p.wy - vy), az = gz + env.iz + k * (p.wz - vz);
+      p.px = p.x; p.py = p.y; p.pz = p.z;
+      p.x += vx * h + ax * h2; p.y += vy * h + ay * h2; p.z += vz * h + az * h2;
+    }
+    // each rod's string twists it gently back toward its rest angle
+    for (const r of RODS) {
+      const phi = Math.atan2(r.R.z - r.L.z, r.R.x - r.L.x), err = wrap(phi - r.turn);
+      const px = -Math.sin(phi), pz = Math.cos(phi), a = -TWIST * err * h2;
+      r.R.x += px * a * r.rR; r.R.z += pz * a * r.rR; r.L.x -= px * a * r.rL; r.L.z -= pz * a * r.rL;
+    }
+    if (grabbed) { const q = grabbed.Cp; q.x += (grabT.x - q.x) * .18; q.y += (grabT.y - q.y) * .18; }
+    for (let it = 0; it < ITER; it++) {
+      for (const c of C) {
+        const a = c.a, b = c.b, dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z, d = Math.hypot(dx, dy, dz) || 1e-9;
+        const w = a.im + b.im; if (!w) continue;
+        const k = (d - c.len) / (d * w);
+        a.x += dx * k * a.im; a.y += dy * k * a.im; a.z += dz * k * a.im;
+        b.x -= dx * k * b.im; b.y -= dy * k * b.im; b.z -= dz * k * b.im;
+      }
+    }
+    if (s % 2 === 0) collide(h * 2);
+    // the wall behind, and the glass of the phone in front: nothing passes through either
+    for (const p of P) { if (p.z > WALL - .01) p.z = WALL - .01; else if (p.z < -.6) p.z = -.6; }
+    if (s === SUB - 1) for (const n of PIECES) {
+      const lim = WALL - n.rc * .35;
+      if (n.Cp.z > lim) { const v = (n.Cp.z - n.Cp.pz) / h; n.Cp.z = lim; n.Cp.pz = lim + (n.Cp.z - n.Cp.pz) * .3; if (v > .08) ring(n, v * .5); }
+    }
+  }
+  // each piece turns on its own string
+  for (const n of PIECES) {
+    const vx = (n.Cp.x - n.Cp.px) / h, vz = (n.Cp.z - n.Cp.pz) / h;
+    const air = Math.hypot(n.Cp.wx, n.Cp.wz);
+    const nz = noise3(n.id * 13.7, env.t * .35, 4.2);
+    const acc = -1.1 * Math.sin(2 * (n.yaw - n.face))   // the string's twist settles it back, face-on or face-back
+      - 1.5 * n.yw                                      // the air resists turning
+      + nz * air * n.flutter * 22                       // eddies catch one edge more than the other
+      + (vx * Math.cos(n.yaw) + vz * Math.sin(n.yaw)) * n.flutter * .9;  // swinging into the air makes a flat piece twist
+    n.yw += acc * dt; n.yaw += n.yw * dt;
+    n.flash *= .9;
+  }
+}
+
+/* Pieces touch: a soft push apart, and a note if they meet hard enough */
+function collide(h) {
+  for (let i = 0; i < PIECES.length; i++) for (let j = i + 1; j < PIECES.length; j++) {
+    const A = PIECES[i], B = PIECES[j], a = A.Cp, b = B.Cp;
+    const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z, d = Math.hypot(dx, dy, dz), min = (A.rc + B.rc) * .8;
+    if (d >= min || d < 1e-6) continue;
+    const nx = dx / d, ny = dy / d, nz = dz / d, over = min - d, w = a.im + b.im;
+    const rv = ((b.x - b.px) - (a.x - a.px)) * nx + ((b.y - b.py) - (a.y - a.py)) * ny + ((b.z - b.pz) - (a.z - a.pz)) * nz;
+    a.x -= nx * over * a.im / w; a.y -= ny * over * a.im / w; a.z -= nz * over * a.im / w;
+    b.x += nx * over * b.im / w; b.y += ny * over * b.im / w; b.z += nz * over * b.im / w;
+    const speed = -rv / (h / 2);
+    if (speed > .05) { ring(A, speed); ring(B, speed); }
+  }
+}
+
+/* ───────────── Sound ───────────── */
+const Sound = (() => {
+  let ctx = null, out = null, send = null, airGain = null, airBand = null, on = false, voices = 0;
+  const PENTA = [0, 2, 4, 7, 9];
+  const freq = i => 146.83 * Math.pow(2, (Math.floor(i / 5) * 12 + PENTA[i % 5]) / 12); // D pentatonic
+  const TIMBRE = {
+    brass:   { mul: 2, parts: [[1, 1, 4.2], [1.004, .7, 4], [2.756, .45, 2], [5.404, .2, 1], [8.93, .1, .5]] },
+    glass:   { mul: 4, parts: [[1, 1, 2.2], [2.71, .4, 1], [5.15, .18, .45], [8.4, .08, .25]] },
+    sphere:  { mul: 4, parts: [[1, 1, 2.6], [2.32, .5, 1.3], [4.25, .2, .6], [6.63, .1, .3]] },
+    tear:    { mul: 4, parts: [[1, 1, 2], [2.32, .45, 1], [4.25, .2, .5]] },
+    film:    { mul: 2, parts: [[1, .7, .25], [3.1, .3, .12]] },
+    crystal: { mul: 8, parts: [[1, 1, 1.8], [2.32, .5, 1], [4.25, .3, .5], [6.63, .15, .3], [9.4, .08, .2]] },
+    oak:     { mul: 1, parts: [[1, 1, .2], [2.6, .45, .09], [4.1, .2, .05]], knock: true },
+  };
+  function impulse(sec) {
+    const n = ctx.sampleRate * sec, b = ctx.createBuffer(2, n, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3.2); }
+    return b;
+  }
+  function init() {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+    ctx = new AC();
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3;
+    const master = ctx.createGain(); master.gain.value = .9;
+    master.connect(comp); comp.connect(ctx.destination);
+    out = ctx.createGain(); out.connect(master);
+    const verb = ctx.createConvolver(); verb.buffer = impulse(3);
+    send = ctx.createGain(); send.gain.value = .38; send.connect(verb);
+    const wet = ctx.createGain(); wet.gain.value = .5; verb.connect(wet); wet.connect(master);
+    // the room's air: soft brown noise that opens up as the wind rises
+    const nb = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate), d = nb.getChannelData(0);
+    let last = 0; for (let i = 0; i < d.length; i++) { last = (last + .02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+    const src = ctx.createBufferSource(); src.buffer = nb; src.loop = true;
+    airBand = ctx.createBiquadFilter(); airBand.type = 'bandpass'; airBand.frequency.value = 500; airBand.Q.value = .5;
+    airGain = ctx.createGain(); airGain.gain.value = 0;
+    src.connect(airBand); airBand.connect(airGain); airGain.connect(master); src.start();
+    return true;
+  }
+  function ringPiece(n, strength, pan, near) {
+    if (!on || !ctx || voices > 28) return;
+    const T = TIMBRE[n.kind], f0 = freq(n.note) * T.mul, t = ctx.currentTime + .005;
+    const g = clamp(strength, .02, 1) * .16 * near;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    const bus = ctx.createGain();
+    if (p) { p.pan.value = clamp(pan, -.9, .9); bus.connect(p); p.connect(out); p.connect(send); } else { bus.connect(out); bus.connect(send); }
+    for (const [r, a, dec] of T.parts) {
+      const o = ctx.createOscillator(), e = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f0 * r * (1 + (Math.random() - .5) * .002);
+      e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(g * a, t + .003);
+      e.gain.exponentialRampToValueAtTime(.0001, t + dec * (.85 + strength * .3));
+      o.connect(e); e.connect(bus); o.start(t); o.stop(t + dec * 1.2 + .05);
+      voices++; o.onended = () => voices--;
+    }
+    if (T.knock) {
+      const kb = ctx.createBuffer(1, ctx.sampleRate * .05, ctx.sampleRate), d = kb.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 4);
+      const s = ctx.createBufferSource(); s.buffer = kb; const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.2;
+      const e = ctx.createGain(); e.gain.value = g * 1.4; s.connect(bp); bp.connect(e); e.connect(bus); s.start(t);
+    }
+  }
+  return {
+    get on() { return on; },
+    toggle() {
+      if (!ctx && !init()) return false;
+      on = !on;
+      if (on && ctx.state === 'suspended') ctx.resume();
+      if (!on) airGain.gain.setTargetAtTime(0, ctx.currentTime, .2);
+      return on;
+    },
+    ring: ringPiece,
+    air(level, gust) {
+      if (!on || !ctx) return;
+      airGain.gain.setTargetAtTime(Math.min(.5, Math.pow(level * gust, 1.2) * .9), ctx.currentTime, .4);
+      airBand.frequency.setTargetAtTime(280 + 700 * level * gust, ctx.currentTime, .4);
+    },
+  };
+})();
+function ring(n, speed) {
+  if (env.t - n.lastRing < .12) return;
+  n.lastRing = env.t; n.flash = 1;
+  Sound.ring(n, speed / .9, n.Cp.x / .5, clamp(1 - n.Cp.z * 1.5, .5, 1.3));
+}
+
+/* ───────────── Sensors ─────────────
+   Tilting the phone changes the direction of gravity; it never moves anything directly.
+   deviceorientation (beta, gamma) gives gravity in the phone's frame. The part that lies across
+   the screen tilts the room left and right; the part through the screen (leaning the phone back or
+   forward, measured against how you usually hold it) swings the mobile toward the wall or toward
+   you. Both are smoothed with a LERP of 0.05 per frame. devicemotion adds shakes (inertia) and
+   body turns (everything lags on its strings). */
+let hasGyro = false, leanBase = null;
+function screenAngle() { const a = (screen.orientation && screen.orientation.angle) ?? window.orientation ?? 0; return ((a % 360) + 360) % 360; }
+function onOrient(e) {
+  if (e.beta == null || e.gamma == null) return;
+  hasGyro = true;
+  const b = e.beta * Math.PI / 180, g = e.gamma * Math.PI / 180;
+  // gravity in device coordinates (x right, y up, z out of the screen toward you)
+  const dx = Math.cos(b) * Math.sin(g), dy = -Math.sin(b), dz = -Math.cos(b) * Math.cos(g);
+  let sx, sy;                                   // gravity across the screen (x right, y down)
+  switch (screenAngle()) {
+    case 90: sx = -dy; sy = -dx; break;
+    case 180: sx = -dx; sy = dy; break;
+    case 270: sx = dy; sy = dx; break;
+    default: sx = dx; sy = -dy;
+  }
+  const inPlane = Math.hypot(sx, sy);
+  let tilt = Math.atan2(sx, Math.max(.05, sy));
+  tilt *= clamp((inPlane - .15) / .45, 0, 1);   // lying flat there is no clear "down" across the screen, so it hangs straight
+  env.tiltTarget = clamp(tilt, -1, 1);
+  const into = -dz;                             // gravity pointing into the screen, toward the wall
+  leanBase = leanBase == null ? into : lerp(leanBase, into, .004);   // slowly learns how you hold it
+  env.leanTarget = clamp(Math.asin(clamp(into - leanBase, -1, 1)) * 1.4, -.55, .55);
+}
+let lastSpin = 0;
+function onMotion(e) {
+  const a = e.acceleration;
+  if (a && a.x != null) {
+    const ang = screenAngle(); let x = a.x, y = a.y;
+    if (ang === 90) [x, y] = [-y, x]; else if (ang === 180) [x, y] = [-x, -y]; else if (ang === 270) [x, y] = [y, -x];
+    // the phone moves one way, the hanging pieces are left behind: push them the other way
+    env.ix = lerp(env.ix, clamp(-x * .32, -6, 6), .35);
+    env.iy = lerp(env.iy, clamp(y * .32, -6, 6), .35);
+    env.iz = lerp(env.iz, clamp((a.z || 0) * .32, -6, 6), .35);
+  }
+  const r = e.rotationRate;
+  if (r) {
+    const ang = screenAngle();
+    const spin = ((ang === 90 || ang === 270) ? (r.beta || 0) : (r.gamma || 0)) * Math.PI / 180;
+    env.spinKick += (spin - lastSpin) * .8; lastSpin = spin;
+  }
+}
+addEventListener('deviceorientation', onOrient);
+addEventListener('devicemotion', onMotion);
+async function askMotion() {
+  try {
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') await DeviceOrientationEvent.requestPermission();
+    if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') await DeviceMotionEvent.requestPermission();
+  } catch (e) {}
+}
+
+/* ───────────── The scene, drawn as Gaussian splats ─────────────
+   Everything you see is a soft 3D ellipse (a Gaussian splat) drawn with WebGL: the meadow is long
+   thin ones for blades and wide flat ones for the ground, the hills and clouds are big hazy ones,
+   and the mobile's pieces are made of small ones packed into their shapes. Each splat is projected
+   to the screen as a 2D Gaussian (the 3DGS projection: J·W·Σ·Wᵀ·Jᵀ) and blended back to front.
+
+   World space here is y-up, metres. The physics works in (x right, y down, z away from you);
+   a physics point (x, y, z) sits at (x, TOP - y, -z), where TOP is the anchor's height above the grass. */
+const WALL = .5;                         // the physics keeps pieces this far in front of the meadow
+const cv = document.getElementById('room');
+const gl = cv.getContext('webgl2', { antialias: true, premultipliedAlpha: true, alpha: false, powerPreference: 'high-performance' });
+let W = 0, H = 0, DPR = 1, REST, TOP = 1.5;
+const SUN = (() => { const v = [-.45, .55, .7], m = Math.hypot(...v); return v.map(c => c / m); })();   // toward the sun
+const hexf = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
+const PAL = {
+  grass: ['#4D7752', '#658854', '#7F9B5B', '#9AAD64', '#B1BB71', '#C2C781'].map(hexf),
+  tips: ['#D6DB9A', '#E6E6B4', '#C9D48A'].map(hexf),
+  ground: ['#4A6B47', '#56784C', '#61804F'].map(hexf),
+  hills: ['#7E9C8C', '#8FA99A', '#9FB4A6', '#6F8E80'].map(hexf),
+  flowers: ['#F1B9C6', '#F7F2E4', '#F3DD8C', '#E9A3B6'].map(hexf),
+  cloud: hexf('#F6F2E8'), fog: hexf('#D2DEDB'), skyTop: hexf('#86AEDB'), skyLow: hexf('#DCE7E6'),
+  wire: hexf('#2B3150'),
+};
+const toG = (x, y, z) => [x, TOP - y, -z];
+function bounds() {
+  let minX = 0, maxX = 0, maxY = 0;
+  for (const n of PIECES) { const r = n.rc + .01; minX = Math.min(minX, n.Cp.x - r); maxX = Math.max(maxX, n.Cp.x + r); maxY = Math.max(maxY, n.Cp.y + r * 1.4); }
+  for (const r of RODS) { minX = Math.min(minX, r.L.x, r.R.x); maxX = Math.max(maxX, r.L.x, r.R.x); }
+  return { minX, maxX, maxY };
+}
+
+/* ---------- small matrix helpers ---------- */
+function perspective(fovy, aspect, near, far) {
+  const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+  return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0]);
+}
+function lookAt(e, c, up) {
+  let zx = e[0] - c[0], zy = e[1] - c[1], zz = e[2] - c[2]; let l = Math.hypot(zx, zy, zz); zx /= l; zy /= l; zz /= l;
+  let xx = up[1] * zz - up[2] * zy, xy = up[2] * zx - up[0] * zz, xz = up[0] * zy - up[1] * zx; l = Math.hypot(xx, xy, xz); xx /= l; xy /= l; xz /= l;
+  const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+  return new Float32Array([xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0, -(xx * e[0] + xy * e[1] + xz * e[2]), -(yx * e[0] + yy * e[1] + yz * e[2]), -(zx * e[0] + zy * e[1] + zz * e[2]), 1]);
+}
+const cam = { pos: [0, 1.6, 3], target: [0, 1, 0], fov: 38 * Math.PI / 180, view: null, proj: null, fx: 1, fy: 1 };
+function toView(p) { const v = cam.view; return [v[0] * p[0] + v[4] * p[1] + v[8] * p[2] + v[12], v[1] * p[0] + v[5] * p[1] + v[9] * p[2] + v[13], v[2] * p[0] + v[6] * p[1] + v[10] * p[2] + v[14]]; }
+function toScreen(p) { const v = toView(p); return [W / 2 + cam.fx * v[0] / -v[2], H / 2 - cam.fy * v[1] / -v[2], -v[2]]; }
+function rayAt(sx, sy) {   // a ray from the eye through a point on screen, in world space
+  const vx = (sx - W / 2) / cam.fx, vy = -(sy - H / 2) / cam.fy, v = cam.view;
+  const d = [v[0] * vx + v[1] * vy - v[2], v[4] * vx + v[5] * vy - v[6], v[8] * vx + v[9] * vy - v[10]];
+  const m = Math.hypot(...d); return [d[0] / m, d[1] / m, d[2] / m];
+}
+function placeCamera() {
+  const b = REST, half = Math.max(-b.minX, b.maxX) * 1.06 + .04, h = b.maxY * 1.06 + .08, aspect = W / H, t = Math.tan(cam.fov / 2);
+  const d = Math.max((h / 2) / t, half / (t * aspect)) + .25, pitch = .3;   // looking down enough to see the grass beneath it
+  TOP = b.maxY + .45;           // the lowest pieces hang just above the tops of the grass
+  cam.target = [0, TOP - b.maxY * .52, 0]; cam.pitch = pitch;
+  cam.pos = [0, cam.target[1] + Math.sin(pitch) * d, Math.cos(pitch) * d];
+  cam.view = lookAt(cam.pos, cam.target, [0, 1, 0]);
+  cam.proj = perspective(cam.fov, aspect, .05, 200);
+  cam.fy = (H / 2) / t; cam.fx = cam.fy;
+}
+
+/* ---------- shaders ---------- */
+const VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 quad;
+layout(location=1) in vec3 c;
+layout(location=2) in vec3 a1;
+layout(location=3) in vec3 a2;
+layout(location=4) in vec3 a3;
+layout(location=5) in vec4 col;
+layout(location=6) in vec4 ex;   // x: how much wind bends it (its height), y: phase, z: kind (0 grass, 1 ground, 2 mobile, 3 sky), w: sheen
+uniform mat4 view, proj;
+uniform vec2 vp;
+uniform float t, lvl, gust, focal;
+uniform vec4 ptr;                // pointer on the grass (x, z) and the push it gives (vx, vz)
+uniform sampler2D shadow;
+uniform vec4 shRect;
+uniform vec3 fogCol, shadeCol;
+out vec4 vCol;
+out vec2 vUV;
+float wave(vec2 p, float t) {
+  return .55 * sin(p.x * 1.3 - t * 1.7 + sin(p.y * .8 + t * .3) * 1.5) + .3 * sin(p.x * 2.9 + p.y * 1.7 - t * 2.6) + .15 * sin(p.x * 5.3 - p.y * 3.1 - t * 3.9);
+}
+void main() {
+  vec3 C = c, A1 = a1;
+  vec4 k = col;
+  if (ex.x > 0.) {
+    // the wind travels across the meadow in waves; the taller the blade, the further it lies over
+    float w = lvl * gust * (.65 + .55 * wave(C.xz, t));
+    vec2 d = C.xz - ptr.xy; float f = max(0., 1. - length(d) / .6);
+    vec2 push = ptr.zw * f * f;
+    float bend = w * 2.4 + push.x * .9 + sin(t * 1.6 + ex.y) * .05 + .12;
+    float bz = push.y * .9 + sin(t * 1.1 + ex.y * 1.7) * .03;
+    C.x += bend * ex.x * .5; C.z += bz * ex.x * .5; C.y -= (abs(bend) + abs(bz)) * ex.x * .12;
+    float L = length(a1); A1 += vec3(bend * L * .8, 0., bz * L * .8);
+    k.rgb *= 1. + clamp(bend - .18, 0., 1.) * .45 * ex.w;   // grass laid over shows its paler side to the sun
+  }
+  if (ex.z < 1.5) {
+    // shade on the grass: the mobile's shadow, and slow cloud shadows
+    vec2 uv = (C.xz - shRect.xy) * shRect.zw;
+    float s = (uv.x > 0. && uv.x < 1. && uv.y > 0. && uv.y < 1.) ? texture(shadow, uv).r : 0.;
+    float cl = smoothstep(.25, .75, .5 + .5 * sin(C.x * .32 - t * .05 + sin(C.z * .41) * 1.4) * sin(C.z * .23 + .7 + t * .018));
+    float sh = max(s, cl * .32);
+    k.rgb = mix(k.rgb, k.rgb * shadeCol, min(1., sh * 1.1));
+  }
+  vec4 v = view * vec4(C, 1.);
+  if (v.z > -.06) { gl_Position = vec4(0., 0., 2., 1.); return; }
+  float dist = -v.z;
+  if (ex.z < 2.5) k.rgb = mix(k.rgb, fogCol, clamp(1. - exp(-dist * .028), 0., .7));
+  else if (ex.z > 2.5) k.rgb = mix(k.rgb, fogCol, .25);
+  // project the 3D Gaussian to a 2D one on screen
+  mat3 Wm = mat3(view);
+  mat3 Av = Wm * mat3(A1, a2, a3);
+  mat3 S = Av * transpose(Av);
+  float z = v.z;
+  mat3 J = mat3(focal / -z, 0., 0.,   0., focal / -z, 0.,   focal * v.x / (z * z), focal * v.y / (z * z), 0.);
+  mat3 cov = J * S * transpose(J);
+  float a = cov[0][0] + .3, b = cov[0][1], d = cov[1][1] + .3;
+  float mid = .5 * (a + d), rad = sqrt(max(.25 * (a - d) * (a - d) + b * b, 1e-8));
+  float l1 = min(mid + rad, 40000.), l2 = max(mid - rad, .1);
+  vec2 e1 = abs(b) < 1e-6 ? (a >= d ? vec2(1., 0.) : vec2(0., 1.)) : normalize(vec2(b, l1 - a));
+  vec2 e2 = vec2(-e1.y, e1.x);
+  vec2 off = (quad.x * e1 * sqrt(l1) + quad.y * e2 * sqrt(l2)) * 2.6;
+  vec4 clip = proj * v;
+  clip.xy += off / vp * 2. * clip.w;
+  gl_Position = clip;
+  vUV = quad * 2.6;
+  vCol = k;
+}`;
+const FS = `#version 300 es
+precision mediump float;
+in vec4 vCol; in vec2 vUV;
+out vec4 o;
+void main() {
+  float a = vCol.a * exp(-.5 * dot(vUV, vUV));
+  if (a < .004) discard;
+  o = vec4(vCol.rgb * a, a);
+}`;
+const SKY_VS = `#version 300 es
+layout(location=0) in vec2 quad; out vec2 p; void main() { p = quad; gl_Position = vec4(quad, .999, 1.); }`;
+const SKY_FS = `#version 300 es
+precision mediump float; in vec2 p; uniform vec3 top, low; uniform float horizon; out vec4 o;
+void main() { float h = clamp((p.y - horizon) / (1. - horizon), 0., 1.); o = vec4(mix(low, top, pow(h, .8)), 1.); }`;
+
+function program(vs, fs) {
+  const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  const p = gl.createProgram(); gl.attachShader(p, mk(gl.VERTEX_SHADER, vs)); gl.attachShader(p, mk(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+const STRIDE = 20;   // floats per splat: c3 a1 a2 a3 col4 ex4
+let prog, skyProg, U = {}, SU = {}, quadBuf, meadowVAO, mobileVAO, skyVAO, meadowBuf, mobileBuf, meadowCount = 0, shadowTex;
+function makeVAO(buf) {
+  const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  const sizes = [3, 3, 3, 3, 4, 4]; let off = 0;
+  sizes.forEach((n, i) => { gl.enableVertexAttribArray(i + 1); gl.vertexAttribPointer(i + 1, n, gl.FLOAT, false, STRIDE * 4, off * 4); gl.vertexAttribDivisor(i + 1, 1); off += n; });
+  gl.bindVertexArray(null); return vao;
+}
+function initGL() {
+  prog = program(VS, FS); skyProg = program(SKY_VS, SKY_FS);
+  for (const n of ['view', 'proj', 'vp', 't', 'lvl', 'gust', 'focal', 'ptr', 'shadow', 'shRect', 'fogCol', 'shadeCol']) U[n] = gl.getUniformLocation(prog, n);
+  for (const n of ['top', 'low', 'horizon']) SU[n] = gl.getUniformLocation(skyProg, n);
+  quadBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  meadowBuf = gl.createBuffer(); mobileBuf = gl.createBuffer();
+  meadowVAO = makeVAO(meadowBuf); mobileVAO = makeVAO(mobileBuf);
+  skyVAO = gl.createVertexArray(); gl.bindVertexArray(skyVAO); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); gl.bindVertexArray(null);
+  shadowTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, shadowTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+}
+
+/* ---------- the meadow: built once per camera, sorted far to near ---------- */
+function rnd(seed) { let s = seed | 0; return () => { s = s + 1831565813 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const pickc = (arr, r) => arr[Math.min(arr.length - 1, Math.floor(r * arr.length))];
+function vary(c, r, amt) { const k = 1 + (r - .5) * amt; return [c[0] * k, c[1] * k, c[2] * k]; }
+function buildMeadow() {
+  const R = rnd(761103), out = [];
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const N = +new URLSearchParams(location.search).get('splats') || (coarse ? 42000 : 78000);   // ?splats= lowers it for testing
+  const push = (c, a1, a2, a3, col, alpha, ex) => out.push(c[0], c[1], c[2], ...a1, ...a2, ...a3, col[0], col[1], col[2], alpha, ...ex);
+  // where the camera's view meets the grass: spread splats evenly over the picture, not over the ground
+  const near = Math.max(.35, cam.pos[1] / Math.tan(cam.fov / 2 + cam.pitch) * .75), far = 45;
+  const groundPoint = (u, w) => {
+    const dist = near * Math.pow(far / near, u), half = dist * Math.tan(cam.fov / 2) * (W / H) * 1.25 + .5;
+    return [cam.pos[0] + (w - .5) * 2 * half, cam.pos[2] - dist, dist];
+  };
+  // the ground beneath: wide flat splats
+  for (let i = 0; i < N * .06; i++) {
+    const [x, z, dist] = groundPoint(Math.pow(R(), .9), R()), s = .1 + dist * .045;
+    push([x, 0, z], [s * (1 + R()), 0, 0], [0, 0, s * (.8 + R() * .6)], [0, s * .05, 0], vary(pickc(PAL.ground, R()), R(), .25), .9, [0, 0, 1, 0]);
+  }
+  // blades: long thin splats, leaning with the meadow's comb; far ones are drawn bigger, the way a painter would
+  for (let i = 0; i < N; i++) {
+    const [x, z, dist] = groundPoint(Math.pow(R(), 1.15), R()), sf = Math.pow(Math.max(1, dist / 3.2), .6);
+    const hgt = (.14 + R() * .28) * sf, lean = .22 + (R() - .5) * .5, side = (R() - .5) * .4;
+    const ux = Math.sin(lean), uy = Math.cos(lean), uz = side * .4;
+    const top = R();
+    const col = top < .12 ? vary(pickc(PAL.tips, R()), R(), .12) : vary(pickc(PAL.grass, Math.min(.999, R() * .8 + top * .3)), R(), .18);
+    const wb = (.006 + R() * .006) * sf;
+    push([x + ux * hgt * .5, uy * hgt * .5, z], [ux * hgt * .42, uy * hgt * .42, uz * hgt * .3], [uy * wb, -ux * wb, 0], [0, 0, .006 * sf], col, .62 + R() * .3, [hgt, R() * 6.28, 0, 1]);
+  }
+  // flowers, sparse, held up at the tops of the grass
+  for (let i = 0; i < N * .012; i++) {
+    const [x, z, dist] = groundPoint(Math.pow(R(), 1.4), R()), sf = Math.pow(Math.max(1, dist / 3.2), .6), s = (.012 + R() * .012) * sf, y = (.18 + R() * .22) * sf;
+    push([x, y, z], [s, 0, 0], [0, s, 0], [0, 0, s], vary(pickc(PAL.flowers, R()), R(), .1), .9, [y * .9, R() * 6.28, 0, .3]);
+  }
+  // hills on the horizon, and clouds above them
+  for (let i = 0; i < 520; i++) {
+    const x = (R() - .5) * 140, z = -48 - R() * 30, h = 3 + Math.pow(R(), 1.6) * 12 + Math.sin(x * .05) * 3, s = 2.2 + R() * 3.5;
+    push([x, h * R(), z], [s * 1.6, 0, 0], [0, s * .9, 0], [0, 0, s], vary(pickc(PAL.hills, R()), R(), .12), .55, [0, 0, 1, 0]);
+  }
+  for (let i = 0; i < 70; i++) {
+    const x = (R() - .5) * 170, z = -75 - R() * 40, y = 16 + R() * 18, s = 3 + R() * 6;
+    push([x, y, z], [s * 2.2, 0, 0], [0, s * .7, 0], [0, 0, s], vary(PAL.cloud, R(), .05), .32, [0, 0, 3, 0]);
+  }
+  // back to front, from this camera
+  const n = out.length / STRIDE, key = new Float32Array(n), idx = new Uint32Array(n);
+  for (let i = 0; i < n; i++) { const o = i * STRIDE, dx = out[o] - cam.pos[0], dy = out[o + 1] - cam.pos[1], dz = out[o + 2] - cam.pos[2]; key[i] = -(dx * dx + dy * dy + dz * dz); idx[i] = i; }
+  idx.sort((a, b) => key[a] - key[b]);
+  const data = new Float32Array(out.length);
+  for (let j = 0; j < n; j++) data.set(out.slice(idx[j] * STRIDE, idx[j] * STRIDE + STRIDE), j * STRIDE);
+  gl.bindBuffer(gl.ARRAY_BUFFER, meadowBuf); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  meadowCount = n;
+}
+
+/* ---------- the mobile, as splats: each piece filled with small Gaussians in its own shape ---------- */
+const COL = { brass: [214, 164, 70], oak: [208, 154, 102], crystal: [236, 240, 248] };
+const shapeCtx = document.createElement('canvas').getContext('2d');
+let MOB = null, mobData = null, mobSorted = null, mobKey = null, mobIdx = null;
+function outline(c, n) {
+  switch (n.kind) {
+    case 'brass': case 'glass': case 'sphere': c.arc(0, 0, n.r, 0, TAU); break;
+    case 'film': c.ellipse(0, 0, n.rx, n.ry, 0, 0, TAU); break;
+    case 'tear': { const w = n.w, h = n.h, t = -h * .55;
+      c.moveTo(0, t); c.bezierCurveTo(w * .25, t + h * .2, w, t + h * .38, w, t + h * .68);
+      c.bezierCurveTo(w, t + h * .92, w * .5, t + h, 0, t + h);
+      c.bezierCurveTo(-w * .5, t + h, -w, t + h * .92, -w, t + h * .68);
+      c.bezierCurveTo(-w, t + h * .38, -w * .25, t + h * .2, 0, t); break; }
+    case 'crystal': { const w = n.w, h = n.h, t = -h * .55, b = w * .55, by = t + b;
+      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + Math.PI / 8; c[i ? 'lineTo' : 'moveTo'](Math.cos(a) * b, by + Math.sin(a) * b); } c.closePath();
+      const top = by + b + h * .04;
+      c.moveTo(-w * .45, top); c.lineTo(w * .45, top); c.lineTo(w * .62, t + h * .78); c.lineTo(0, t + h); c.lineTo(-w * .62, t + h * .78); c.closePath(); break; }
+    case 'oak': { const w = n.w, h = n.h, t = -h * .45;
+      c.moveTo(0, t); c.bezierCurveTo(w * .62, t, w * .7, t + h * .3, w * .85, t + h * .62);
+      c.bezierCurveTo(w * 1.02, t + h * .95, w * .4, t + h, 0, t + h);
+      c.bezierCurveTo(-w * .55, t + h, -w * .98, t + h * .9, -w * .82, t + h * .55);
+      c.bezierCurveTo(-w * .68, t + h * .25, -w * .55, t, 0, t); break; }
+  }
+}
+function inside(n, u, v, k = 1) { shapeCtx.setTransform(1000 * k, 0, 0, 1000 * k, 500, 500); shapeCtx.beginPath(); outline(shapeCtx, n); return shapeCtx.isPointInPath(500 + u * 1000, 500 + v * 1000); }
+function baseColor(n) { return (n.c1 || COL[n.kind] || [210, 200, 230]).map(c => c / 255); }
+/* ---------- the mobile, as real objects ----------
+   The meadow is drawn first into a texture. Then the wire and the pieces are drawn as solid 3D
+   meshes over it, each with its own material: brass reflects the sky and the grass and shows its
+   polishing scratches; glass bends the meadow behind it, reflects the sky at its rim and deepens
+   in colour where it is thicker; crystal splits the light; oak is grained and matte; the film
+   changes colour with the angle you see it at. The wire is round, dark annealed steel, bent into
+   loops at its ends, with S-hooks between the levels, a glass bead on each, and a ring through
+   every drilled hole. */
+const GLASS = { glass: 1, tear: 1, sphere: 1, crystal: 1, film: 1 };
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const norm = a => { const m = Math.hypot(...a) || 1; return [a[0] / m, a[1] / m, a[2] / m]; };
+
+const MESH_VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec3 pos;
+layout(location=1) in vec3 nor;
+uniform mat4 model, view, proj;
+out vec3 wp, wn, lp, ln;
+void main() { vec4 w = model * vec4(pos, 1.); wp = w.xyz; wn = mat3(model) * nor; lp = pos; ln = nor; gl_Position = proj * view * w; }`;
+const ENV = `
+uniform vec3 sun, skyTop, skyLow;
+vec3 env(vec3 d) {
+  vec3 sky = mix(skyLow, skyTop, smoothstep(0., .55, d.y));
+  vec3 grass = mix(vec3(.5, .6, .38), vec3(.3, .42, .27), smoothstep(0., -.45, d.y));
+  vec3 c = mix(sky, grass, smoothstep(.01, -.06, d.y));
+  return c + vec3(1., .96, .86) * pow(max(dot(d, sun), 0.), 300.) * 5.;
+}
+float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float vnoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+  return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }`;
+const MESH_FS = `#version 300 es
+precision highp float;
+in vec3 wp, wn, lp, ln;
+uniform vec3 eye, base, deep;
+uniform int mat;              // 0 brass, 1 glass, 2 oak, 3 crystal, 4 film, 5 bead, 6 frosted glass, 7 ribbed glass
+uniform sampler2D scene;
+uniform vec2 vp;
+uniform vec3 hole;            // the drilled hole: centre (u, v) in the piece, and its radius
+uniform mat4 view;
+out vec4 o;
+${ENV}
+void main() {
+  if (hole.z > 0. && length(lp.xy - hole.xy) < hole.z) discard;
+  vec3 N = normalize(wn), V = normalize(eye - wp);
+  if (dot(N, V) < 0.) N = -N;                     // thin pieces are seen from both sides
+  vec3 R = reflect(-V, N), H = normalize(sun + V);
+  float NV = max(dot(N, V), 0.), NL = dot(N, sun), fres = .04 + .96 * pow(1. - NV, 5.);
+  vec2 suv = gl_FragCoord.xy / vp;
+  vec3 c;
+  if (mat == 0) {
+    // brass: a hand-polished sheet; fine scratches running every which way, a little darker where handled
+    float s1 = vnoise(vec2(lp.x * 40., lp.y * 2600.)), s2 = vnoise(vec2((lp.x + lp.y) * 1800., (lp.x - lp.y) * 30.));
+    float scr = mix(s1, s2, step(.5, vnoise(lp.xy * 30.)));
+    float patina = (vnoise(lp.xy * 400.) - .5) * .06;
+    vec3 Tu = normalize(cross(N, vec3(0., 1., .15))), Tv = normalize(cross(N, Tu));
+    vec2 warp = vec2(vnoise(lp.xy * 18.) - .5, vnoise(lp.xy * 18. + 7.3) - .5) + lp.xy * 4.;   // slightly dished, slightly dented
+    vec3 Nb = normalize(N + Tu * (warp.x * .55 + (scr - .5) * .1) + Tv * warp.y * .55);
+    vec3 Rb = reflect(-V, Nb), Hb = normalize(sun + V);
+    vec3 F0 = base * (1. - patina);
+    float spec = pow(max(dot(Nb, Hb), 0.), 60.) * 1.6 + pow(max(dot(Nb, Hb), 0.), 9.) * .45;
+    vec3 refl = mix(env(Rb), (skyTop + skyLow) * .5, .25);
+    float lum = dot(refl, vec3(.33));
+    c = F0 * (.14 + 1.05 * refl) * (.7 + .6 * lum) + F0 * spec * (.8 + scr * .4) + F0 * F0 * max(dot(Nb, sun), 0.) * .25;
+  } else if (mat == 2) {
+    // white oak: long grain, with the pale flecks quarter-sawn oak shows
+    float g = sin((lp.x * 220. + vnoise(lp.xy * vec2(40., 8.)) * 6.) ) * .5 + .5;
+    float fleck = smoothstep(.82, .95, vnoise(vec2(lp.x * 300., lp.y * 70.)));
+    vec3 alb = mix(deep, base, g * .55 + .3) + fleck * .12;
+    float diff = max(NL, 0.) * .8 + .38;
+    c = alb * diff + pow(max(dot(N, H), 0.), 16.) * .06;
+  } else {
+    // glass: the meadow seen through it, bent; deeper colour through more glass; the sky on its rim
+    float thick = mat == 5 ? 2.2 : (mat == 1 ? 1.5 : 1.);
+    float path = min(thick / max(NV, .3), 3.);
+    if (mat == 7) path *= .8 + .5 * (.5 + .5 * sin(atan(lp.z, lp.x) * 14. + lp.y * 90.));   // ribbed, swirled
+    vec3 Nv = mat3(view) * N;
+    float bend = mat == 3 ? .05 : (mat == 1 || mat == 7 ? .07 : .025);   // round glass bends the meadow behind it hard
+    vec3 refr;
+    if (mat == 3) {          // cut crystal: each colour bends a little differently
+      refr = vec3(texture(scene, suv - Nv.xy * bend).r, texture(scene, suv - Nv.xy * bend * 1.12).g, texture(scene, suv - Nv.xy * bend * 1.25).b);
+    } else if (mat == 6) {   // frosted: the meadow blurred through it
+      refr = vec3(0.);
+      for (int i = 0; i < 8; i++) { float a = float(i) * 2.399; refr += texture(scene, suv - Nv.xy * bend + vec2(cos(a), sin(a)) * .009 * (1. + float(i) * .2)).rgb; }
+      refr = refr / 8. * .7 + .28;
+    } else refr = texture(scene, suv - Nv.xy * bend).rgb;
+    vec3 tint = mat == 4 ? vec3(1.) : pow(mix(vec3(1.), base, mat == 1 ? 1. : .75), vec3(path * (mat == 1 ? .6 : .45)));
+    vec3 body = refr * tint + base * (mat == 1 ? .22 : .1) + .05;      // a little light caught inside the glass
+    if (mat == 4) {          // dichroic film: thin-film colour that slides as the angle changes
+      vec3 irid = .5 + .5 * cos(6.2832 * (vec3(0., .33, .67) + NV * 1.7 + lp.x * 6.));
+      body = mix(refr, mix(irid, vec3(1.), .35), .38);
+      fres = max(fres, .12);
+    }
+    float edge = pow(1. - NV, 3.);
+    body = mix(body, mix(body, deep, .5), edge * .45);
+    float spec = pow(max(dot(N, H), 0.), mat == 3 ? 900. : 400.) * 6. + pow(max(dot(N, H), 0.), 40.) * .25;
+    c = mix(body, env(R), fres * (mat == 6 ? .5 : (mat == 1 ? .55 : 1.))) + vec3(spec) * (mat == 1 ? .7 : 1.);
+  }
+  o = vec4(c, 1.);
+}`;
+// round wire: each run of wire is a ribbon facing the eye, shaded as a cylinder
+const WIRE_VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 q;       // x: along (0 or 1), y: across (-1 or 1)
+layout(location=1) in vec3 p0;
+layout(location=2) in vec3 p1;
+layout(location=3) in vec2 rk;      // radius in metres, kind (0 steel, 1 nylon)
+uniform mat4 view, proj;
+uniform vec2 vp;
+uniform vec3 eye;
+out float s; out vec3 wp, side, toE; flat out float kind; out float cover;
+void main() {
+  vec3 p = mix(p0, p1, q.x), d = normalize(p1 - p0);
+  vec3 e = normalize(eye - p);
+  side = normalize(cross(d, e)); toE = e;
+  vec4 c = proj * view * vec4(p, 1.);
+  // never thinner than a pixel and a bit on screen, so it stays solid and smooth
+  float px = rk.x * 2. * proj[1][1] * vp.y * .5 / c.w;
+  float w = max(rk.x, rk.x * 1.7 / max(px, 1e-4));
+  cover = clamp(px / 1.2, .75, 1.);
+  vec4 c2 = proj * view * vec4(p + side * w * q.y, 1.);
+  gl_Position = c2;
+  s = q.y; wp = p; kind = rk.y;
+}`;
+const WIRE_FS = `#version 300 es
+precision highp float;
+in float s; in vec3 wp, side, toE; flat in float kind; in float cover;
+uniform vec3 eye;
+out vec4 o;
+${ENV}
+void main() {
+  vec3 N = normalize(side * s + toE * sqrt(max(0., 1. - s * s)));
+  vec3 V = normalize(eye - wp), H = normalize(sun + V), R = reflect(-V, N);
+  float a = (1. - smoothstep(.75, 1., abs(s))) * cover;
+  if (kind > .5) {           // nylon line: almost clear, a glint where the sun catches it
+    vec3 c = env(R) * .9 + pow(max(dot(N, H), 0.), 80.) * 1.5;
+    o = vec4(c * a * .8, a * .8); return;
+  }
+  vec3 base = vec3(.13, .13, .15);                     // dark annealed steel
+  vec3 c = base * (.35 + .65 * max(dot(N, sun), 0.)) + env(R) * .16 + vec3(1., .97, .9) * pow(max(dot(N, H), 0.), 70.) * .9;
+  o = vec4(c * a, a);
+}`;
+const BLIT_FS = `#version 300 es
+precision mediump float; in vec2 p; uniform sampler2D tex; out vec4 o; void main() { o = texture(tex, p * .5 + .5); }`;
+const BLIT_VS = `#version 300 es
+layout(location=0) in vec2 quad; out vec2 p; void main() { p = quad; gl_Position = vec4(quad, 0., 1.); }`;
+
+/* ---------- geometry, in each piece's own metres: u right, v down, w out of its face ---------- */
+function tri(out, a, b, c, na, nb, nc) { out.push(...a, ...na, ...b, ...nb, ...c, ...nc); }
+function flatTri(out, a, b, c) { const n = norm(cross(sub(b, a), sub(c, a))); tri(out, a, b, c, n, n, n); }
+function extrude(pts, th, out = []) {          // a flat piece of sheet: two faces and the cut edge
+  const h = th / 2, cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    tri(out, [cx, cy, h], [a[0], a[1], h], [b[0], b[1], h], [0, 0, 1], [0, 0, 1], [0, 0, 1]);
+    tri(out, [cx, cy, -h], [b[0], b[1], -h], [a[0], a[1], -h], [0, 0, -1], [0, 0, -1], [0, 0, -1]);
+    const e = norm([b[1] - a[1], -(b[0] - a[0]), 0]);
+    tri(out, [a[0], a[1], h], [a[0], a[1], -h], [b[0], b[1], h], e, e, e);
+    tri(out, [b[0], b[1], h], [a[0], a[1], -h], [b[0], b[1], -h], e, e, e);
+  }
+  return out;
+}
+function lathe(prof, seg, flat, out = []) {    // turned about the v axis: prof = [[radius, v], ...] from top to bottom
+  for (let i = 0; i < prof.length - 1; i++) for (let j = 0; j < seg; j++) {
+    const a0 = j / seg * TAU, a1 = (j + 1) / seg * TAU, [r0, v0] = prof[i], [r1, v1] = prof[i + 1];
+    const P = (r, v, a) => [Math.cos(a) * r, v, Math.sin(a) * r];
+    const A = P(r0, v0, a0), B = P(r0, v0, a1), C = P(r1, v1, a0), D = P(r1, v1, a1);
+    if (flat) { if (r0 > 1e-6) flatTri(out, A, C, B); if (r1 > 1e-6) flatTri(out, B, C, D); continue; }
+    const dr = r1 - r0, dv = v1 - v0, L = Math.hypot(dr, dv) || 1, nr = dv / L, nv = -dr / L;
+    const Nn = a => [Math.cos(a) * nr, nv, Math.sin(a) * nr];
+    tri(out, A, C, B, Nn(a0), Nn(a0), Nn(a1)); tri(out, B, C, D, Nn(a1), Nn(a0), Nn(a1));
+  }
+  return out;
+}
+const circlePts = (rx, ry, n = 56) => Array.from({ length: n }, (_, i) => [Math.cos(i / n * TAU) * rx, Math.sin(i / n * TAU) * ry]);
+function geometryFor(n) {
+  switch (n.kind) {
+    case 'brass': return extrude(circlePts(n.r, n.r, 72), .0012);
+    case 'glass': return extrude(circlePts(n.r, n.r, 72), .004);
+    case 'film': return extrude(circlePts(n.rx, n.ry, 64), .0006);
+    case 'oak': {
+      const pts = [], w = n.w, h = n.h;
+      for (let i = 0; i < 64; i++) { const t = i / 64 * TAU, y = -Math.cos(t) * h / 2 + h * .05; pts.push([Math.sin(t) * w * (.66 + .3 * (1 - Math.cos(t)) / 2), y]); }
+      return extrude(pts, .006);
+    }
+    case 'sphere': {
+      const prof = []; for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI; prof.push([Math.sin(a) * n.r, -Math.cos(a) * n.r]); }
+      return lathe(prof, 40, false);
+    }
+    case 'tear': {
+      const prof = [], w = n.w, h = n.h;
+      for (let i = 0; i <= 36; i++) { const s = i / 36, k = (s - .62) / (s < .62 ? .62 : .38); let r = w * 1.1 * Math.sqrt(Math.max(0, 1 - k * k)); if (s < .62) r *= .12 + .88 * Math.pow(s / .62, .8); prof.push([Math.max(r, i === 0 ? .0018 : 0), -h * .55 + h * s]); }
+      return lathe(prof, 32, false);
+    }
+    case 'crystal': {
+      const w = n.w, h = n.h, t = -h * .55, b = w * .55, by = t + b, top = by + b + h * .04;
+      const out = lathe([[0, by - b], [b * .62, by - b * .7], [b, by], [b * .62, by + b * .7], [0, by + b]], 8, true);
+      return lathe([[0, top], [w * .45, top], [w * .62, t + h * .78], [0, t + h]], 8, true, out);
+    }
+  }
+}
+const sphereGeom = r => { const prof = []; for (let i = 0; i <= 10; i++) { const a = i / 10 * Math.PI; prof.push([Math.sin(a) * r, -Math.cos(a) * r]); } return lathe(prof, 14, false); };
+const capGeom = r => lathe([[0, -r * .45], [r * .5, -r * .45], [r * .5, 0], [r * .36, 0], [0, 0]], 18, false);
+
+let meshProg, wireProg, blitProg, MU = {}, WU = {}, BU = {}, sceneFbo = null, sceneTex = null, wireBuf, wireVAO, wireData = new Float32Array(4000 * 8), wireN = 0;
+const meshes = new Map();
+function meshVAO(data) {
+  const vao = gl.createVertexArray(), buf = gl.createBuffer();
+  gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+  gl.bindVertexArray(null);
+  return { vao, count: data.length / 6 };
+}
+function initObjects() {
+  meshProg = program(MESH_VS, MESH_FS); wireProg = program(WIRE_VS, WIRE_FS); blitProg = program(BLIT_VS, BLIT_FS);
+  for (const k of ['model', 'view', 'proj', 'eye', 'base', 'deep', 'mat', 'scene', 'vp', 'hole', 'sun', 'skyTop', 'skyLow']) MU[k] = gl.getUniformLocation(meshProg, k);
+  for (const k of ['view', 'proj', 'vp', 'eye', 'sun', 'skyTop', 'skyLow']) WU[k] = gl.getUniformLocation(wireProg, k);
+  BU.tex = gl.getUniformLocation(blitProg, 'tex');
+  wireBuf = gl.createBuffer(); wireVAO = gl.createVertexArray(); gl.bindVertexArray(wireVAO);
+  const qb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, qb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, -1, 1, -1, 0, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, wireBuf);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 32, 0); gl.vertexAttribDivisor(1, 1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 32, 12); gl.vertexAttribDivisor(2, 1);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 2, gl.FLOAT, false, 32, 24); gl.vertexAttribDivisor(3, 1);
+  gl.bindVertexArray(null);
+  meshes.set('bead', meshVAO(sphereGeom(.0028)));
+  meshes.set('cap', meshVAO(capGeom(.008)));
+}
+function sceneTarget() {
+  if (sceneTex) { gl.deleteTexture(sceneTex); gl.deleteFramebuffer(sceneFbo); }
+  sceneTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, sceneTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, cv.width, cv.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  sceneFbo = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, sceneTex, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+// each piece's material: which shader branch, its colour, and a deeper colour for its thick edges
+const BEADS = [[.93, .82, .86], [.82, .9, .92], [.94, .92, .8], [.86, .84, .95], [.9, .93, .9]];
+function materialFor(n) {
+  const c = (n.c1 || [0, 0, 0]).map(v => v / 255), rim = (n.rim || [0, 0, 0]).map(v => v / 255);
+  switch (n.kind) {
+    case 'brass': return { mat: 0, base: [.88, .74, .46], deep: [.5, .38, .18] };
+    case 'oak': return { mat: 2, base: [.9, .74, .55], deep: [.74, .56, .38] };
+    case 'glass': return { mat: n.r > .04 ? 6 : 1, base: c, deep: rim };
+    case 'sphere': return { mat: 7, base: c, deep: rim };
+    case 'tear': return { mat: 1, base: c, deep: rim };
+    case 'crystal': return { mat: 3, base: [.97, .98, 1], deep: [.75, .78, .85] };
+    case 'film': return { mat: 4, base: [1, 1, 1], deep: [.6, .55, .7] };
+  }
+}
+function buildMobile() {
+  for (const n of PIECES) { n.mesh = meshVAO(geometryFor(n)); n.mtl = materialFor(n); }
+  const total = PIECES.length * 3;
+  mobData = new Float32Array(total * STRIDE); mobSorted = new Float32Array(total * STRIDE);
+  mobKey = new Float32Array(total); mobIdx = new Uint32Array(total);
+}
+
+function pieceFrame(n) {
+  // down: from the hole to the centre; right and face turn about it with the piece's yaw
+  const S = toG(n.S.x, n.S.y, n.S.z), Cc = toG(n.Cp.x, n.Cp.y, n.Cp.z), down = norm(sub(Cc, S));
+  const r0 = norm(sub([1, 0, 0], mul(down, down[0]))), f0 = cross(r0, down);
+  const cy = Math.cos(n.yaw), sy = Math.sin(n.yaw);
+  return { C: Cc, S, down, right: add(mul(r0, cy), mul(f0, sy)), face: add(mul(f0, cy), mul(r0, -sy)) };
+}
+let mobN = 0;
+function writeSplat(arr, i, c, a1, a2, a3, col, alpha) {
+  const o = i * STRIDE;
+  arr[o] = c[0]; arr[o + 1] = c[1]; arr[o + 2] = c[2];
+  arr[o + 3] = a1[0]; arr[o + 4] = a1[1]; arr[o + 5] = a1[2];
+  arr[o + 6] = a2[0]; arr[o + 7] = a2[1]; arr[o + 8] = a2[2];
+  arr[o + 9] = a3[0]; arr[o + 10] = a3[1]; arr[o + 11] = a3[2];
+  arr[o + 12] = col[0]; arr[o + 13] = col[1]; arr[o + 14] = col[2]; arr[o + 15] = alpha;
+  arr[o + 16] = 0; arr[o + 17] = 0; arr[o + 18] = 2; arr[o + 19] = 0;
+}
+
+/* ---------- the wire, rebuilt every frame from the physics ---------- */
+const STEEL = .0009, NYLON = .0003;
+function seg(a, b, r, kind = 0) { if (wireN >= 4000) return; const o = wireN++ * 8; wireData.set(a, o); wireData.set(b, o + 3); wireData[o + 6] = r; wireData[o + 7] = kind; }
+function poly(pts, r, kind = 0) { for (let i = 1; i < pts.length; i++) seg(pts[i - 1], pts[i], r, kind); }
+// a small loop of wire: centre c, in the plane of axes a and b
+function loop(c, a, b, rad, r = STEEL, from = 0, to = TAU, n = 12) {
+  const pts = []; for (let i = 0; i <= n; i++) { const t = from + (to - from) * i / n; pts.push(add(c, add(mul(a, Math.cos(t) * rad), mul(b, Math.sin(t) * rad)))); }
+  poly(pts, r);
+}
+let BEADPOS = [];
+function updateWire() {
+  wireN = 0; BEADPOS = [];
+  const X = [1, 0, 0], Y = [0, 1, 0], Z = [0, 0, 1];
+  for (const r of RODS) {
+    const L = toG(r.L.x, r.L.y, r.L.z), R2 = toG(r.R.x, r.R.y, r.R.z), Hh = toG(r.H.x, r.H.y, r.H.z);
+    const along = norm(sub(R2, L)), up = norm(cross(cross(along, Y), along)), toward = norm(cross(along, up));
+    // the rod: one wire, bent through its hook, with a little loop formed at the top where it hangs
+    const ctrl = sub(mul(Hh, 2), mul(add(L, R2), .5)), pts = [];
+    for (let i = 0; i <= 28; i++) { const t = i / 28, a = (1 - t) * (1 - t), b = 2 * (1 - t) * t, c = t * t; pts.push(add(add(mul(L, a), mul(ctrl, b)), mul(R2, c))); }
+    poly(pts, STEEL);
+    loop(add(Hh, mul(up, .0042)), up, toward, .0042, STEEL * .9);
+    // each end turned down and round into a closed eye
+    for (const [tip, dir] of [[L, -1], [R2, 1]]) {
+      const out = mul(along, dir);
+      loop(add(tip, mul(up, -.004)), out, up, .004, STEEL * .9, Math.PI * .5, Math.PI * 2.5, 14);
+    }
+  }
+  for (const cn of outer) {
+    const b = toG(cn.b.x, cn.b.y, cn.b.z);
+    if (cn.a === ANCHOR) { seg(add(b, [0, 3, 0]), add(b, [0, .006, 0]), NYLON, 1); continue; }   // the hanging line: clear nylon
+    const a = add(toG(cn.a.x, cn.a.y, cn.a.z), [0, -.008, 0]);
+    const piece = PIECES.find(p => p.S === cn.b);
+    const end = piece ? b : add(b, [0, .0084, 0]);
+    // an S-hook: down from the eye, with a small glass bead threaded on it
+    const d = sub(end, a), len = Math.hypot(...d);
+    if (len < .003) continue;
+    const dir = mul(d, 1 / len), side = norm(cross(dir, Z));
+    loop(add(a, mul(dir, .0035)), dir, side, .0035, STEEL * .85, Math.PI, TAU * 1.5, 10);
+    seg(add(a, mul(dir, .007)), sub(end, mul(dir, .003)), STEEL * .85);
+    BEADPOS.push(add(a, mul(d, .45)));
+    if (piece) {    // a ring of wire through the drilled hole
+      const F = piece.F, hc = add(F.C, mul(F.down, -piece.hole));
+      loop(hc, F.down, F.face, .0045, STEEL * .8, 0, TAU, 16);
+    }
+  }
+}
+function updateMobile() {
+  mobN = 0;
+  for (const n of PIECES) n.F = pieceFrame(n);
+  // a soft blue shadow lying on the grass under each piece, along the sun's rays
+  for (const n of PIECES) {
+    const F = n.F, g = toGround(F.C), ru = dirGround(F.right), dv = dirGround(F.down), r = n.rc;
+    const wgt = GLASS[n.kind] ? .55 : 1, soft = 1 + F.C[1] * .35;
+    for (const [k, a] of [[.7, .22], [1.1, .14], [1.6, .08]]) {
+      writeSplat(mobData, mobN++, [g[0], .16, g[1]], [ru[0] * r * k * soft, 0, ru[1] * r * k * soft], [dv[0] * r * k * soft, 0, dv[1] * r * k * soft], [0, .004, 0], [.2, .27, .5], a * wgt);
+    }
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, mobileBuf); gl.bufferData(gl.ARRAY_BUFFER, mobData.subarray(0, mobN * STRIDE), gl.DYNAMIC_DRAW);
+  updateWire();
+  for (const n of PIECES) { const [x, y, d] = toScreen(n.F.C); n.X = x; n.Y = y; n.R = n.rc * cam.fy / d; }
+}
+
+/* ---------- the shadow on the grass: each piece pressed flat along the sun's rays ---------- */
+const SH = { size: 512, x0: -4, z0: -10, w: 9, h: 11 };
+const shc = document.createElement('canvas'); shc.width = shc.height = SH.size;
+const shx = shc.getContext('2d');
+const toGround = p => { const k = p[1] / SUN[1]; return [p[0] - SUN[0] * k, p[2] - SUN[2] * k]; };
+const dirGround = d => { const k = d[1] / SUN[1]; return [d[0] - SUN[0] * k, d[2] - SUN[2] * k]; };
+function drawShadowMap() {
+  const s = SH.size / SH.w, sz = SH.size / SH.h, X = x => (x - SH.x0) * s, Z = z => (z - SH.z0) * sz;
+  shx.setTransform(1, 0, 0, 1, 0, 0); shx.fillStyle = '#000'; shx.fillRect(0, 0, SH.size, SH.size);
+  try { shx.filter = 'blur(1.6px)'; } catch (e) {}
+  shx.strokeStyle = 'rgba(255,255,255,.55)'; shx.lineWidth = 1.1; shx.beginPath();
+  for (const r of RODS) { const a = toGround(toG(r.L.x, r.L.y, r.L.z)), m = toGround(toG(r.H.x, r.H.y, r.H.z)), b = toGround(toG(r.R.x, r.R.y, r.R.z)); shx.moveTo(X(a[0]), Z(a[1])); shx.quadraticCurveTo(X(2 * m[0] - (a[0] + b[0]) / 2), Z(2 * m[1] - (a[1] + b[1]) / 2), X(b[0]), Z(b[1])); }
+  for (const cn of outer) { if (cn.a === ANCHOR) continue; const a = toGround(toG(cn.a.x, cn.a.y, cn.a.z)), b = toGround(toG(cn.b.x, cn.b.y, cn.b.z)); shx.moveTo(X(a[0]), Z(a[1])); shx.lineTo(X(b[0]), Z(b[1])); }
+  shx.stroke();
+  for (const n of PIECES) {
+    const F = n.F, g = toGround(F.C), ru = dirGround(F.right), dv = dirGround(F.down);
+    shx.setTransform(ru[0] * s, ru[1] * sz, dv[0] * s, dv[1] * sz, X(g[0]), Z(g[1]));
+    shx.fillStyle = `rgba(255,255,255,${GLASS[n.kind] ? (n.kind === 'crystal' ? .3 : .5) : .95})`;
+    shx.beginPath(); outline(shx, n); shx.fill();
+  }
+  shx.setTransform(1, 0, 0, 1, 0, 0); try { shx.filter = 'none'; } catch (e) {}
+  gl.bindTexture(gl.TEXTURE_2D, shadowTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, shc);
+}
+
+/* ---------- each frame ---------- */
+let frameDt = 1 / 60, ptrG = [0, 0, 0, 0];
+function resize() {
+  DPR = Math.min(devicePixelRatio || 1, matchMedia('(pointer: coarse)').matches ? 1.5 : 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  placeCamera(); buildMeadow(); buildMobile(); sceneTarget();
+}
+function modelOf(F) {
+  const r = F.right, d = F.down, f = F.face, c = F.C;
+  return new Float32Array([r[0], r[1], r[2], 0, d[0], d[1], d[2], 0, f[0], f[1], f[2], 0, c[0], c[1], c[2], 1]);
+}
+function render() {
+  updateMobile(); drawShadowMap();
+  // 1. the meadow, into a texture the glass can look through
+  gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFbo);
+  gl.viewport(0, 0, cv.width, cv.height);
+  gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
+  gl.useProgram(skyProg);
+  const hz = toScreen([0, 0, -200])[1];
+  gl.uniform3fv(SU.top, PAL.skyTop); gl.uniform3fv(SU.low, PAL.skyLow); gl.uniform1f(SU.horizon, 1 - 2 * hz / H);
+  gl.bindVertexArray(skyVAO); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(prog);
+  gl.uniformMatrix4fv(U.view, false, cam.view); gl.uniformMatrix4fv(U.proj, false, cam.proj);
+  gl.uniform2f(U.vp, W, H); gl.uniform1f(U.focal, cam.fy);
+  gl.uniform1f(U.t, env.t); gl.uniform1f(U.lvl, env.airNow); gl.uniform1f(U.gust, env.gust);
+  gl.uniform4fv(U.ptr, ptrG);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shadowTex); gl.uniform1i(U.shadow, 0);
+  gl.uniform4f(U.shRect, SH.x0, SH.z0, 1 / SH.w, 1 / SH.h);
+  gl.uniform3fv(U.fogCol, PAL.fog); gl.uniform3f(U.shadeCol, .4, .52, .88);
+  gl.bindVertexArray(meadowVAO); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, meadowCount);
+  gl.bindVertexArray(mobileVAO); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, mobN);
+  // 2. onto the screen
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, cv.width, cv.height);
+  gl.disable(gl.BLEND);
+  gl.useProgram(blitProg); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, sceneTex); gl.uniform1i(BU.tex, 0);
+  gl.bindVertexArray(skyVAO); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  // 3. the pieces, solid, each in its material
+  gl.clear(gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+  gl.useProgram(meshProg);
+  gl.uniformMatrix4fv(MU.view, false, cam.view); gl.uniformMatrix4fv(MU.proj, false, cam.proj);
+  gl.uniform3fv(MU.eye, cam.pos); gl.uniform3fv(MU.sun, SUN); gl.uniform3fv(MU.skyTop, PAL.skyTop); gl.uniform3fv(MU.skyLow, PAL.skyLow);
+  gl.uniform2f(MU.vp, cv.width, cv.height); gl.uniform1i(MU.scene, 0);
+  for (const n of PIECES) {
+    const m = n.mtl;
+    gl.uniformMatrix4fv(MU.model, false, modelOf(n.F));
+    gl.uniform1i(MU.mat, m.mat); gl.uniform3fv(MU.base, m.base); gl.uniform3fv(MU.deep, m.deep);
+    const flat = n.kind === 'brass' || n.kind === 'glass' || n.kind === 'film' || n.kind === 'oak';
+    gl.uniform3f(MU.hole, 0, -n.hole, flat ? .0026 : 0);
+    gl.bindVertexArray(n.mesh.vao); gl.drawArrays(gl.TRIANGLES, 0, n.mesh.count);
+    if (n.kind === 'sphere') {      // the blown globe's metal cap
+      const F = n.F, cap = { C: add(F.C, mul(F.down, -n.r * .96)), right: F.right, down: F.down, face: F.face };
+      gl.uniformMatrix4fv(MU.model, false, modelOf(cap)); gl.uniform1i(MU.mat, 0); gl.uniform3f(MU.base, .78, .74, .7); gl.uniform3f(MU.hole, 0, 0, 0);
+      const c = meshes.get('cap'); gl.bindVertexArray(c.vao); gl.drawArrays(gl.TRIANGLES, 0, c.count);
+    }
+  }
+  // beads threaded on the links
+  const bead = meshes.get('bead');
+  gl.uniform1i(MU.mat, 5); gl.uniform3f(MU.hole, 0, 0, 0); gl.uniform3f(MU.deep, .55, .6, .62);
+  BEADPOS.forEach((p, i) => {
+    gl.uniformMatrix4fv(MU.model, false, modelOf({ C: p, right: [1, 0, 0], down: [0, -1, 0], face: [0, 0, 1] }));
+    gl.uniform3fv(MU.base, BEADS[i % BEADS.length]);
+    gl.bindVertexArray(bead.vao); gl.drawArrays(gl.TRIANGLES, 0, bead.count);
+  });
+  // 4. the wire, over and around them
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+  gl.useProgram(wireProg);
+  gl.uniformMatrix4fv(WU.view, false, cam.view); gl.uniformMatrix4fv(WU.proj, false, cam.proj);
+  gl.uniform2f(WU.vp, W, H); gl.uniform3fv(WU.eye, cam.pos); gl.uniform3fv(WU.sun, SUN); gl.uniform3fv(WU.skyTop, PAL.skyTop); gl.uniform3fv(WU.skyLow, PAL.skyLow);
+  gl.bindBuffer(gl.ARRAY_BUFFER, wireBuf); gl.bufferData(gl.ARRAY_BUFFER, wireData.subarray(0, wireN * 8), gl.DYNAMIC_DRAW);
+  gl.bindVertexArray(wireVAO); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, wireN);
+  gl.depthMask(true); gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
+  gl.bindVertexArray(null);
+}
+
+/* ───────────── Pointer: tilt, hover, tap and drag ───────────── */
+let hovered = null, downAt = null, lastPT = 0;
+function pick(sx, sy, pad) {
+  let best = null, bd = Infinity;
+  for (const n of PIECES) { if (n.X == null) continue; const d = Math.hypot(sx - n.X, sy - n.Y); if (d < n.R + pad && d < bd - 4) { bd = d; best = n; } }
+  return best;
+}
+function hitPlaneZ(sx, sy, zG) {        // where the pointer's ray crosses an upright plane at depth zG (world)
+  const d = rayAt(sx, sy), t = (zG - cam.pos[2]) / d[2];
+  return [cam.pos[0] + d[0] * t, cam.pos[1] + d[1] * t];
+}
+function grabTarget(n) { const [x, y] = hitPlaneZ(env.pointer.sx, env.pointer.sy, -n.Cp.z); return { x, y: TOP - y }; }
+let lastG = null;
+function onMove(e) {
+  const p = env.pointer, now = performance.now();
+  const [gx, gy] = hitPlaneZ(e.clientX, e.clientY, 0), wx = gx, wy = TOP - gy;
+  const dt = Math.max(8, now - lastPT) / 1000;
+  if (lastPT && p.inside) { p.vx = lerp(p.vx, clamp((wx - p.x) / dt, -3, 3), .5); p.vy = lerp(p.vy, clamp((wy - p.y) / dt, -3, 3), .5); }
+  p.x = wx; p.y = wy; p.sx = e.clientX; p.sy = e.clientY; p.inside = true; p.type = e.pointerType; lastPT = now;
+  // and where it skims the grass, so a quick sweep parts the meadow
+  const d = rayAt(e.clientX, e.clientY);
+  if (d[1] < -.01) {
+    const t = -(cam.pos[1] - .2) / d[1], g = [cam.pos[0] + d[0] * t, cam.pos[2] + d[2] * t];
+    if (lastG) { ptrG[2] = clamp(lerp(ptrG[2], (g[0] - lastG[0]) / dt * .25, .5), -2, 2); ptrG[3] = clamp(lerp(ptrG[3], (g[1] - lastG[1]) / dt * .25, .5), -2, 2); }
+    ptrG[0] = g[0]; ptrG[1] = g[1]; lastG = g;
+  }
+  if (grabbed) grabT = grabTarget(grabbed);
+  // no gyroscope: the mouse tilts the world, across for left and right, up and down for toward you
+  if (!hasGyro && e.pointerType === 'mouse') {
+    env.tiltTarget = ((e.clientX / W) - .5) * 2 * (16 * Math.PI / 180);
+    env.leanTarget = ((e.clientY / H) - .5) * 2 * (10 * Math.PI / 180);
+  }
+  wake();
+}
+cv.addEventListener('pointermove', onMove);
+cv.addEventListener('pointerleave', () => { env.pointer.inside = false; lastG = null; if (!hasGyro) { env.tiltTarget = 0; env.leanTarget = 0; } });
+cv.addEventListener('pointerdown', e => {
+  onMove(e); env.pointer.down = true;
+  const n = pick(e.clientX, e.clientY, 22);
+  downAt = { x: e.clientX, y: e.clientY, t: performance.now(), n };
+  if (n) { grabbed = n; grabT = grabTarget(n); cv.setPointerCapture(e.pointerId); cv.classList.add('grabbing'); }
+});
+function endPointer(e) {
+  env.pointer.down = false; cv.classList.remove('grabbing');
+  if (downAt && downAt.n && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 8 && performance.now() - downAt.t < 350) {
+    const n = downAt.n;      // a tap: flick it, turn it over, and let it ring
+    n.yw += (Math.random() < .5 ? -1 : 1) * 8;
+    n.Cp.px -= (Math.random() - .5) * .006; n.Cp.pz -= (Math.random() - .5) * .006; n.Cp.py += .002;
+    ring(n, .7);
+  }
+  grabbed = null; downAt = null;
+  if (e.pointerType !== 'mouse') { env.pointer.inside = false; lastG = null; }
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+
+function updateHover() {
+  const p = env.pointer, mouse = p.inside && p.type === 'mouse' && !grabbed;
+  ptrG[2] *= .93; ptrG[3] *= .93;
+  for (const n of PIECES) {
+    // magnetic damping: near the cursor the air around a piece thickens and goes still, so it settles
+    let target = 0;
+    if (mouse && n.X != null) { const d = Math.hypot(p.sx - n.X, p.sy - n.Y), R = n.R + 60; if (d < R) target = Math.pow(1 - d / R, 1.5); }
+    n.hover = lerp(n.hover, target, .12);
+    n.Cp.resist = n.S.resist = 1 + n.hover * 40;
+    n.Cp.still = n.S.still = n.hover;
+  }
+  const h = mouse ? pick(p.sx, p.sy, 10) : grabbed;
+  if (h !== hovered) {
+    if (h && !grabbed) { h.yw += (p.vx >= 0 ? 1 : -1) * 8.5; ring(h, .18); }   // hover turns it over
+    hovered = h;
+    cv.classList.toggle('grab', !!h);
+  }
+}
+
+/* ───────────── Controls ───────────── */
+const controls = document.getElementById('controls');
+const bAir = document.getElementById('b-air'), bSound = document.getElementById('b-sound');
+let idleT = 0;
+function wake() { idleT = 0; controls.classList.remove('idle'); }
+function paintAir() {
+  bAir.querySelectorAll('.w').forEach((w, i) => w.classList.toggle('on', i < env.air));
+  bAir.setAttribute('aria-label', `Air in the room: ${env.airLevels[env.air][0]}. Change it.`);
+}
+bAir.addEventListener('click', () => { env.air = (env.air + 1) % env.airLevels.length; paintAir(); wake(); });
+bSound.addEventListener('click', async () => {
+  if (!hasGyro) await askMotion();     // on a phone, the same tap asks to use its motion sensors
+  Sound.toggle();
+  bSound.classList.toggle('on', Sound.on); bSound.setAttribute('aria-pressed', String(Sound.on));
+  bSound.setAttribute('aria-label', Sound.on ? 'Turn sound off' : 'Turn sound on');
+  wake();
+});
+controls.addEventListener('pointerenter', wake);
+paintAir();
+
+/* ───────────── Run ───────────── */
+let TALL = null;
+function hang() {
+  const tall = innerHeight / innerWidth > 1.25;
+  if (tall === TALL) return;
+  TALL = tall; grabbed = null; hovered = null;
+  assemble(tall);
+  const keep = env.air, t = env.t; env.air = 0;     // let it settle into balance before it is seen
+  for (let i = 0; i < 600; i++) step(1 / 60);
+  env.air = keep; env.t = t;
+  REST = bounds();
+}
+if (gl) { initGL(); initObjects(); } else cv.style.background = 'linear-gradient(#9DB8D6, #E2E9DE 30%, #7F9B5B 34%, #4D7752)';
+hang(); if (gl) resize();
+addEventListener('resize', () => { hang(); if (gl) resize(); });
+
+let last = performance.now(), acc = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; frameDt = dt || 1 / 60;
+  // a LERP of 0.05 per frame takes the jitter out of the sensor (or the mouse)
+  env.tilt = lerp(env.tilt, env.tiltTarget, .05);
+  env.lean = lerp(env.lean, env.leanTarget, .05);
+  env.ix *= .9; env.iy *= .9; env.iz *= .9;
+  env.pointer.vx *= .92; env.pointer.vy *= .92;
+  updateHover();
+  acc += dt;
+  while (acc >= 1 / 60) { step(1 / 60); acc -= 1 / 60; }
+  if (gl) render();
+  Sound.air(env.airNow * 2, env.gust);
+  idleT += dt; if (idleT > 4) controls.classList.add('idle');
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.__mobile = { env, PIECES, RODS, step };
+})();
+</script>
+</body>
+</html>

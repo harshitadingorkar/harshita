@@ -1896,6 +1896,9 @@ body.show-index .settings{z-index:46}
 .i-about:hover{color:var(--ink)}
 .i-about:hover .wk-arrow{color:var(--ox)}
 
+/* the mobile, live inside its sheet */
+.c-hero iframe.mobile-frame{display:block;width:min(1040px,calc(100vw - 48px));height:min(72vh,680px);border:0;background:var(--ground)}
+
 /* ---------- Round 51: the dock shows its pictures plainly ---------- */
 .c-dock button{opacity:1;height:40px;box-shadow:0 0 0 1px var(--hair2);transition:translate .22s var(--e-dm),box-shadow .2s ease}
 .c-dock button img{max-width:68px}
