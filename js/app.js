@@ -274,6 +274,14 @@ function open(p, rect) {
     setTimeout(() => { location.href = url; }, 350);
     return;
   }
+  // the five pieces of work open in the case view: the work on the left, a paper panel of facts and contents on the right
+  if (WORK_ORDER.includes(p.id) && window.CaseView && DATA.short) {
+    const back = location.hash;
+    window.CaseView.open(window.CaseView.caseProjects(S, DATA.short), p.id, { email: S.person.email,
+      onShow: id => { try { history.replaceState(null, '', '#p-' + id); } catch {} },
+      onClose: () => { try { history.replaceState(null, '', back.startsWith('#p-') ? (body.classList.contains('show-index') ? '#work' : location.pathname) : back || location.pathname); } catch {} } });
+    return;
+  }
   if (sheetOpen) $$('video', sheet).forEach(v => v.pause());
   curP = p; fromR = rect || srcRect(p);
   const K = kick(p), line = h('p', { class: 's-line reveal' }, p.line);
