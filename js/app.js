@@ -27,7 +27,7 @@ const introLines = () => [
   h('p', { class: 'i-index' }, S.person.index)];
 $('#intro-lines').replaceChildren(...introLines());
 $('#statement').replaceChildren(...introLines(), contactLinks());
-$('#s-index').textContent = S.person.index;
+
 $('.b-role').replaceChildren(h('span', {}, 'Design engineer'), h('span', { 'aria-hidden': 'true' }, 'Product designer'));
 $('.b-menu').prepend(contactLinks());
 
