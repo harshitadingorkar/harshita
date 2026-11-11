@@ -48,10 +48,9 @@
   const h = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [x, v] of Object.entries(a)) { if (v == null || v === false) continue; if (x === 'class') e.className = v; else if (x.startsWith('on')) e[x] = v; else e.setAttribute(x, v === true ? '' : v); } e.append(...k.flat(Infinity).filter(z => z != null && z !== false)); return e; };
   const pad = n => String(n).padStart(2, '0');
   const RM = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let root = null, PJ = [], cur = null, opts = {};
+  let root = null, PJ = [], cur = null, io = null, opts = {};
 
-  // the case, after bradleyziffer.com: a large hero, the name with one line beneath and the facts beside it, then each
-  // part as a picture and its words side by side, alternating, on Gizem Akdağ's cobalt with a fine grain.
+  // the case, on Gizem Akdağ's cobalt with a fine grain: a still column on the left, the pictures and words scrolling on the right.
   function close() { if (!root || opts.embedded) return; root.classList.remove('on'); document.documentElement.classList.remove('cv-open'); setTimeout(() => { root.remove(); root = null; }, 300); opts.onClose && opts.onClose(); }
   function show(id, first) {
     const p = PJ.find(x => x.id === id) || PJ[0], i = PJ.indexOf(p);
@@ -60,27 +59,34 @@
     root.querySelectorAll('.cv-dock button').forEach(b => b.classList.toggle('on', b.dataset.id === p.id));
     root.querySelector('.cv-prev').onclick = () => go(prev.id); root.querySelector('.cv-prev').title = prev.title;
     root.querySelector('.cv-next').onclick = () => go(next.id); root.querySelector('.cv-next').title = next.title;
-    const [hero, ...rest] = p.secs, heroPic = hero.vis[0];
     const fact = ([k, v]) => h('div', {}, h('dt', {}, k), h('dd', {}, v[0].toUpperCase() + v.slice(1)));
     const mail = h('button', { type: 'button', class: 'cv-ask', onclick: () => { const a = opts.email; if (!a) return; navigator.clipboard?.writeText(a).then(() => { mail.textContent = 'Copied ' + a; setTimeout(() => { mail.textContent = 'Ask me about this'; }, 1800); }, () => { location.href = 'mailto:' + a; }); } }, 'Ask me about this');
     const words = s => [s.head ? h('h3', {}, s.head) : (s.label ? h('h3', {}, s.label) : null), ...(s.text || []).filter(Boolean).map(t => h('p', {}, t)),
       s.quote ? h('blockquote', {}, '“' + String(s.quote.t || s.quote).replace(/^["“\s]+|["”\s]+$/g, '') + '”') : null,
       s.nums ? h('div', { class: 'cv-nums' }, s.nums.map(([n, l]) => h('div', {}, h('b', {}, n), h('span', {}, l)))) : null,
       s.cap ? h('p', { class: 'cv-tag' }, s.cap) : null];
-    const pics = (vis, k) => h('div', { class: 'cv-pics n' + Math.min(vis.length, 3) }, vis.map(v => h('img', { src: v.src, alt: v.alt || '', loading: k < 2 ? 'eager' : 'lazy' })));
+    const pics = (vis, k) => h('div', { class: 'cv-pics n' + Math.min(vis.length, 3) + (k === 0 ? ' lead' : '') }, vis.map(v => h('img', { src: v.src, alt: v.alt || '', loading: k < 2 ? 'eager' : 'lazy' })));
     const stage = root.querySelector('.cv-stage');
-    stage.replaceChildren(h('div', { class: 'cv-page' },
-      heroPic ? h('figure', { class: 'cv-hero' }, h('img', { src: heroPic.src, alt: heroPic.alt || p.title })) : null,
-      h('header', { class: 'cv-title' },
-        h('div', {}, h('h2', {}, p.title), h('p', { class: 'cv-line' }, p.line)),
-        h('dl', { class: 'cv-facts' }, (p.facts || []).filter(([, v]) => v).slice(0, 4).map(fact))),
-      // the overview's own words (the question, the numbers) open the page, under a rule
-      (hero.head || (hero.text || []).some(Boolean) || hero.nums) ? h('section', { class: 'cv-intro' }, words({ ...hero, label: null })) : null,
-      ...rest.map((s, k) => h('section', { class: 'cv-part' + (s.vis.length ? (k % 2 ? ' flip' : '') : ' words'), id: 'cv-' + s.id },
+    // after koto.com: the left holds still (what this is, where you are, how to reach me); the right scrolls the
+    // pictures with their words beneath. No boxes; both sit straight on the ground.
+    const toc = h('ul', { class: 'cv-toc' }, p.secs.map(s => h('li', {}, h('button', { type: 'button', 'data-id': s.id, onclick: () => { const t = stage.querySelector('#cv-' + s.id); stage.scrollTo({ top: t.offsetTop - 96, behavior: RM() ? 'auto' : 'smooth' }); } }, h('i'), s.label))));
+    const side = h('aside', { class: 'cv-side' },
+      h('div', { class: 'cv-name' }, h('p', { class: 'cv-meta' }, [p.org, p.year].filter(Boolean).join(' · ')), h('h2', {}, p.title), h('p', { class: 'cv-line' }, p.line)),
+      h('dl', { class: 'cv-facts' }, (p.facts || []).filter(([, v]) => v).slice(0, 4).map(fact)),
+      toc,
+      h('div', { class: 'cv-foot' }, mail, h('button', { type: 'button', class: 'cv-follow', onclick: () => go(next.id) }, h('span', {}, 'Next'), next.title + ' →')));
+    const flow = h('div', { class: 'cv-flow' },
+      ...p.secs.map((s, k) => h('section', { class: 'cv-part' + (s.vis.length ? '' : ' words'), id: 'cv-' + s.id },
         s.vis.length ? pics(s.vis, k) : null,
-        h('div', { class: 'cv-say' }, h('p', { class: 'cv-tag' }, s.head ? (s.num || String(k + 2).padStart(2, '0')) + ' · ' + s.label : (s.num || String(k + 2).padStart(2, '0'))), ...words(s)))),
-      h('footer', { class: 'cv-end' }, mail, h('button', { type: 'button', class: 'cv-follow', onclick: () => go(next.id) }, h('span', {}, 'Next'), next.title + ' →'))));
+        h('div', { class: 'cv-say' }, h('p', { class: 'cv-tag' }, s.label), h('div', { class: 'cv-body' }, ...words({ ...s, label: null }))))),
+      h('button', { type: 'button', class: 'cv-follow cv-end', onclick: () => go(next.id) }, h('span', {}, 'Next'), next.title + ' →'));
+    stage.replaceChildren(h('div', { class: 'cv-page' }, side, flow));
     if (!first) stage.scrollTop = 0;
+    const mark = id => toc.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.id === id));
+    mark(p.secs[0].id);
+    io?.disconnect();
+    io = new IntersectionObserver(es => { const e = es.find(x => x.isIntersecting); if (e) mark(e.target.id.slice(3)); }, { root: stage, rootMargin: '-40% 0px -55% 0px' });
+    flow.querySelectorAll('.cv-part').forEach(s => io.observe(s));
   }
   function go(id) { if (cur && cur.id === id) return; root.classList.add('swap'); setTimeout(() => { show(id); root.classList.remove('swap'); }, 220); }
 

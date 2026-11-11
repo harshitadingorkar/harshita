@@ -1947,3 +1947,14 @@ body.show-index .settings{z-index:46}
 /* once the work is in view, the index line steps aside so it never sits on a picture */
 body.wk-down .settings .s-index{opacity:0;pointer-events:none}
 .settings .s-index{transition:opacity .3s ease}
+
+/* ---------- Round 54: the work in cobalt ----------
+   The work view takes gizemakdag.com's ground, the same as the cases, so the two read as one place: cobalt, cream ink,
+   a soft pink for the one accent, and a fine white grain laid over it. The map keeps its paper. */
+body.show-index{--ground:#34428a;--ink:#f4efe6;--ink2:rgba(244,239,230,.72);--ink3:rgba(244,239,230,.5);--hair:rgba(244,239,230,.2);--hair2:rgba(244,239,230,.1);--ox:#f0a6a8;--paper:rgba(244,239,230,.1);color-scheme:dark}
+html:has(body.show-index){background:#34428a}
+body.show-index #grain{opacity:.1;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")!important;background-size:auto}
+body.show-index .band{background:linear-gradient(#34428a 70%,rgba(52,66,138,0))}
+body.show-index .views .vpill,body.show-index .b-menu .views .vpill{background:rgba(244,239,230,.14);box-shadow:0 0 0 1px rgba(244,239,230,.2)}
+body.show-index .orb-me{filter:none}
+body.show-index .band{padding-bottom:48px}
