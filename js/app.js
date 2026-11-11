@@ -267,7 +267,7 @@ function shortCase(c, point, kicker) {
 const caseHTML = id => DATA.cases && DATA.cases[id] ? h('div', { class: 'prose reveal', html: DATA.cases[id].html }) : null;
 
 function open(p, rect) {
-  if (p.id === 'door') { body.classList.add('collection-leaving'); setTimeout(() => { location.href = 'now/'; }, 350); return; }
+  if (p.id === 'door' || p.id === 'writing') { body.classList.add('collection-leaving'); setTimeout(() => { location.href = p.id === 'door' ? 'now/' : 'writing/'; }, 350); return; }
   if (p.type === 'collections' || p.id === 'theatre') {
     body.classList.add('collection-leaving');
     const url=p.id==='theatre'?'collection.html?c=theatre':p.id==='films'?'collection.html?c=films':p.id==='odds'?'collection.html?c=odds':'collection.html';

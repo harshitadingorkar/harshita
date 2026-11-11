@@ -1,0 +1,6 @@
+{
+  "_": "Later notes, in my own voice, under the post they answer. Newest last. Add one by appending { date, text } under the post's slug. Run `node scripts/build-writing.mjs` after.",
+  "consume-on-purpose": [
+    { "date": "2026-11-11", "text": "How ambitious of me lol, I barely made any notes on stayed off instagram, even this was not sustainable, I wonder what else?" }
+  ]
+}
