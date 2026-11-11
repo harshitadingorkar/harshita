@@ -52,7 +52,9 @@
       let text;
       if (e.films) { text = h('p', 'text', 'Last watched '); e.films.forEach((f, j) => text.append(Object.assign(h('a', null, f.filmTitle), { href: f.link, target: '_blank', rel: 'noopener' }), j < e.films.length - 2 ? ', ' : j === e.films.length - 2 ? ' and ' : '.')); }
       else if (e.chans) { text = h('p', 'text', 'Lately keeping things in '); e.chans.forEach((c, j) => text.append(Object.assign(h('a', null, c.title), { href: c.url, target: '_blank', rel: 'noopener' }), j < e.chans.length - 1 ? ' and ' : ' on Are.na.')); }
-      else { text = h('p', 'text', e.text); if (e.link) text.append(' ', Object.assign(h('a', 'out', '↗'), { href: e.link, target: '_blank', rel: 'noopener', ariaLabel: 'link' })); }
+      else { text = h('p', 'text', e.text); if (e.link) text.append(' ', Object.assign(h('a', 'out', '↗'), { href: e.link, target: '_blank', rel: 'noopener', ariaLabel: 'link' }));
+        // a line can carry a few named links: the prototype, the live site
+        if (e.links) text.append(h('span', 'links', ...e.links.map(([label, url]) => Object.assign(h('a', null, label + ' ↗'), { href: url, target: '_blank', rel: 'noopener' })))); }
       const pics = e.pile || (e.img ? [e.img] : []).concat(e.more || []).map((src, j) => ({ src, alt: j ? '' : e.alt || '' }));
       const say = h('div', 'say', text, pics.length ? fan(pics) : null, e.video ? reel(e) : null);
       const row = h('li', 'row entry', h('time', 'when', fmt(e.date, { month: 'short', day: 'numeric' })), say, h('span', 'kind', TAB[e.type] || e.type));
