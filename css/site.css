@@ -1904,3 +1904,8 @@ body.show-index .settings{z-index:46}
 .c-dock button img{max-width:68px}
 .c-dock button.on{box-shadow:0 0 0 2px var(--ink)}
 .c-dock button:hover{translate:0 -2px}
+
+/* ---------- Round 52: easier to catch ---------- */
+.orb-halo{fill:none;stroke:var(--ink);stroke-opacity:0;stroke-width:1;vector-effect:non-scaling-stroke;transition:stroke-opacity .2s ease,r .3s var(--e-dm)}
+.orb-pt:hover .orb-halo,.orb-pt.on .orb-halo{stroke-opacity:.5;r:20}
+.orb-pt.on .orb-dot{r:8}

@@ -568,7 +568,8 @@ function orbitHero() {
     o.arrow = el('path', { class: 'orb-arrow', d: 'M0 -4 L7 0 L0 4 Z' }); rings.append(o.arrow);
     o.nodes = o.pts.map(([id, ph]) => { const p = W(id); if (!p) return null;
       const n = el('g', { class: 'orb-pt' + (o.quiet ? ' quiet' : '') + (GLOW.includes(id) ? ' glow' : ''), tabindex: 0, role: 'button', 'aria-label': (TOPIC[id] || '') + ': ' + p.title });
-      n.append(el('circle', { class: 'orb-hit', r: 18 }), el('circle', { class: 'orb-dot', r: o.quiet ? 3.5 : 5 }));
+      // a wide, invisible target round each dot, and a ring that shows it on a touch, so the pieces are easy to catch while they move
+      n.append(el('circle', { class: 'orb-hit', r: 32 }), el('circle', { class: 'orb-halo', r: 16 }), el('circle', { class: 'orb-dot', r: o.quiet ? 4.5 : 6.5 }));
       // two lines, like the plate's labels: the subject, and on touch the piece it came from
       const L = el('g', { class: 'orb-lblg' }); L.append(txt('orb-lbl', 0, 0, (TOPIC[id] || p.title).toUpperCase()), txt('orb-sub', 0, 12, p.title)); n.append(L);
       const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
