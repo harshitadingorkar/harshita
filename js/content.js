@@ -10,6 +10,8 @@ window.SITE = {
     usually: 'Usually in enterprise AI, from the first sketch to the code.',
     before: 'Previously worked at HPE and Nutanix, and with GitHub and Sony.',
     email: 'harshitashyale@gmail.com',
+    // the note on the site posts here (FormSubmit: the first note sends a one-time confirmation to this inbox)
+    form: 'https://formsubmit.co/ajax/harshitashyale@gmail.com',
     linkedin: 'https://www.linkedin.com/in/harshita-shyale',
     salesloft: 'https://www.salesloft.com/',
     resume: 'assets/harshita-shyale-cv.pdf',
@@ -61,7 +63,7 @@ window.SITE = {
       nda: 'This one is under NDA, so this is only a peek. Reach out, I’ll gladly walk you through the rest.' },
     { id: 'sony', type: 'work', role: 'client project via UW', title: 'Sony Ecosystem', org: 'Sony', year: '2025', meta: 'Sony · client project via UW · 2025', hint: 'what Sony owes you after you buy: Sonia, an AI that asks first', quad: 'tl', x: -.82, y: .38, tags: ['product', 'research', 'ai'], kind: 'vault',
       card: 'Sony asked what help could look like after you buy. Our capstone team designed an AI assistant for setting up and fixing Sony products, for customers and the support teams behind them.',
-      line: 'What does Sony owe you after you buy? A capstone about a smarter, more sustainable life after the purchase.', img: 'sony.jpg', images: ['sony.jpg'],
+      line: 'What does Sony owe you after you buy? A capstone about a smarter, more sustainable life after the purchase.', img: 'sony.jpg', drive: '1QQ2ELqrqbnWjRZI3rkItdwVL2GMCYMnu', images: ['sony.jpg'],
       alt: 'A phone on a dark field glowing violet: Sonia, an AI assistant, asks before it uses your data.' },
     { id: 'safe', type: 'work', role: 'product designer', title: 'A Safe Space', org: 'UW + UW Medicine', year: '2023', meta: 'UW + UW Medicine · 2023', quad: 'tl', x: -.18, y: .40, tags: ['research', 'health'], kind: 'vault', case: 'safe',
       card: 'For survivors of sexual assault, a routine exam can bring the trauma back. Our team redesigned the visit before, during and after, so patients get a little control back: a choice at booking, a dimmer, a chair below eye level.',
@@ -69,7 +71,7 @@ window.SITE = {
       alt: 'A Safe Space: the redesigned booking flow.' },
     { id: 'github', type: 'work', role: 'client project via UW', title: 'GitHub pull requests', org: 'GitHub', year: '2024', meta: 'GitHub · client project via UW · 2024', quad: 'tr', x: .58, y: .55, tags: ['product', 'research'], kind: 'shipped', case: 'github',
       card: 'GitHub’s new code-review comments tested worse than the ones they replaced. We watched six developers work to find out why, and our fixes shipped: 60% less mouse movement, 40% faster file navigation.',
-      line: 'A code-review comments redesign tested worse than the one it replaced, our redesign fixed this with 60% less mouse movement, 40% faster file navigation.', img: 'github.jpg', images: ['github.jpg', 'github-01.jpg', 'github-02.jpg', 'github-03.jpg', 'github-04.jpg', 'github-05.jpg', 'github-06.jpg', 'github-07.jpg', 'github-08.jpg'],
+      line: 'How might we improve the code review process for better collaboration among developers?', img: 'github.jpg', images: ['github.jpg', 'github-01.jpg', 'github-02.jpg', 'github-03.jpg', 'github-04.jpg', 'github-05.jpg', 'github-06.jpg', 'github-07.jpg', 'github-08.jpg'],
       alt: 'A pull request: a file tree, line 108 highlighted, and a review comment.' },
     { id: 'hpe', type: 'work', role: 'UX designer', title: 'Keeping AI models in check', org: 'Hewlett Packard Enterprise', year: '2022', meta: 'HPE · 2022–23', quad: 'tr', x: .30, y: .80, tags: ['product', 'ai'], kind: 'shipped', case: 'hpe',
       card: 'Before anyone called them agents, I built bots that took over HPE’s order processing, with a person stepping in on every hard call. It saved $3.08M. Then I designed and built a tool that shows data scientists when their models are getting worse.',
@@ -118,7 +120,7 @@ window.SITE = {
   // The about page, read.cv-shaped: a few lines in her voice, pictures, then work and school as plain rows.
   // Every string here can be rewritten in edit mode.
   profile: {
-    kicker: 'San Francisco · design engineer',
+    kicker: 'San Francisco · product designer',
     lede: 'I design agentic AI that works alongside sellers and revenue teams, at Salesloft.',
     about: [
       'I started as an engineer building machine learning systems, then moved to design to work on the part I cared about most, how people meet them. I’m glad I can continue to build what I design.',

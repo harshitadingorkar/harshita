@@ -4,7 +4,7 @@
 (() => {
   const SCALE = [220, 246.94, 277.18, 329.63, 369.99, 440, 493.88, 554.37, 659.25, 739.99];
   let ctx = null, out = null, last = 0;
-  const key = 'sound';
+  const key = 'sound-v2'; // a fresh key, so everyone starts with sound on again
   const on = () => { try { return localStorage.getItem(key) !== 'off'; } catch { return true; } };
   function wake() {
     if (!ctx) {

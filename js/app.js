@@ -19,8 +19,8 @@ window.PORTFOLIO_READY = ready;
 // The same few things sit in the top bar on the map and on the work, so nothing moves when you switch: my name and what I
 // do (it reads product designer too, on a touch), the line about my work (it opens the about page), a line about the site,
 // and email, CV and LinkedIn by the switch.
-const contactLinks = () => { const m = h('button', { type: 'button', class: 'c-mail' }, 'Email');
-  m.onclick = () => { const a = S.person.email, done = () => { m.textContent = 'Copied'; setTimeout(() => { m.textContent = 'Email'; }, 1600); }; navigator.clipboard ? navigator.clipboard.writeText(a).then(done, () => { location.href = 'mailto:' + a; }) : (location.href = 'mailto:' + a); };
+const contactLinks = () => { const m = h('button', { type: 'button', class: 'c-mail', 'aria-haspopup': 'dialog' }, 'Email');
+  m.onclick = e => compose({ from: e.currentTarget });
   return h('p', { class: 'c-links' }, m, h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'CV'), h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn')); };
 const introLines = () => [
   h('p', { class: 'i-do' }, h('button', { type: 'button', class: 'i-about', 'aria-label': S.person.now + ' About me', onclick: () => ready.then(openProfile) }, wisp(S.person.now), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
@@ -28,7 +28,7 @@ const introLines = () => [
 $('#intro-lines').replaceChildren(...introLines());
 $('#statement').replaceChildren(...introLines(), contactLinks());
 
-$('.b-role').replaceChildren(h('span', {}, 'Design engineer'), h('span', { 'aria-hidden': 'true' }, 'Product designer'));
+$('.b-role').replaceChildren(h('span', {}, 'Product designer'));
 $('.b-menu').prepend(contactLinks());
 
 const editorShortcut = $('#editor-shortcut');
@@ -193,6 +193,8 @@ function heroFor(p) {
   // a case with a still: the best frame of the film, and a click plays the film large
   if (p.still) return h('button', { type: 'button', class: 'hero-still', 'aria-label': 'Play the film', 'data-src': A(p.video), 'data-poster': A(p.still), onclick: e => enlarge(e.currentTarget, e.currentTarget.querySelector('img')) },
     h('img', { src: A(p.still), alt: p.vcap || p.title }), h('span', { class: 'hero-play' }, 'play the film'));
+  // a film kept on Google Drive plays in Drive's own player
+  if (p.drive) return h('iframe', { class: 'yt', src: `https://drive.google.com/file/d/${p.drive}/preview`, title: p.vcap || p.title, loading: 'lazy', allow: 'autoplay; encrypted-media; fullscreen', allowfullscreen: true });
   if (p.youtube) return h('iframe', { class: 'yt', src: `https://www.youtube-nocookie.com/embed/${p.youtube}?rel=0&modestbranding=1`, title: p.title, loading: 'lazy', allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin' });
   if (p.id === 'wobblefoot') return h('div', { class: 'turn-hero', role: 'img', 'aria-label': p.alt || p.title, style: `background-image:url("${A(p.sheet)}")` });
   // the mobile hangs live in the sheet, to play with right there
@@ -228,11 +230,15 @@ function openSheet(quadKey, kicker, title, ...content) {
   sheet.replaceChildren(...[h('div', { class: 'c-top' }, h('button', { class: 'c-x', onclick: closeSheet, 'aria-label': 'Close' }, '×'), dock), h('div', { class: 'c-namewrap' }, name), head, hero ? h('div', { class: 'c-hero' + (hero.tagName === 'VIDEO' ? ' v' : '') }, hero) : null, p && p.credit ? h('p', { class: 'c-cap c-credit' }, p.credit) : null, h('div', { class: 'body' }, title&&!work ? [h('p', { class: 'c-kick c-in' }, kicker), h('h2', { class: 's-title c-in' }, title)] : null, ...content)].filter(Boolean));
   sheet.scrollTop = 0; sheetOpen = true; sheet.classList.add('on'); body.classList.add('case-open'); sheet.focus({ preventScroll: true });
   const card = $('.c-hero', sheet); if (card) grow(card, from);
+  // the name and its line start on the picture's left edge, whatever the picture's width
+  if (card && head && !mobile()) { const fit = () => { if (card.offsetWidth > 240) head.style.maxWidth = card.offsetWidth + 'px'; }; fit(); card.querySelector('img')?.decode?.().then(fit, () => {}); }
   const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: sheet, threshold: 0, rootMargin: '0px 0px -6% 0px' });
+  contents();
   setTimeout(() => $$('.reveal,.crop', sheet).forEach((el, i) => { el.style.transitionDelay = Math.min(i, 6) * 45 + 'ms'; io.observe(el); }), RM || !card ? 0 : 280);
 }
 function closeSheet() {
   if (!sheetOpen) return; sheetOpen = false; body.classList.remove('case-open'); sheet.classList.add('leaving');
+  if (location.hash.startsWith('#p-')) try { history.replaceState(null, '', body.classList.contains('show-index') ? '#work' : location.pathname + location.search); } catch {}
   const card = $('.c-hero', sheet), d = sheet._p && ptEl(sheet._p), fin = () => { if (sheetOpen) return; sheet.classList.remove('on', 'leaving'); sheet.replaceChildren(); };
   const a2 = d && d.querySelector('.dot').getBoundingClientRect(), b = card && card.getBoundingClientRect();
   if (!RM && card && a2 && a2.width && b.bottom > 0 && !body.classList.contains('show-index')) card.animate([{ transform: 'none' }, { transform: `translate(${a2.left - b.left}px,${a2.top - b.top}px) scale(${a2.width / b.width},${a2.height / b.height})`, opacity: 0, filter: 'blur(4px)' }], { duration: 520, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = fin;
@@ -250,15 +256,15 @@ function shortCase(c, point, kicker) {
   const R = typeof c.research === 'string' ? { t: c.research } : c.research, Q = typeof c.quote === 'string' ? { t: c.quote } : c.quote;
   const numbers = () => c.numbers ? h('div', { class: 'c-nums reveal' }, c.numbers.map(([n, l]) => h('div', {}, h('b', {}, n), h('span', {}, l)))) : null;
   const quote = () => Q ? h('blockquote', { class: 'c-quote reveal' }, '“' + Q.t.replace(/^["“\s]+|["”\s]+$/g, '') + '”', Q.by ? h('cite', {}, '— ' + Q.by) : null) : null;
-  const research = () => R ? h('div', {}, h('p', { class: 'c-p reveal' }, R.t), imgs(R.imgs)) : null;
-  const steps = prefix => (c.steps || []).map((s,i) => h('section', { class: 'c-step', id: prefix + s.n, 'data-step': s.n }, h('div', { class: 'c-sh reveal' }, h('span', { class: 'c-n' }, s.n), h('h3', { 'data-case-id': point?.case, 'data-case-path': `steps.${i}.t` }, s.t)), h('p', { class: 'c-p reveal', 'data-case-id': point?.case, 'data-case-path': `steps.${i}.d` }, s.d), imgs(s.imgs)));
-  const learned = () => c.learned ? h('p', { class: 'c-learned reveal' }, h('span', {}, 'what it taught me'), h('span', { class:'learned-copy', 'data-case-id':point?.case, 'data-case-path':'learned' }, c.learned)) : null;
+  const research = () => R ? h('div', { 'data-toc': 'Research' }, h('p', { class: 'c-p reveal' }, R.t), imgs(R.imgs)) : null;
+  const steps = prefix => (c.steps || []).map((s,i) => h('section', { class: 'c-step', id: prefix + s.n, 'data-step': s.n, 'data-toc': s.t }, h('div', { class: 'c-sh reveal' }, h('span', { class: 'c-n' }, s.n), h('h3', { 'data-case-id': point?.case, 'data-case-path': `steps.${i}.t` }, s.t)), h('p', { class: 'c-p reveal', 'data-case-id': point?.case, 'data-case-path': `steps.${i}.d` }, s.d), imgs(s.imgs)));
+  const learned = () => c.learned ? h('p', { class: 'c-learned reveal', 'data-toc': 'What it taught me' }, h('span', {}, 'what it taught me'), h('span', { class:'learned-copy', 'data-case-id':point?.case, 'data-case-path':'learned' }, c.learned)) : null;
   const closing = () => c.closing ? h('figure', { class: 'c-fig reveal' }, im(c.closing.img), c.closing.cap ? h('figcaption', {}, c.closing.cap) : null) : null;
   const stackedContent = () => [
     c.facts ? h('p', { class: 'c-facts reveal' }, c.facts) : null,
     c.note ? h('p', { class: 'c-note reveal' }, c.note) : null,
     c.q ? h('p', { class: 'c-q reveal', 'data-case-id':point?.case, 'data-case-path':'q' }, c.q) : null,
-    c.problem ? h('p', { class: 'c-p reveal', 'data-case-id':point?.case, 'data-case-path':'problem' }, c.problem) : null,
+    c.problem ? h('p', { class: 'c-p reveal', 'data-toc': 'The problem', 'data-case-id':point?.case, 'data-case-path':'problem' }, c.problem) : null,
     numbers(), quote(), research(), ...steps('step-'), learned(), closing(),
   ].filter(Boolean);
   // every case reads the same way, GitHub included
@@ -274,23 +280,17 @@ function open(p, rect) {
     setTimeout(() => { location.href = url; }, 350);
     return;
   }
-  // the five pieces of work open in the case view: the work on the left, a paper panel of facts and contents on the right
-  if (WORK_ORDER.includes(p.id) && window.CaseView && DATA.short) {
-    const back = location.hash;
-    window.CaseView.open(window.CaseView.caseProjects(S, DATA.short), p.id, { email: S.person.email,
-      onShow: id => { try { history.replaceState(null, '', '#p-' + id); } catch {} },
-      onClose: () => { try { history.replaceState(null, '', back.startsWith('#p-') ? (body.classList.contains('show-index') ? '#work' : location.pathname) : back || location.pathname); } catch {} } });
-    return;
-  }
+  try { history.replaceState(null, '', WORK_ORDER.includes(p.id) ? '#p-' + p.id : location.hash); } catch {}
   if (sheetOpen) $$('video', sheet).forEach(v => v.pause());
   curP = p; fromR = rect || srcRect(p);
   const K = kick(p), line = h('p', { class: 's-line reveal' }, p.line);
   const sc = p.case && DATA.short && DATA.short[p.case] ? shortCase(DATA.short[p.case], p, K) : null;
+  if (window.CASES && window.CASES[p.id]) return openStory(p, K, window.CASES[p.id]);
   if (p.study) return openStudy(p, K);
   // Sir Wobblefoot is only to be looked at: the turnaround, large, and nothing else
   if (p.id === 'wobblefoot') return openSheet(p.quad, null, null);
   if (p.brief) return openBrief(p, K);
-  if (p.kind === 'vault' || p.kind === 'shipped') return openSheet(p.quad, K, p.title, sc || line, sc ? null : metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), p.video ? h('p', { class: 'c-cap reveal' }, p.vcap) : null, diagram(p.id), sc ? null : p.kind === 'shipped' ? crops(p) : p.images ? h('div', { class: 's-imgs' }, p.images.slice(1).map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null);
+  if (p.kind === 'vault' || p.kind === 'shipped') return openSheet(p.quad, K, p.title, sc || line, sc ? null : metaList([['where', p.org], ['when', p.year], ['tags', p.tags.join(' · ')]]), p.video ? h('p', { class: 'c-cap reveal' }, p.vcap) : null, diagram(p.id), sc ? null : p.kind === 'shipped' ? crops(p) : p.images ? h('div', { class: 's-imgs' }, p.images.slice(1).map(f => h('img', { class: 'reveal', src: A(f), alt: p.alt || '', loading: 'lazy' }))) : null, onRequest(p));
   if (p.kind === 'films') return ready.then(() => openFilms(K));
   if (p.kind === 'paper') return openSheet('bl', K, p.title, line, h('p', { class: 'reveal', style: 'margin-top:22px' }, h('a', { href: p.href, class: 'serif', style: 'font-size:22px;font-style:italic;border-bottom:1px solid currentColor' }, 'read it, like a book →')));
   if (p.kind === 'room' && p.room === 'theatre') return openSheet('br', K, p.title, line, h('div', { class: 'gallery' }, S.theatre.map(([f, ar, c]) => h('figure', { class: 'reveal', style: ar > 1.8 ? 'grid-column:1/-1' : '' }, h('img', { src: A(f), alt: c || 'A photograph from one of her plays', loading: 'lazy' }), c ? h('figcaption', {}, c) : null))));
@@ -300,6 +300,110 @@ function open(p, rect) {
   if (p.kind === 'toy') return openPlayground(K, line);
 }
 
+
+/* A case as it read on the Framer site, in her words (js/github-case.js, js/safe-case.js): one column that the name,
+   the picture, the words and every image share, so all their edges line up; pictures sit side by side in twos or threes
+   when they belong together, and the voices, the people and the notes are grouped instead of strung out. */
+function openStory(p, K, G) {
+  const fig = (src, alt, cap) => h('figure', { class: 'st-cell' }, h('span', { class: 'st-frame' }, h('img', { src: A(src), alt: alt || '', loading: 'lazy' })), cap ? h('figcaption', {}, cap) : null);
+  const block = b => {
+    if (b.t === 'p') return h('p', { class: 'cs-p reveal' + (b.quiet ? ' cs-quiet' : '') + (b.strong ? ' gh-strong' : '') }, b.x);
+    if (b.t === 'lede') return h('p', { class: 'st-lede reveal' }, b.x);
+    if (b.t === 'h') return h('h4', { class: 'gh-h reveal' }, b.x);
+    if (b.t === 'img') return h('figure', { class: 'gh-fig reveal' + (b.small ? ' small' : '') }, h('img', { src: A(b.src), alt: b.alt || b.cap || '', loading: 'lazy' }), b.cap ? h('figcaption', {}, b.cap) : null);
+    if (b.t === 'row') return h('div', { class: 'st-row reveal n' + Math.min(b.imgs.length, 3) + (b.cover ? ' cover' : '') }, h('div', { class: 'st-grid' }, b.imgs.map(([src, alt]) => fig(src, alt))), b.cap ? h('p', { class: 'st-cap' }, b.cap) : null);
+    if (b.t === 'list') return h('ul', { class: 'cs-list reveal' }, b.items.map(x => h('li', {}, x)));
+    if (b.t === 'quote') return h('blockquote', { class: 'c-quote gh-quote reveal' }, '“' + b.x + '”', b.by ? h('cite', {}, '— ' + b.by) : null);
+    if (b.t === 'quotes') return h('div', { class: 'st-quotes reveal' }, b.items.map(([x, by]) => h('blockquote', {}, h('p', {}, '“' + x + '”'), h('cite', {}, by))));
+    if (b.t === 'nums') return h('div', { class: 'gh-nums reveal' }, b.items.flatMap(([n, l], i) => [i && b.sep ? h('span', { class: 'gh-sep', 'aria-hidden': 'true' }, b.sep) : null, h('div', {}, h('b', {}, n), h('span', {}, l))]));
+    if (b.t === 'cols') return h('div', { class: 'st-colswrap reveal' }, b.lab ? h('p', { class: 'gh-pl' }, b.lab) : null, h('div', { class: 'st-cols n' + (b.n || Math.min(b.items.length, 3)) }, b.items.map(c => h('div', { class: 'st-col' }, c.n ? h('span', { class: 'st-n' }, c.n) : null, h('b', {}, c.title), c.sub ? h('span', { class: 'st-sub' }, c.sub) : null, c.text ? h('p', {}, c.text) : null, c.items ? h('ul', { class: 'cs-list' }, c.items.map(x => h('li', {}, x))) : null))));
+    if (b.t === 'people') return h('div', { class: 'st-people reveal' }, b.items.map(([src, name, who, q]) => h('div', { class: 'st-person' }, h('img', { src: A(src), alt: '', loading: 'lazy' }), h('div', {}, h('b', {}, name), h('span', {}, who), h('p', {}, '“' + q.replace(/\.$/, '') + '”')))));
+    if (b.t === 'pair') return h('div', { class: 'gh-pair reveal' }, h('p', { class: 'gh-pl' }, b.lab), h('ul', { class: 'cs-list' }, b.items.map(x => h('li', {}, x))));
+    return null;
+  };
+  openSheet(p.quad, K, p.title,
+    h('dl', { class: 'cs-meta reveal' }, G.meta.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
+    G.note ? h('p', { class: 'st-note reveal' }, G.note) : null,
+    ...G.sections.map(S2 => h('section', { class: 'gh-sec', 'data-toc': S2.toc }, S2.lab ? h('p', { class: 'cs-lab reveal' }, S2.lab) : null, h('h3', { class: 'cs-h reveal' }, S2.h), ...S2.blocks.map(block))),
+    onRequest(p));
+}
+
+/* the case's contents, after the work page's index: a quiet list on the left that arrives once the picture has
+   scrolled by, marks where you are as you read, and takes you to any part. Only for cases with a few parts. */
+function contents() {
+  const parts = $$('[data-toc]', sheet); if (parts.length < 2 || mobile()) return;
+  const hero = $('.c-hero', sheet), top = { label: 'Overview', el: $('.case-head', sheet) || hero };
+  const all = [...(parts[0].dataset.toc === 'Overview' ? [] : [top]), ...parts.map(el => ({ label: el.dataset.toc, el }))];
+  const go = el => { window.portfolioSound?.pat(); sheet.scrollTo({ top: el === top.el ? 0 : el.getBoundingClientRect().top + sheet.scrollTop - 110, behavior: RM ? 'auto' : 'smooth' }); };
+  const btns = all.map((x, i) => { const b = h('button', { type: 'button', style: '--i:' + i, onclick: () => go(x.el) }, h('i'), x.label); x.b = b; return b; });
+  const nav = h('nav', { class: 'c-toc', 'aria-label': 'In this case' }, btns);
+  sheet.append(nav);
+  const mark = x => btns.forEach(b => b.classList.toggle('on', b === x.b));
+  mark(all[0]);
+  // it steps in once the hero has gone by, so it never sits on the picture
+  if (hero) new IntersectionObserver(es => nav.classList.toggle('on', !es[0].isIntersecting), { root: sheet, rootMargin: '-90px 0px 0px 0px' }).observe(hero); else nav.classList.add('on');
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { const x = all.find(y => y.el === e.target); if (x) mark(x); } }), { root: sheet, rootMargin: '-30% 0px -62% 0px' });
+  all.forEach(x => x.el && io.observe(x.el));
+  // the last part is often short; at the very bottom, mark it
+  sheet.addEventListener('scroll', () => { if (sheet.scrollTop + sheet.clientHeight >= sheet.scrollHeight - 4) mark(all[all.length - 1]); }, { passive: true });
+}
+
+/* ---------- a note to Harshita ----------
+   One small card that rises out of whatever you pressed: a letter to write, your address so she can write back, and Send.
+   With a form address in content.js (person.form) it posts there; otherwise, or if that fails, it hands the letter to
+   the visitor's mail app. Sending folds the words into a line that slips away, and a tick draws itself. */
+let composing = null;
+function compose({ from = null, about = '' } = {}) {
+  if (composing) return;
+  const back = document.activeElement, E = S.person.email;
+  const msg = h('textarea', { class: 'nt-msg', rows: 5, placeholder: about ? `About ${about}…` : 'Hi Harshita,', 'aria-label': 'Your note', required: true });
+  const who = h('input', { class: 'nt-who', type: 'email', placeholder: 'Your email, so I can write back', 'aria-label': 'Your email', autocomplete: 'email', required: true });
+  const send = h('button', { type: 'submit', class: 'nt-send' }, h('span', {}, 'Send'), h('i', { 'aria-hidden': 'true' }));
+  const copy = h('button', { type: 'button', class: 'nt-copy' }, E);
+  copy.onclick = () => navigator.clipboard?.writeText(E).then(() => { copy.textContent = 'copied'; window.portfolioSound?.pat(); setTimeout(() => { copy.textContent = E; }, 1500); });
+  const done = h('div', { class: 'nt-done', 'aria-live': 'polite' });
+  const form = h('form', { class: 'nt-card', novalidate: true },
+    h('button', { type: 'button', class: 'nt-x', 'aria-label': 'Close' }, '×'),
+    h('p', { class: 'nt-lab' }, about ? 'On request · ' + about : 'Write to me'),
+    msg, h('div', { class: 'nt-row' }, who, send),
+    h('p', { class: 'nt-alt' }, 'or ', copy),
+    done);
+  const wrap = h('div', { class: 'nt', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Write to Harshita' }, h('div', { class: 'nt-veil' }), form);
+  document.body.append(wrap); composing = wrap; body.classList.add('noting');
+  const r = from && from.getBoundingClientRect && from.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    wrap.classList.add('on');
+    if (!RM && r && r.width) { const b = form.getBoundingClientRect(); form.animate([{ transform: `translate(${r.left + r.width / 2 - (b.left + b.width / 2)}px,${r.top + r.height / 2 - (b.top + b.height / 2)}px) scale(.18)`, opacity: 0, borderRadius: '40px' }, { transform: 'none', opacity: 1, borderRadius: '14px' }], { duration: 520, easing: 'cubic-bezier(.22,1,.36,1)' }); }
+    setTimeout(() => msg.focus({ preventScroll: true }), RM ? 0 : 180);
+  });
+  window.portfolioSound?.flick();
+  // the letter grows with what you write
+  msg.addEventListener('input', () => { msg.style.height = 'auto'; msg.style.height = Math.min(msg.scrollHeight, innerHeight * .4) + 'px'; form.classList.remove('err'); });
+  who.addEventListener('input', () => form.classList.remove('err'));
+  const close = () => { if (!composing) return; composing = null; removeEventListener('keydown', esc, true); wrap.classList.remove('on'); wrap.classList.add('off'); body.classList.remove('noting'); setTimeout(() => wrap.remove(), RM ? 0 : 360); back && back.focus?.({ preventScroll: true }); };
+  const esc = e => { if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); } };
+  addEventListener('keydown', esc, true);
+  $('.nt-x', form).onclick = close; $('.nt-veil', wrap).onclick = close;
+  const finish = (line, sub) => { form.classList.add('sent'); done.replaceChildren(iconSvg('<path class="tick" d="M5 12.5l4.5 4.5L19 7.5"/>'), h('p', {}, line), h('span', {}, sub)); window.portfolioSound?.chime(); setTimeout(close, 3600); };
+  form.onsubmit = e => {
+    e.preventDefault();
+    const text = msg.value.trim(), addr = who.value.trim();
+    if (!text || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) { form.classList.remove('err'); void form.offsetWidth; form.classList.add('err'); (text ? who : msg).focus(); return; }
+    form.classList.add('sending'); send.disabled = true;
+    const subject = about ? `On request: ${about}` : 'A note from your site';
+    const viaMail = () => { location.href = `mailto:${E}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text + '\n\n— ' + addr)}`; finish('Your mail app has it.', 'Press send there and it’s on its way.'); };
+    if (!S.person.form) return setTimeout(viaMail, 420);
+    fetch(S.person.form, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ email: addr, message: text, _subject: subject, _replyto: addr, _template: 'box' }) })
+      .then(r => { if (!r.ok) throw 0; finish('Sent. Thank you.', 'I’ll write back soon.'); })
+      .catch(viaMail);
+  };
+}
+window.compose = compose;
+// the close of every case: a quiet line, and the note opens already addressed to that piece
+function onRequest(p) {
+  const nda = p.nda ? 'This one is under NDA, so it’s only a peek. ' : '';
+  return h('p', { class: 'on-request reveal' }, nda, 'More detail ', h('button', { type: 'button', class: 'or-ask', onclick: e => compose({ from: e.currentTarget, about: p.title }) }, 'on request'), h('span', { class: 'or-dot' }, '.'));
+}
 
 /* how to reach her: email, LinkedIn, Instagram, Substack, in a small popover; the one a visitor used last time comes first */
 function contactMenu(label = 'Contact') {
@@ -315,9 +419,8 @@ function contactMenu(label = 'Contact') {
     try { localStorage.setItem('contact-via', c.id); } catch {}
     if (c.id === 'email') { const sub = $('span', e.currentTarget); navigator.clipboard?.writeText(c.sub).then(() => { sub.textContent = 'copied · ' + c.sub; }).catch(() => {}); }
   };
-  const menu = h('div', { class: 'pf-menu', role: 'menu', hidden: true }, contacts.map(c => h('a', { role: 'menuitem', href: c.href, target: c.id === 'email' ? null : '_blank', rel: 'noopener', onclick: e => pick(c, e) }, h('b', {}, c.label), h('span', {}, c.sub), c.id === last ? h('em', {}, 'last time') : null)));
-  const contact = h('button', { type: 'button', class: 'pf-act', 'aria-haspopup': 'menu', 'aria-expanded': 'false', onclick: () => { const on = menu.hidden; menu.hidden = !on; contact.setAttribute('aria-expanded', String(on)); } }, label);
-  return h('span', { class: 'pf-contact' }, contact, menu);
+  const contact = h('button', { type: 'button', class: 'pf-act', 'aria-haspopup': 'dialog', onclick: e => compose({ from: e.currentTarget }) }, label);
+  return h('span', { class: 'pf-contact' }, contact);
 }
 /* ---------- about: a read.cv page in the case sheet ----------
    Her lines, a strip of pictures, then work, client work and school as plain rows. The work strip stays on top,
@@ -382,7 +485,7 @@ function enlarge(v, origin = v) {
   veil.addEventListener('click', close); addEventListener('keydown', esc, true);
 }
 function openStudy(p, K) {
-  const C = p.study, sec = (label, ...kids) => h('section', { class: 'cs-sec reveal' }, h('p', { class: 'cs-lab' }, label), ...kids);
+  const C = p.study, sec = (label, ...kids) => h('section', { class: 'cs-sec reveal', 'data-toc': label[0].toUpperCase() + label.slice(1) }, h('p', { class: 'cs-lab' }, label), ...kids);
   // each moment plays as it scrolls into view; clicking it opens it large
   const moments = C.moments.map(m => h('figure', { class: 'cs-moment reveal' },
     h('button', { type: 'button', class: 'cs-play', 'aria-label': 'Open ' + m.title + ' large', onclick: e => enlarge(e.currentTarget.querySelector('video')) },
@@ -393,7 +496,7 @@ function openStudy(p, K) {
     sec('the problem', h('h3', { class: 'cs-h' }, C.problem.title), ...C.problem.body.map(t => h('p', { class: 'cs-p' }, t))),
     sec('my part', h('p', { class: 'cs-p' }, C.part)),
     sec('a peek', h('div', { class: 'cs-moments peek' }, moments)),
-    h('p', { class: 'nda cs-nda reveal' }, p.nda, ' ', contactMenu('Get in touch')));
+    onRequest(p));
   const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting && !RM) v.play?.().catch(() => {}); else v.pause(); }), { root: sheet, threshold: .5 });
   $$('.cs-moment video', sheet).forEach(v => io.observe(v));
 }
@@ -402,7 +505,7 @@ function openBrief(p, K) {
   const term = text => { const i = text.search(/\bagents\b/); return i < 0 ? [text] : [text.slice(0, i), h('span', { class: 'term', tabindex: 0 }, 'agents'), text.slice(i + 6)]; };
   openSheet(p.quad, K, p.title, h('div', { class: 'prose film-body brief reveal' }, p.brief.map(t => /\bagents\b/.test(t)
     ? h('div', { class: 'pf-what' }, h('p', {}, ...term(t)), h('p', { class: 'term-pop', role: 'note' }, S.profile.agents))
-    : h('p', {}, t))), p.nda ? h('p', { class: 'nda reveal' }, p.nda, ' ', h('a', { href: `mailto:${S.person.email}?subject=${encodeURIComponent(p.title)}` }, S.person.email)) : null);
+    : h('p', {}, t))), onRequest(p));
 }
 /* vault diagrams — razor-thin, drawn in */
 function diagram(id) {
@@ -589,11 +692,16 @@ function orbitHero() {
       tour.stops.push({ on, off });
       n.addEventListener('click', e => { e.stopPropagation(); ready.then(() => open(p, n.getBoundingClientRect())); });
       n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); n.dispatchEvent(new MouseEvent('click')); } });
-      nodes.append(n); return { n, L, ph, sp }; }).filter(Boolean); });
-  let t = 0, last = 0, speed = 1, lean = [0, 0], want = [0, 0], raf = 0, seen = true;
+      nodes.append(n); return { n, L, ph, sp, id, quiet: !!o.quiet, w: (TOPIC[id] || p.title).length * 6.9 }; }).filter(Boolean); });
+  const all = ORB.flatMap(o => o.nodes);
+  let t = 0, last = 0, speed = 1, lean = [0, 0], want = [0, 0], raf = 0, seen = true, born = 0, grown = RM;
+  const ease = x => 1 - Math.pow(1 - x, 4);
   const ring = (rr, tx, tz, ay, steps = 96) => { let d = ''; for (let i = 0; i <= steps; i++) { const a = i / steps * Math.PI * 2; const [x, y] = rot(Math.cos(a) * rr, Math.sin(a) * rr, 0, tx + lean[1], ay, tz); d += (i ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } return d; };
   const frame = now => {
     raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+    if (!grown) { born = born || now; const k = Math.min(1, (now - born) / 1900), e = ease(k);
+      g.setAttribute('transform', `translate(${C} ${C}) scale(${(.55 + .45 * e).toFixed(4)}) rotate(${(-38 * (1 - e)).toFixed(2)}) translate(${-C} ${-C})`); g.style.opacity = Math.min(1, k * 2.2).toFixed(3);
+      t += dt * 2.4 * (1 - e); if (k >= 1) { grown = true; g.removeAttribute('transform'); svg.classList.add('grown'); } }
     speed += ((focus ? .12 : 1) - speed) * .06; t += dt * speed * .6; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] - lean[1]) * .05;
     const spin = t * .08 + lean[0];
     meridians.forEach((p, i) => p.setAttribute('d', ring(R, Math.PI / 2, 0, spin + i * Math.PI / 3)));
@@ -609,7 +717,10 @@ function orbitHero() {
         const edge = Math.abs(x) > R * .45, right = edge ? x < 0 : x >= 0, anchor = right ? 'start' : 'end';
         q.L.setAttribute('transform', `translate(${right ? 11 : -11} ${y < 0 ? -16 : 15})`); for (const c of q.L.children) c.setAttribute('text-anchor', anchor);
         q.n.classList.toggle('back', z < -o.r * .25);
-        q.sp.setAttribute('x1', C); q.sp.setAttribute('y1', C); q.sp.setAttribute('x2', (C + x).toFixed(1)); q.sp.setAttribute('y2', (C + y).toFixed(1)); q.sp.classList.toggle('on', focus?.n === q.n); }); });
+        q.sp.setAttribute('x1', C); q.sp.setAttribute('y1', C); q.sp.setAttribute('x2', (C + x).toFixed(1)); q.sp.setAttribute('y2', (C + y).toFixed(1)); q.sp.classList.toggle('on', focus?.n === q.n);
+        const lx = right ? x + 11 : x - 11 - q.w, ly = y < 0 ? y - 26 : y + 5; q.box = [C + lx, C + ly, C + lx + q.w, C + ly + 14]; q.z = z / o.r; }); });
+    const taken = [[C - 40, C - 40, C + 40, C + 48], [C + 4, C - R - 18, C + 60, C - R - 2], [C + 4, C + R + 2, C + 76, C + R + 18], [C - R - 70, C - 20, C - R - 4, C - 2], [C + R + 4, C - 20, C + R + 56, C - 2]], hit = (a, b) => a[0] < b[2] + 4 && a[2] > b[0] - 4 && a[1] < b[3] + 2 && a[3] > b[1] - 2;
+    all.slice().sort((a, b) => (focus?.n === b.n) - (focus?.n === a.n) || a.quiet - b.quiet || b.z - a.z).forEach(q => { const clash = focus?.n !== q.n && taken.some(b => hit(q.box, b)); q.n.classList.toggle('hush', clash); if (!clash) taken.push(q.box); });
     if (seen && !document.hidden) raf = requestAnimationFrame(frame);
   };
   // anywhere else on the drawing: a note follows the hand, and a click goes to the map
@@ -634,16 +745,15 @@ function orbitHero() {
 function wisp(text) { return h('span', { class: 'wisp', 'aria-hidden': 'true' }, ...text.split(' ').flatMap((w, i, a) => [h('span', { class: 'wd', style: '--i:' + i }, h('span', { class: 'a' }, w), h('span', { class: 'b' }, w)), i < a.length - 1 ? ' ' : ''])); }
 // Selected work after neelsaswade.com: a quiet list of the pieces on the left that follows you down, and for each piece
 // its name, where and when, one large picture beside two small ones, then a short brief. Any picture opens the case.
+// The big pieces get one large picture and two small; the rest show one picture, never a repeat.
 const TRIO = {
   influence: ['cases/salesloft/deal-map-screens.jpg', 'cases/salesloft/moments/01-catch-up.jpg', 'cases/salesloft/moments/03-new-exec.jpg'],
-  github: ['github.jpg', 'github-01.jpg', 'github-02.jpg'],
-  sony: ['sony.jpg', 'sony-01.jpg'],
-  safe: ['safe.jpg', 'safe-01.jpg', 'safe-02.jpg'],
-  hpe: ['hpe.jpg', 'hpe-01.jpg', 'hpe-02.jpg'],
+  github: ['github.jpg', 'github-02.jpg', 'github-04.jpg'],
 };
 function neel(work, ix) {
   const org = p => p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org;
-  const go = p => e => ready.then(() => open(p, e.currentTarget.getBoundingClientRect()));
+  // the rect is read at the click, while the picture is still where the hand found it
+  const go = p => e => { const m = e.currentTarget.querySelector('img,video') || e.currentTarget, r = m.getBoundingClientRect(); ready.then(() => open(p, r)); };
   const links = new Map();
   const list = h('nav', { class: 'nl-index', 'aria-label': 'Selected work' }, work.map(p => { const a = h('button', { type: 'button', onclick: () => { const t = ix.querySelector('#nl-' + p.id); ix.scrollTo({ top: t.offsetTop - 120, behavior: RM ? 'auto' : 'smooth' }); } }, h('i'), p.title); links.set(p.id, a); return a; }));
   const items = work.map((p, i) => {
@@ -658,14 +768,18 @@ function neel(work, ix) {
   });
   items.forEach(el => el.querySelectorAll('.pt-row').forEach(b => { b._p = work[items.indexOf(el)]; }));
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach((a, id) => a.classList.toggle('on', 'nl-' + id === e.target.id)); }), { root: ix, rootMargin: '-35% 0px -60% 0px' });
-  requestAnimationFrame(() => items.forEach(el => io.observe(el)));
+  const rise = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); rise.unobserve(e.target); } }), { root: ix, rootMargin: '0px 0px -12% 0px' });
+  requestAnimationFrame(() => items.forEach(el => { io.observe(el); rise.observe(el); }));
+  if (lamp) items.forEach(el => { const pics = el.querySelector('.nl-pics'); pics.addEventListener('mouseenter', () => { pill.innerHTML = 'Open the case'; pill.classList.add('on', 'look'); }); pics.addEventListener('mouseleave', () => pill.classList.remove('on', 'look')); pics.addEventListener('click', () => pill.classList.remove('on', 'look')); });
   return h('div', { class: 'nl' }, list, h('div', { class: 'nl-list' }, items));
 }
 function buildIndex(ix) {
   ix._built = true;
-  ix.addEventListener('scroll', () => body.classList.toggle('wk-down', ix.scrollTop > innerHeight * .6), { passive: true });
+  // scrolling down tucks the bar away on a phone; any scroll up brings it back
+  let lastY = 0;
+  ix.addEventListener('scroll', () => { const y = ix.scrollTop; body.classList.toggle('wk-down', y > innerHeight * .6); body.classList.toggle('wk-tuck', y > 120 && y > lastY + 2 ? true : y < lastY - 2 ? false : body.classList.contains('wk-tuck')); body.classList.toggle('wk-moved', y > 24); lastY = y; }, { passive: true });
   const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
-  const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), onclick: e => ready.then(() => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect())) },
+  const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), onclick: e => { const r = (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect(); ready.then(() => open(p, r)); } },
     h('span', { class: 'wk-img' }, src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' }) : null),
     h('span', { class: 'wk-meta' }, [p.org, p.year].filter(Boolean).join(' · ')),
     h('span', { class: 'wk-title' }, p.title),
@@ -678,7 +792,9 @@ function buildIndex(ix) {
     h('section', { class: 'wk-stage' },
       h('figure', { class: 'wk-hero' }, orbitHero()),
       h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', 'aria-label': S.person.now + ' About me', onclick: () => ready.then(openProfile) }, wisp(S.person.now), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
-        h('p', { class: 'wk-before' }, S.person.before)),
+        h('p', { class: 'wk-before' }, S.person.before),
+        // a small way down to the work, so nobody has to guess that it's there
+      h('button', { type: 'button', class: 'wk-cue', onclick: () => { const t = $('.wk-neel', ix); window.portfolioSound?.pat(); ix.scrollTo({ top: t.offsetTop - (mobile() ? 64 : 40), behavior: RM ? 'auto' : 'smooth' }); } }, h('span', {}, 'Selected work'), h('i', { 'aria-hidden': 'true' }))),
       h('div', { class: 'wk-c br' }, contactLinks())),
     h('section', { class: 'wk-sec wk-neel' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), neel(work, ix)),
     h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Off the clock'), lately,
@@ -771,9 +887,11 @@ buildPlane(); renderIndex(); document.fonts && document.fonts.ready.then(layout)
 // a piece can be linked to directly: #p-github opens it over the work
 window.openPiece = id => { const p = S.points.find(x => x.id === id); if (p) ready.then(() => open(p, null)); };
 const piece = location.hash.startsWith('#p-') ? location.hash.slice(3) : '';
-const startOnWork = location.hash === '#work' || !!piece;
+const startOnWork = location.hash === '#work' || !!piece || (mobile() && !location.hash);
 if (startOnWork) { $$('button', views).forEach(b => b.classList.toggle('on', b.dataset.v === 'work')); body.classList.add('show-index'); requestAnimationFrame(placePill); }
 if (piece) window.openPiece(piece);
+// the phone's early hold on the map is only for the first paint
+requestAnimationFrame(() => docEl.classList.remove('m-work'));
 window.refreshPortfolio = () => { buildPlane(); renderIndex(); layout(); };
 let lastMobile = mobile(); addEventListener('resize', () => { if (mobile() !== lastMobile) { lastMobile = mobile(); buildPlane(); $('#index')._built = false; renderIndex(); } else layout(); });
 const intro = $('#intro');
@@ -786,7 +904,7 @@ const skipIntro = e => {
   introActive = false; introTimers.forEach(clearTimeout); clearTimeout(arrivalTimer); unlistenIntro();
   body.classList.remove('introing', 'arriving'); intro.remove();
 };
-if (sessionStorage.getItem('seen') || RM || startOnWork) { intro.remove(); if (!sessionStorage.getItem('seen')) { sessionStorage.setItem('seen', 1); arrive(0); } }
+if (sessionStorage.getItem('seen') || RM || startOnWork || docEl.classList.contains('no-intro')) { intro.remove(); if (!sessionStorage.getItem('seen')) { sessionStorage.setItem('seen', 1); arrive(0); } }
 else {
   /* The opening: one line, set right where the axes cross. It gathers out of a soft blur, holds a breath,
      then parts from the middle outward like mist, and in the same breath the axes draw out from that point
@@ -795,7 +913,7 @@ else {
   const p = $('p', intro), words = p.textContent.trim().split(/\s+/), mid = (words.length - 1) / 2;
   const spans = words.map((word, i) => h('span', { class: 'intro-word', style: `--in:${i * 60}ms;--out:${Math.abs(i - mid) * 55}ms;--side:${Math.sign(i - mid)}` }, word));
   p.replaceChildren(...spans.flatMap((s, i) => i < spans.length - 1 ? [s, ' '] : [s]));
-  intro.replaceChildren(h('div', { class: 'intro-inner' }, p));
+  intro.replaceChildren(h('div', { class: 'intro-inner' }, p)); intro.classList.add('go');
   introActive = true; document.addEventListener('click', skipIntro, true); document.addEventListener('keydown', skipIntro, true);
   const part = 2300, gone = part + 1300;
   arrive(part + 120);
