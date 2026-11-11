@@ -1,0 +1,10 @@
+{
+  "_": "Visitor comments run on giscus (GitHub Discussions). Until categoryId is filled in, each post shows an email link instead. Steps: turn on Discussions for this repo, install https://github.com/apps/giscus on it, make an Announcements category called Writing, then copy its id from https://giscus.app into categoryId.",
+  "giscus": {
+    "repo": "harshitadingorkar/harshita",
+    "repoId": "R_kgDOVYF8Hw",
+    "category": "Writing",
+    "categoryId": ""
+  },
+  "email": "harshitashyale@gmail.com"
+}
