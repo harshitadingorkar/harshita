@@ -632,8 +632,38 @@ function orbitHero() {
 }
 // a line that changes face on a touch: each word lifts away as a soft wisp and settles back in Averia, one after another
 function wisp(text) { return h('span', { class: 'wisp', 'aria-hidden': 'true' }, ...text.split(' ').flatMap((w, i, a) => [h('span', { class: 'wd', style: '--i:' + i }, h('span', { class: 'a' }, w), h('span', { class: 'b' }, w)), i < a.length - 1 ? ' ' : ''])); }
+// Selected work after neelsaswade.com: a quiet list of the pieces on the left that follows you down, and for each piece
+// its name, where and when, one large picture beside two small ones, then a short brief. Any picture opens the case.
+const TRIO = {
+  influence: ['cases/salesloft/deal-map-screens.jpg', 'cases/salesloft/moments/01-catch-up.jpg', 'cases/salesloft/moments/03-new-exec.jpg'],
+  github: ['github.jpg', 'github-01.jpg', 'github-02.jpg'],
+  sony: ['sony.jpg', 'sony-01.jpg'],
+  safe: ['safe.jpg', 'safe-01.jpg', 'safe-02.jpg'],
+  hpe: ['hpe.jpg', 'hpe-01.jpg', 'hpe-02.jpg'],
+};
+function neel(work, ix) {
+  const org = p => p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org;
+  const go = p => e => ready.then(() => open(p, e.currentTarget.getBoundingClientRect()));
+  const links = new Map();
+  const list = h('nav', { class: 'nl-index', 'aria-label': 'Selected work' }, work.map(p => { const a = h('button', { type: 'button', onclick: () => { const t = ix.querySelector('#nl-' + p.id); ix.scrollTo({ top: t.offsetTop - 120, behavior: RM ? 'auto' : 'smooth' }); } }, h('i'), p.title); links.set(p.id, a); return a; }));
+  const items = work.map((p, i) => {
+    const pics = TRIO[p.id] || [p.img], big = pics[0];
+    const bigMedia = p.video && !RM && i === 0 ? h('video', { src: A(p.video), poster: A(big), muted: '', loop: '', playsinline: '', autoplay: '', preload: 'metadata', 'aria-hidden': 'true' }) : h('img', { src: A(big), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' });
+    return h('article', { class: 'nl-item', id: 'nl-' + p.id },
+      h('header', { class: 'nl-head' }, h('h3', {}, p.title), h('span', { class: 'nl-org' }, org(p)), h('span', { class: 'nl-year' }, p.year)),
+      h('div', { class: 'nl-pics n' + pics.length },
+        h('button', { type: 'button', class: 'nl-big pt-row', 'aria-label': 'Open ' + p.title, onclick: go(p) }, bigMedia),
+        pics.length > 1 ? h('div', { class: 'nl-small' }, pics.slice(1).map(f => h('button', { type: 'button', class: 'pt-row', 'aria-label': 'Open ' + p.title, onclick: go(p) }, h('img', { src: A(f), alt: '', loading: 'lazy' })))) : null),
+      h('p', { class: 'nl-brief' }, p.card || p.line));
+  });
+  items.forEach(el => el.querySelectorAll('.pt-row').forEach(b => { b._p = work[items.indexOf(el)]; }));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach((a, id) => a.classList.toggle('on', 'nl-' + id === e.target.id)); }), { root: ix, rootMargin: '-35% 0px -60% 0px' });
+  requestAnimationFrame(() => items.forEach(el => io.observe(el)));
+  return h('div', { class: 'nl' }, list, h('div', { class: 'nl-list' }, items));
+}
 function buildIndex(ix) {
   ix._built = true;
+  ix.addEventListener('scroll', () => body.classList.toggle('wk-down', ix.scrollTop > innerHeight * .6), { passive: true });
   const P = S.profile, work = WORK_ORDER.map(id => S.points.find(p => p.id === id)).filter(Boolean);
   const card = (p, i) => { const src = p.still || p.img, r = h('button', { type: 'button', class: 'wk-card pt-row' + (i === 0 ? ' lead' : ''), onclick: e => ready.then(() => open(p, (e.currentTarget.querySelector('img') || e.currentTarget).getBoundingClientRect())) },
     h('span', { class: 'wk-img' }, src ? h('img', { src: A(src), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' }) : null),
@@ -650,7 +680,7 @@ function buildIndex(ix) {
       h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', 'aria-label': S.person.now + ' About me', onclick: () => ready.then(openProfile) }, wisp(S.person.now), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
         h('p', { class: 'wk-before' }, S.person.before)),
       h('div', { class: 'wk-c br' }, contactLinks())),
-    h('section', { class: 'wk-sec' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), h('div', { class: 'wk-grid' }, work.map(card))),
+    h('section', { class: 'wk-sec wk-neel' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), neel(work, ix)),
     h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Off the clock'), lately,
       // the resemblance field (kinField) rests until there's more work to arrange
       h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →')))));

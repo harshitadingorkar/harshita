@@ -1,6 +1,5 @@
-// The case view, after inspora.design's detail page and the collection walls: the work large on the dark stage at the
-// left, mounted like prints, with its words beneath each picture; a fixed paper panel on the right with the facts, the
-// contents (marking where you are) and a way to reach me; the projects in a dock along the top.
+// The case view: the projects in a dock along the top, then each case laid out after bradleyziffer.com on
+// gizemakdag.com's cobalt and grain.
 // One file serves the site and the trial artifact. caseProjects() turns the site's own data into the view's shape.
 (() => {
   const A = f => (window.CASE_ROOT || 'assets/') + f;
@@ -49,44 +48,39 @@
   const h = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [x, v] of Object.entries(a)) { if (v == null || v === false) continue; if (x === 'class') e.className = v; else if (x.startsWith('on')) e[x] = v; else e.setAttribute(x, v === true ? '' : v); } e.append(...k.flat(Infinity).filter(z => z != null && z !== false)); return e; };
   const pad = n => String(n).padStart(2, '0');
   const RM = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let root = null, PJ = [], cur = null, io = null, opts = {};
+  let root = null, PJ = [], cur = null, opts = {};
 
+  // the case, after bradleyziffer.com: a large hero, the name with one line beneath and the facts beside it, then each
+  // part as a picture and its words side by side, alternating, on Gizem Akdağ's cobalt with a fine grain.
   function close() { if (!root || opts.embedded) return; root.classList.remove('on'); document.documentElement.classList.remove('cv-open'); setTimeout(() => { root.remove(); root = null; }, 300); opts.onClose && opts.onClose(); }
-  function mark(id) {
-    const i = cur.secs.findIndex(s => s.id === id);
-    root.querySelectorAll('.cv-toc button').forEach(b => b.classList.toggle('on', b.dataset.id === id));
-    const w = root.querySelector('.cv-where'); if (w) w.textContent = pad(i + 1) + ' / ' + pad(cur.secs.length);
-  }
   function show(id, first) {
     const p = PJ.find(x => x.id === id) || PJ[0], i = PJ.indexOf(p);
     const prev = PJ[(i - 1 + PJ.length) % PJ.length], next = PJ[(i + 1) % PJ.length];
     cur = p; opts.onShow && opts.onShow(p.id);
     root.querySelectorAll('.cv-dock button').forEach(b => b.classList.toggle('on', b.dataset.id === p.id));
-    const stage = root.querySelector('.cv-stage'), panel = root.querySelector('.cv-panel');
-    const mail = h('button', { type: 'button', class: 'cv-cta', onclick: () => { const a = opts.email; if (!a) return; navigator.clipboard?.writeText(a).then(() => { mail.textContent = 'Copied ' + a; setTimeout(() => { mail.textContent = 'Ask me about this'; }, 1800); }, () => { location.href = 'mailto:' + a; }); } }, 'Ask me about this');
-    panel.replaceChildren(
-      h('div', { class: 'cv-top' }, opts.embedded ? h('span') : h('button', { type: 'button', class: 'cv-ico', 'aria-label': 'Close', onclick: close }, '×'), h('span', { class: 'cv-grow' }),
-        h('button', { type: 'button', class: 'cv-ico', 'aria-label': 'Previous: ' + prev.title, title: prev.title, onclick: () => go(prev.id) }, '←'),
-        h('button', { type: 'button', class: 'cv-ico', 'aria-label': 'Next: ' + next.title, title: next.title, onclick: () => go(next.id) }, '→')),
-      h('div', { class: 'cv-head' }, h('p', { class: 'cv-meta' }, [p.org, p.year].filter(Boolean).join(' · ')), h('h2', {}, p.title), h('p', { class: 'cv-line' }, p.line)),
-      h('dl', { class: 'cv-facts' }, (p.facts || []).filter(([, v]) => v).map(([k, v]) => [h('dt', {}, k), h('dd', {}, v[0].toUpperCase() + v.slice(1))])),
-      h('div', { class: 'cv-contents' }, h('p', { class: 'cv-k' }, h('span', {}, 'Contents'), h('span', { class: 'cv-where' }, '')),
-        h('ul', { class: 'cv-toc' }, p.secs.map((s, k) => h('li', {}, h('button', { type: 'button', 'data-id': s.id, onclick: () => { const t = stage.querySelector('#cv-' + s.id); stage.scrollTo({ top: t.offsetTop - 96, behavior: RM() ? 'auto' : 'smooth' }); } }, h('span', {}, pad(k + 1)), s.label))))),
-      h('div', { class: 'cv-foot' }, mail, h('button', { type: 'button', class: 'cv-next', onclick: () => go(next.id) }, h('span', {}, 'Next'), next.title + ' →')));
-    stage.replaceChildren(h('div', { class: 'cv-col' },
-      ...p.secs.map((s, k) => h('section', { class: 'cv-sec' + (s.vis.length ? '' : ' words'), id: 'cv-' + s.id, 'aria-label': s.label },
-        s.vis.length ? h('div', { class: 'cv-imgs n' + Math.min(s.vis.length, 3) }, s.vis.map(v => h('figure', { class: 'cv-print' }, h('img', { src: v.src, alt: v.alt || s.label, loading: k < 2 ? 'eager' : 'lazy' })))) : null,
-        h('div', { class: 'cv-note' }, h('p', { class: 'cv-k' }, h('b', {}, pad(k + 1)), s.label),
-          h('div', { class: 'cv-body' }, s.head ? h('h3', {}, s.head) : null, ...(s.text || []).filter(Boolean).map(t => h('p', {}, t)),
-            s.quote ? h('blockquote', {}, '“' + String(s.quote.t || s.quote).replace(/^["“\s]+|["”\s]+$/g, '') + '”') : null,
-            s.nums ? h('div', { class: 'cv-nums' }, s.nums.map(([n, l]) => h('div', {}, h('b', {}, n), h('span', {}, l)))) : null,
-            s.cap ? h('p', { class: 'cv-cap' }, s.cap) : null)))),
-      h('button', { type: 'button', class: 'cv-end', onclick: () => go(next.id) }, h('span', {}, 'Next'), next.title + ' →')));
+    root.querySelector('.cv-prev').onclick = () => go(prev.id); root.querySelector('.cv-prev').title = prev.title;
+    root.querySelector('.cv-next').onclick = () => go(next.id); root.querySelector('.cv-next').title = next.title;
+    const [hero, ...rest] = p.secs, heroPic = hero.vis[0];
+    const fact = ([k, v]) => h('div', {}, h('dt', {}, k), h('dd', {}, v[0].toUpperCase() + v.slice(1)));
+    const mail = h('button', { type: 'button', class: 'cv-ask', onclick: () => { const a = opts.email; if (!a) return; navigator.clipboard?.writeText(a).then(() => { mail.textContent = 'Copied ' + a; setTimeout(() => { mail.textContent = 'Ask me about this'; }, 1800); }, () => { location.href = 'mailto:' + a; }); } }, 'Ask me about this');
+    const words = s => [s.head ? h('h3', {}, s.head) : (s.label ? h('h3', {}, s.label) : null), ...(s.text || []).filter(Boolean).map(t => h('p', {}, t)),
+      s.quote ? h('blockquote', {}, '“' + String(s.quote.t || s.quote).replace(/^["“\s]+|["”\s]+$/g, '') + '”') : null,
+      s.nums ? h('div', { class: 'cv-nums' }, s.nums.map(([n, l]) => h('div', {}, h('b', {}, n), h('span', {}, l)))) : null,
+      s.cap ? h('p', { class: 'cv-tag' }, s.cap) : null];
+    const pics = (vis, k) => h('div', { class: 'cv-pics n' + Math.min(vis.length, 3) }, vis.map(v => h('img', { src: v.src, alt: v.alt || '', loading: k < 2 ? 'eager' : 'lazy' })));
+    const stage = root.querySelector('.cv-stage');
+    stage.replaceChildren(h('div', { class: 'cv-page' },
+      heroPic ? h('figure', { class: 'cv-hero' }, h('img', { src: heroPic.src, alt: heroPic.alt || p.title })) : null,
+      h('header', { class: 'cv-title' },
+        h('div', {}, h('h2', {}, p.title), h('p', { class: 'cv-line' }, p.line)),
+        h('dl', { class: 'cv-facts' }, (p.facts || []).filter(([, v]) => v).slice(0, 4).map(fact))),
+      // the overview's own words (the question, the numbers) open the page, under a rule
+      (hero.head || (hero.text || []).some(Boolean) || hero.nums) ? h('section', { class: 'cv-intro' }, words({ ...hero, label: null })) : null,
+      ...rest.map((s, k) => h('section', { class: 'cv-part' + (s.vis.length ? (k % 2 ? ' flip' : '') : ' words'), id: 'cv-' + s.id },
+        s.vis.length ? pics(s.vis, k) : null,
+        h('div', { class: 'cv-say' }, h('p', { class: 'cv-tag' }, s.head ? (s.num || String(k + 2).padStart(2, '0')) + ' · ' + s.label : (s.num || String(k + 2).padStart(2, '0'))), ...words(s)))),
+      h('footer', { class: 'cv-end' }, mail, h('button', { type: 'button', class: 'cv-follow', onclick: () => go(next.id) }, h('span', {}, 'Next'), next.title + ' →'))));
     if (!first) stage.scrollTop = 0;
-    mark(p.secs[0].id);
-    io?.disconnect();
-    io = new IntersectionObserver(es => { const e = es.find(x => x.isIntersecting); if (e) mark(e.target.id.slice(3)); }, { root: stage, rootMargin: '-40% 0px -55% 0px' });
-    stage.querySelectorAll('.cv-sec').forEach(s => io.observe(s));
   }
   function go(id) { if (cur && cur.id === id) return; root.classList.add('swap'); setTimeout(() => { show(id); root.classList.remove('swap'); }, 220); }
 
@@ -94,8 +88,12 @@
     PJ = projects; opts = o;
     if (!root) {
       root = h('div', { class: 'cv' + (o.embedded ? ' embedded' : ''), role: o.embedded ? null : 'dialog', 'aria-modal': o.embedded ? null : 'true', 'aria-label': 'Case study' },
-        h('nav', { class: 'cv-dock', 'aria-label': 'Projects' }, PJ.map(p => h('button', { type: 'button', 'data-id': p.id, 'aria-label': p.title, title: p.title, onclick: () => go(p.id) }, h('img', { src: p.thumb, alt: '' })))),
-        h('main', { class: 'cv-stage', tabindex: -1 }), h('aside', { class: 'cv-panel', 'aria-label': 'About this project' }));
+        h('div', { class: 'cv-grain', 'aria-hidden': 'true' }),
+        h('div', { class: 'cv-bar' },
+          o.embedded ? h('span') : h('button', { type: 'button', class: 'cv-ico', 'aria-label': 'Close', onclick: close }, '×'),
+          h('nav', { class: 'cv-dock', 'aria-label': 'Projects' }, PJ.map(p => h('button', { type: 'button', 'data-id': p.id, 'aria-label': p.title, title: p.title, onclick: () => go(p.id) }, h('img', { src: p.thumb, alt: '' })))),
+          h('span', { class: 'cv-arrows' }, h('button', { type: 'button', class: 'cv-ico cv-prev', 'aria-label': 'Previous project' }, '←'), h('button', { type: 'button', class: 'cv-ico cv-next', 'aria-label': 'Next project' }, '→'))),
+        h('main', { class: 'cv-stage', tabindex: -1 }));
       document.body.append(root);
       root.addEventListener('keydown', e => { if (e.key === 'Escape') close(); if (e.target.closest('input,textarea')) return; if (e.key === 'ArrowRight') go(PJ[(PJ.indexOf(cur) + 1) % PJ.length].id); if (e.key === 'ArrowLeft') go(PJ[(PJ.indexOf(cur) - 1 + PJ.length) % PJ.length].id); });
       requestAnimationFrame(() => { root.classList.add('on'); if (!o.embedded) document.documentElement.classList.add('cv-open'); root.querySelector('.cv-stage').focus({ preventScroll: true }); });
