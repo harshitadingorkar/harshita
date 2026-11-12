@@ -2278,3 +2278,14 @@ a.nl-org:hover{color:var(--ink)}
 .orb.spinning{cursor:grabbing}
 .orb.spinning .orb-hint{opacity:0!important}
 .orb-win image{transition:none}
+/* Round 58: no pictures in the orbit. Touching a piece draws its mark in ink at the heart of the sphere (the company's
+   logo, traced and then filled; for the rest of my life, its word in Averia) while the small system there steps back */
+.orb-mark{opacity:0;pointer-events:none;transition:opacity .22s ease;transform-box:fill-box;transform-origin:center}
+.orb-mark.on{opacity:1;animation:orb-mark-in .9s cubic-bezier(.22,1,.36,1) both}
+@keyframes orb-mark-in{from{transform:scale(.9);filter:blur(2px)}to{transform:none;filter:none}}
+.orb-mark path,.orb-mark text{fill:var(--ink);stroke:var(--ink);fill-opacity:0;stroke-linejoin:round;stroke-linecap:round}
+.orb-mark-word{font:italic 400 40px var(--voice);letter-spacing:-.01em}
+.orb .orb-hub,.orb .orb-inner{transition:opacity .3s ease}
+.orb.focus .orb-hub,.orb.focus .orb-inner{opacity:.08}
+.orb-win{display:none}
+@media (prefers-reduced-motion:reduce){.orb-mark.on{animation:none}}
