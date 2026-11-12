@@ -661,7 +661,7 @@ function orbitHero() {
   const defs = el('defs'), win = el('g', { class: 'orb-win' }), winPlane = el('g'), winSpin = el('g'), winImg = el('image', { preserveAspectRatio: 'xMidYMid slice', 'clip-path': 'url(#orb-disc)' });
   winSpin.append(winImg); winPlane.append(winSpin); win.append(winPlane);
   const disc = el('clipPath', { id: 'orb-disc', clipPathUnits: 'objectBoundingBox' }); disc.append(el('circle', { cx: .5, cy: .5, r: .5 })); defs.append(disc);
-  svg.append(defs, plate, el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, inner, rings, spokes, nodes);
+  svg.append(defs, plate, el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, win, inner, rings, spokes, nodes);
   // the plate: dotted cross and diagonals, ticks, the map's two axes named at the rim
   for (const [x1, y1, x2, y2] of [[C - R, C, C + R, C], [C, C - R, C, C + R]]) plate.append(el('line', { class: 'orb-dots', x1, y1, x2, y2 }));
   const d = R * Math.SQRT1_2; for (const [x1, y1, x2, y2] of [[C - d, C - d, C + d, C + d], [C + d, C - d, C - d, C + d]]) plate.append(el('line', { class: 'orb-dots faint', x1, y1, x2, y2 }));
@@ -681,9 +681,7 @@ function orbitHero() {
   hub.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ready.then(openProfile); } });
   // orbits: radius, tilt about x, tilt about z, speed; nodes sit on them by phase
   const W = id => S.points.find(p => p.id === id);
-  const LOGO = { influence: 'salesloft', github: 'github', sony: 'sony', hpe: 'hpe' }, logos = {};
-  const loadLogo = f => logos[f] ||= fetch(A('logos/' + f + '.svg')).then(r => r.text()).then(t => [...new DOMParser().parseFromString(t, 'image/svg+xml').querySelectorAll('path')]).catch(() => null);
-  const mark = el('g', { class: 'orb-mark', 'aria-hidden': 'true' }); let markRun = 0; g.append(mark);
+  const pic = (id, o) => { const p = W(id); return o.quiet || !p ? A('whim/' + id + '.jpg') : A((p.still || p.img).replace(/^assets\//, '')); };
   const ORB = [
     { r: 138, tx: .82, tz: -.3, v: .05, pts: [['influence', 0], ['github', 3.1]] },
     { r: 206, tx: 1.02, tz: .5, v: -.035, pts: [['sony', .8], ['hpe', 2.9], ['safe', 5.0]] },
@@ -708,8 +706,10 @@ function orbitHero() {
       const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
       const on = hand => { if (focus?.n === n) return; if (focus) focus.off(); focus = { n, o, sp, off }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on');
         if (hand) window.portfolioSound?.pluck(k - 1 + (ph % 1) * .4, .9 - k * .55);
-        showMark(id, o); };
-      const off = () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); hideMark(); };
+        // product work shows the work itself; the outer orbit, the rest of my life, keeps its own pictures
+        winImg.setAttribute('href', pic(id, o)); for (const [k2, v2] of [['x', -o.r], ['y', -o.r], ['width', 2 * o.r], ['height', 2 * o.r]]) winImg.setAttribute(k2, v2);
+        focus.a0 = null; win.classList.add('on'); };
+      const off = () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); win.classList.remove('on'); };
       n.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') { tour.stop(); on(true); } });
       n.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') off(); });
       tour.stops.push({ on, off });
@@ -724,26 +724,6 @@ function orbitHero() {
     o.hitPath.addEventListener('click', e => { e.stopPropagation(); const q = focus?.o === o && o.nodes.find(q => q.n === focus.n); if (q) ready.then(() => open(W(q.id), q.n.getBoundingClientRect())); });
   });
   const all = ORB.flatMap(o => o.nodes);
-  // touching a piece draws its mark in ink at the heart of the sphere: the company's logo for product work, traced
-  // outline first and then filled, as if by a pen; the rest of my life writes its word in Averia the same way
-  function showMark(id, o) {
-    const run = ++markRun, f = !o.quiet && LOGO[id];
-    (f ? loadLogo(f) : Promise.resolve(null)).then(ps => { if (run !== markRun) return;
-      const marks = ps ? ps.map(p => { const e = el('path', { d: p.getAttribute('d') }); const fr = p.getAttribute('fill-rule'); if (fr) e.setAttribute('fill-rule', fr); return e; })
-        : [txt('orb-mark-word', 0, 0, id === 'safe' ? 'UW Medicine' : (TOPIC[id] || W(id)?.title || ''), { 'text-anchor': 'middle' })];
-      const inner = el('g'); marks.forEach(m => inner.append(m)); mark.replaceChildren(inner); mark.classList.remove('on'); void mark.getBBox();
-      const b = inner.getBBox(); if (!b.width) return;
-      const sc = Math.min((ps ? 128 : 250) / b.width, (ps ? 80 : 70) / b.height);
-      inner.setAttribute('transform', `translate(${C} ${C}) scale(${sc.toFixed(4)}) translate(${(-(b.x + b.width / 2)).toFixed(3)} ${(-(b.y + b.height / 2)).toFixed(3)})`);
-      mark.classList.add('on');
-      if (RM) { marks.forEach(m => { m.style.fillOpacity = 1; m.style.strokeOpacity = 0; }); return; }
-      marks.forEach((m, i) => { const L = m.getTotalLength ? Math.ceil(m.getTotalLength()) + 2 : 1600, dl = i * 45;
-        m.style.strokeWidth = (1.15 / sc).toFixed(4); m.style.strokeDasharray = L;
-        m.animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: 900, delay: dl, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'both' });
-        m.animate([{ fillOpacity: 0, strokeOpacity: 1 }, { fillOpacity: 1, strokeOpacity: 0 }], { duration: 560, delay: 600 + dl, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' }); });
-    });
-  }
-  function hideMark() { markRun++; mark.classList.remove('on'); }
   let t = 0, last = 0, speed = 1, lean = [0, 0], want = [0, 0], raf = 0, seen = true, born = 0, grown = RM;
   // the hand: drag the sphere to spin it either way, or press and hold to wind it up; it coasts on after you let go
   let spinD = 0, velS = 0, tiltD = 0, grip = null, swallow = false;
@@ -774,9 +754,12 @@ function orbitHero() {
         q.L.setAttribute('transform', `translate(${right ? 11 : -11} ${y < 0 ? -16 : 15})`); for (const c of q.L.children) c.setAttribute('text-anchor', anchor);
         q.n.classList.toggle('back', z < -o.r * .25);
         // the picture inside a stilled orbit travels with its piece as the ring revolves, so it moves with the circles
-        // the dotted line to the centre stops short of the mark drawn there
-        const dl = Math.hypot(x, y) || 1, s0 = Math.min(.92, 84 / dl);
-        q.sp.setAttribute('x1', (C + x * s0).toFixed(1)); q.sp.setAttribute('y1', (C + y * s0).toFixed(1)); q.sp.setAttribute('x2', (C + x).toFixed(1)); q.sp.setAttribute('y2', (C + y).toFixed(1)); q.sp.classList.toggle('on', focus?.n === q.n);
+        if (focus?.n === q.n) { const [ux, uy] = rot(1, 0, 0, o.tx + lean[1], ay, o.tz), [vx, vy] = rot(0, 1, 0, o.tx + lean[1], ay, o.tz);
+          // the picture starts upright on screen, then turns with its piece; seen from behind, it doesn't read mirrored
+          if (focus.a0 == null) focus.a0 = a - Math.atan2(-uy, vy);
+          winPlane.setAttribute('transform', `matrix(${ux.toFixed(4)} ${uy.toFixed(4)} ${vx.toFixed(4)} ${vy.toFixed(4)} ${C} ${C})`);
+          winSpin.setAttribute('transform', `rotate(${((a - focus.a0) * 180 / Math.PI).toFixed(2)})${ux * vy - vx * uy < 0 ? ' scale(-1 1)' : ''}`); }
+        q.sp.setAttribute('x1', C); q.sp.setAttribute('y1', C); q.sp.setAttribute('x2', (C + x).toFixed(1)); q.sp.setAttribute('y2', (C + y).toFixed(1)); q.sp.classList.toggle('on', focus?.n === q.n);
         const lx = right ? x + 11 : x - 11 - q.w, ly = y < 0 ? y - 26 : y + 5; q.box = [C + lx, C + ly, C + lx + q.w, C + ly + 14]; q.z = z / o.r; }); });
     const taken = [[C - 40, C - 40, C + 40, C + 48], [C + 4, C - R - 18, C + 60, C - R - 2], [C + 4, C + R + 2, C + 76, C + R + 18], [C - R - 70, C - 20, C - R - 4, C - 2], [C + R + 4, C - 20, C + R + 56, C - 2]], hit = (a, b) => a[0] < b[2] + 4 && a[2] > b[0] - 4 && a[1] < b[3] + 2 && a[3] > b[1] - 2;
     all.slice().sort((a, b) => (focus?.n === b.n) - (focus?.n === a.n) || a.quiet - b.quiet || b.z - a.z).forEach(q => { const clash = focus?.n !== q.n && taken.some(b => hit(q.box, b)); q.n.classList.toggle('hush', clash); if (!clash) taken.push(q.box); });
@@ -812,7 +795,7 @@ function orbitHero() {
   setTimeout(play, 2400);
   svg.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') { focus?.off(); setTimeout(play, 1200); } });
   // fetch the pictures ahead, so the window opens at once
-  requestIdleCallback?.(() => Object.values(LOGO).forEach(loadLogo));
+  requestIdleCallback?.(() => ORB.forEach(o => o.pts.forEach(([id]) => { new Image().src = pic(id, o); })));
   // one corner note: where
   return svg;
 }
@@ -947,7 +930,7 @@ if (themeBtn) {
   markTheme(docEl.dataset.theme);
   themeBtn.onclick = () => {
     const t = docEl.dataset.theme === 'dark' ? 'light' : 'dark';
-    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme-v3', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
+    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme-v2', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
     window.portfolioSound?.dusk(t === 'dark');
     if (RM || !document.startViewTransition) return apply();
     const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
