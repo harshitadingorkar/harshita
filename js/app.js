@@ -930,7 +930,7 @@ if (themeBtn) {
   markTheme(docEl.dataset.theme);
   themeBtn.onclick = () => {
     const t = docEl.dataset.theme === 'dark' ? 'light' : 'dark';
-    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme-v2', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
+    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme-v3', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
     window.portfolioSound?.dusk(t === 'dark');
     if (RM || !document.startViewTransition) return apply();
     const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
