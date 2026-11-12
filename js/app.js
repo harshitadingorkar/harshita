@@ -726,7 +726,7 @@ function orbitHero() {
     if (!grown) { born = born || now; const k = Math.min(1, (now - born) / 1900), e = ease(k);
       g.setAttribute('transform', `translate(${C} ${C}) scale(${(.55 + .45 * e).toFixed(4)}) rotate(${(-38 * (1 - e)).toFixed(2)}) translate(${-C} ${-C})`); g.style.opacity = Math.min(1, k * 2.2).toFixed(3);
       t += dt * 2.4 * (1 - e); if (k >= 1) { grown = true; g.removeAttribute('transform'); svg.classList.add('grown'); } }
-    speed += ((focus ? .12 : 1) - speed) * .06; t += dt * speed * .6; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] - lean[1]) * .05;
+    speed += ((focus ? .42 : 1) - speed) * .06; t += dt * speed * .6; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] - lean[1]) * .05;
     const spin = t * .08 + lean[0];
     meridians.forEach((p, i) => p.setAttribute('d', ring(R, Math.PI / 2, 0, spin + i * Math.PI / 3)));
     lats.forEach((p, i) => { const y0 = [-.55, 0, .55][i] * R, rr = Math.sqrt(R * R - y0 * y0); let d = ''; for (let k = 0; k <= 72; k++) { const a = k / 72 * Math.PI * 2; let [x, y] = rot(Math.cos(a) * rr, y0, Math.sin(a) * rr, lean[1] * .6 - .32, 0, 0); d += (k ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } p.setAttribute('d', d); });
@@ -741,6 +741,8 @@ function orbitHero() {
         const edge = Math.abs(x) > R * .45, right = edge ? x < 0 : x >= 0, anchor = right ? 'start' : 'end';
         q.L.setAttribute('transform', `translate(${right ? 11 : -11} ${y < 0 ? -16 : 15})`); for (const c of q.L.children) c.setAttribute('text-anchor', anchor);
         q.n.classList.toggle('back', z < -o.r * .25);
+        // the picture inside a stilled orbit travels with its piece as the ring revolves, so it moves with the circles
+        if (focus?.n === q.n) winImg.setAttribute('transform', `translate(${(C + x * .5).toFixed(1)} ${(C + y * .5).toFixed(1)}) rotate(${(Math.atan2(y, x) * 180 / Math.PI * .08).toFixed(2)}) scale(1.46) translate(${-C} ${-C})`);
         q.sp.setAttribute('x1', C); q.sp.setAttribute('y1', C); q.sp.setAttribute('x2', (C + x).toFixed(1)); q.sp.setAttribute('y2', (C + y).toFixed(1)); q.sp.classList.toggle('on', focus?.n === q.n);
         const lx = right ? x + 11 : x - 11 - q.w, ly = y < 0 ? y - 26 : y + 5; q.box = [C + lx, C + ly, C + lx + q.w, C + ly + 14]; q.z = z / o.r; }); });
     const taken = [[C - 40, C - 40, C + 40, C + 48], [C + 4, C - R - 18, C + 60, C - R - 2], [C + 4, C + R + 2, C + 76, C + R + 18], [C - R - 70, C - 20, C - R - 4, C - 2], [C + R + 4, C - 20, C + R + 56, C - 2]], hit = (a, b) => a[0] < b[2] + 4 && a[2] > b[0] - 4 && a[1] < b[3] + 2 && a[3] > b[1] - 2;
