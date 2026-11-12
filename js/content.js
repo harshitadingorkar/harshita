@@ -6,9 +6,9 @@ window.SITE = {
     intro: 'I design agentic AI that works alongside sellers and revenue teams, at {Salesloft}.',
     index: 'A personal index of things I make and keep.',
     // the opening, after raghavsharma.work: what I'm on now, how I usually work, before
-    now: 'Currently designing agentic AI for sellers and revenue teams at Salesloft.',
+    now: 'Designing revenue agents at Salesloft, and how people work alongside them.',
     usually: 'Usually in enterprise AI, from the first sketch to the code.',
-    before: 'Previously worked at HPE and Nutanix, and with GitHub and Sony.',
+    before: 'Before: GitHub, Sony, HPE, Nutanix.',
     email: 'harshitashyale@gmail.com',
     // the note on the site posts here (FormSubmit: the first note sends a one-time confirmation to this inbox)
     form: 'https://formsubmit.co/ajax/harshitashyale@gmail.com',
@@ -95,8 +95,7 @@ window.SITE = {
       alt: 'Sir Wobblefoot: a small hand-built bowl in a deep oxblood glaze, standing on two sculpted feet with toes.' },
     { id: 'door', type: 'making', title: 'The door’s open', org: 'what I’m working on now', year: '', meta: 'working with the door open', hint: 'what I’m working on now, a line at a time', quad: 'tl', x: -.3, y: .14, tags: ['writing'], kind: 'door',
       line: 'What I’m working on right now, a line at a time, before it’s finished.' },
-    { id: 'writing', type: 'writing', title: 'Writing', org: 'notes to myself, in public', year: '2026', meta: 'dated notes, with comments', hint: 'notes to myself, dated, with my later notes and your comments underneath', quad: 'br', x: .62, y: -.22, tags: ['writing'], kind: 'writing',
-      line: 'Notes to myself, in public. Each is dated when I wrote it; I come back and leave a note underneath, and you can comment too.' },
+    // writing stays on the site at /writing, but off the map: it's for me
   ],
   theatre: [['theatre-1.jpg', 1.5, 'Searching for a Lullaby'], ['theatre-2.jpg', 1.5, 'You’re all Mime'], ['theatre-3.jpg', 2.2, 'National level win'], ['theatre-4.jpg', 1.5, ''], ['theatre-5.jpg', 1, '']],
   odds: Array.from({ length: 13 }, (_, i) => 'odds-' + String(i + 1).padStart(2, '0') + '.jpg'),

@@ -24,12 +24,28 @@ const contactLinks = () => { const m = h('button', { type: 'button', class: 'c-m
   return h('p', { class: 'c-links' }, m, h('a', { href: S.person.resume, target: '_blank', rel: 'noopener' }, 'CV'), h('a', { href: S.person.linkedin, target: '_blank', rel: 'noopener' }, 'LinkedIn')); };
 const introLines = () => [
   h('p', { class: 'i-do' }, h('button', { type: 'button', class: 'i-about', 'aria-label': S.person.now + ' About me', onclick: () => ready.then(openProfile) }, wisp(S.person.now), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
-  h('p', { class: 'i-index' }, S.person.index)];
+  h('p', { class: 'i-before' }, S.person.before)];
 $('#intro-lines').replaceChildren(...introLines());
 $('#statement').replaceChildren(...introLines(), contactLinks());
 
 $('.b-role').replaceChildren(h('span', {}, 'Product designer'));
-$('.b-menu').prepend(contactLinks());
+// under the switch: the lights, and a quiet "Contact" that draws its ways up when you reach for it
+const reach = (() => {
+  const items = [['Email', null], ['CV', S.person.resume], ['LinkedIn', S.person.linkedin], ['Instagram', 'https://www.instagram.com/' + S.person.instagram + '/'], ['Are.na', S.person.arena]];
+  const list = h('ul', { class: 'rc-list', id: 'rc-list' }, items.map(([l, href], i) => h('li', { style: '--i:' + i }, href ? h('a', { href, target: '_blank', rel: 'noopener' }, l) : h('button', { type: 'button', onclick: e => compose({ from: e.currentTarget }) }, l))));
+  const btn = h('button', { type: 'button', class: 'rc-btn', 'aria-expanded': 'false', 'aria-controls': 'rc-list' }, 'Contact');
+  const wrap = h('div', { class: 'reach' }, btn, list);
+  let t = 0;
+  const set = v => { if (wrap.classList.contains('open') === v) return; wrap.classList.toggle('open', v); btn.setAttribute('aria-expanded', String(v)); if (v) window.portfolioSound?.flick(); };
+  wrap.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { clearTimeout(t); set(true); } });
+  wrap.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') t = setTimeout(() => set(false), 220); });
+  wrap.addEventListener('focusin', () => set(true));
+  wrap.addEventListener('focusout', () => setTimeout(() => { if (!wrap.contains(document.activeElement)) set(false); }, 0));
+  btn.onclick = () => set(!wrap.classList.contains('open'));
+  addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
+  return wrap;
+})();
+$('.b-menu').append(h('div', { class: 'b-under' }, $('#themeBtn'), reach));
 
 const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
@@ -654,7 +670,7 @@ function orbitHero() {
   const hub = el('g', { class: 'orb-hub', tabindex: 0, role: 'button', 'aria-label': 'About Harshita' });
   // at the very centre, me: a small round portrait, crossed by the plate's lines
   const face = el('clipPath', { id: 'orb-face' }); face.append(el('circle', { cx: C, cy: C, r: 21 })); defs.append(face);
-  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 26 }), el('image', { class: 'orb-me', href: A('me.jpg') + '?h2', x: C - 21, y: C - 21, width: 42, height: 42, 'clip-path': 'url(#orb-face)' }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 21 }), el('line', { x1: C - 30, y1: C, x2: C - 23, y2: C }), el('line', { x1: C + 23, y1: C, x2: C + 30, y2: C }), el('line', { x1: C, y1: C - 30, x2: C, y2: C - 23 }), el('line', { x1: C, y1: C + 23, x2: C, y2: C + 30 }));
+  hub.append(el('circle', { class: 'orb-hit', cx: C, cy: C, r: 26 }), el('circle', { class: 'orb-core', cx: C, cy: C, r: 21 }), el('line', { x1: C - 30, y1: C, x2: C - 23, y2: C }), el('line', { x1: C + 23, y1: C, x2: C + 30, y2: C }), el('line', { x1: C, y1: C - 30, x2: C, y2: C - 23 }), el('line', { x1: C, y1: C + 23, x2: C, y2: C + 30 }));
   const hubL = txt('orb-hubl', C + 26, C + 34, 'me'); hub.append(hubL); g.append(hub);
   hub.addEventListener('pointerenter', () => { hubL.textContent = 'about me →'; svg.classList.add('on-hub'); });
   hub.addEventListener('pointerleave', () => { hubL.textContent = 'me'; svg.classList.remove('on-hub'); });
@@ -684,15 +700,23 @@ function orbitHero() {
       // two lines, like the plate's labels: the subject, and on touch the piece it came from
       const L = el('g', { class: 'orb-lblg' }); L.append(txt('orb-lbl', 0, 0, (TOPIC[id] || p.title).toUpperCase()), txt('orb-sub', 0, 12, p.title)); n.append(L);
       const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
-      const on = () => { if (focus && focus.n !== n) focus.off(); focus = { n, o, sp, off }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on');
+      const on = hand => { if (focus?.n === n) return; if (focus) focus.off(); focus = { n, o, sp, off }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on');
+        if (hand) window.portfolioSound?.pluck(k - 1 + (ph % 1) * .4, .9 - k * .55);
         winImg.setAttribute('href', A('whim/' + id + '.jpg')); win.setAttribute('clip-path', `url(#${o.clipId})`); win.classList.add('on'); };
       const off = () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); win.classList.remove('on'); };
-      n.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') { tour.stop(); on(); } });
+      n.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') { tour.stop(); on(true); } });
       n.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') off(); });
       tour.stops.push({ on, off });
       n.addEventListener('click', e => { e.stopPropagation(); ready.then(() => open(p, n.getBoundingClientRect())); });
       n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); n.dispatchEvent(new MouseEvent('click')); } });
-      nodes.append(n); return { n, L, ph, sp, id, quiet: !!o.quiet, w: (TOPIC[id] || p.title).length * 6.9 }; }).filter(Boolean); });
+      nodes.append(n); return { n, L, ph, sp, id, on, off, quiet: !!o.quiet, w: (TOPIC[id] || p.title).length * 6.9 }; }).filter(Boolean);
+    // the whole orbit catches the hand, not only its dots: touching the ring wakes the piece nearest the pointer
+    o.hitPath = el('path', { class: 'orb-ring-hit' }); rings.prepend(o.hitPath);
+    o.hitPath.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; tour.stop(); const r = svg.getBoundingClientRect(), x = e.clientX, y = e.clientY;
+      const near = o.nodes.map(q => { const b = q.n.getBoundingClientRect(); return [Math.hypot(b.left + b.width / 2 - x, b.top + b.height / 2 - y), q]; }).sort((a, b) => a[0] - b[0])[0]; if (near) near[1].on(true); });
+    o.hitPath.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch' && focus?.o === o && !e.relatedTarget?.closest?.('.orb-pt')) focus.off(); });
+    o.hitPath.addEventListener('click', e => { e.stopPropagation(); const q = focus?.o === o && o.nodes.find(q => q.n === focus.n); if (q) ready.then(() => open(W(q.id), q.n.getBoundingClientRect())); });
+  });
   const all = ORB.flatMap(o => o.nodes);
   let t = 0, last = 0, speed = 1, lean = [0, 0], want = [0, 0], raf = 0, seen = true, born = 0, grown = RM;
   const ease = x => 1 - Math.pow(1 - x, 4);
@@ -708,7 +732,7 @@ function orbitHero() {
     lats.forEach((p, i) => { const y0 = [-.55, 0, .55][i] * R, rr = Math.sqrt(R * R - y0 * y0); let d = ''; for (let k = 0; k <= 72; k++) { const a = k / 72 * Math.PI * 2; let [x, y] = rot(Math.cos(a) * rr, y0, Math.sin(a) * rr, lean[1] * .6 - .32, 0, 0); d += (k ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } p.setAttribute('d', d); });
     flats.forEach(f => f.dots.forEach(q => { const a = q.ph + t * f.v; q.c.setAttribute('cx', (C + Math.cos(a) * f.rx).toFixed(1)); q.c.setAttribute('cy', (C + Math.sin(a) * f.ry).toFixed(1)); }));
     ORB.forEach(o => { const ay = spin * .4, pos = a => rot(Math.cos(a) * o.r, Math.sin(a) * o.r, 0, o.tx + lean[1], ay, o.tz);
-      const rd = ring(o.r, o.tx, o.tz, ay); o.path.setAttribute('d', rd); if (focus?.o === o) o.clip.setAttribute('d', rd);
+      const rd = ring(o.r, o.tx, o.tz, ay); o.path.setAttribute('d', rd); o.hitPath.setAttribute('d', rd); if (focus?.o === o) o.clip.setAttribute('d', rd);
       const a0 = t * o.v * 6 + 1.6, [ax, ay2] = pos(a0), [bx, by] = pos(a0 + Math.sign(o.v) * .05);
       o.arrow.setAttribute('transform', `translate(${(C + ax).toFixed(1)} ${(C + ay2).toFixed(1)}) rotate(${(Math.atan2(by - ay2, bx - ax) * 180 / Math.PI).toFixed(1)})`);
       o.nodes.forEach(q => { const a = q.ph + t * o.v * 6; const [x, y, z] = pos(a);
@@ -734,7 +758,10 @@ function orbitHero() {
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
-  if (matchMedia('(hover: none)').matches && !RM) setTimeout(() => { tour.timer = setInterval(() => { if (document.hidden || !seen) return; const s = tour.stops; s[(tour.i + s.length) % s.length]?.off(); tour.i = (tour.i + 1) % s.length; s[tour.i].on(); }, 3600); }, 2400);
+  // nobody touching it: the drawing plays its pictures one after another, like a slow film; a hand takes over, and when it leaves the film goes on
+  const play = () => { if (RM || tour.timer) return; tour.timer = setInterval(() => { if (document.hidden || !seen) return; const s = tour.stops; tour.i = (tour.i + 1) % s.length; s[tour.i].on(); }, 3600); };
+  setTimeout(play, 2400);
+  svg.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') { focus?.off(); setTimeout(play, 1200); } });
   // fetch the pictures ahead, so the window opens at once
   requestIdleCallback?.(() => Object.keys(TOPIC).forEach(id => { new Image().src = A('whim/' + id + '.jpg'); }));
   // one corner note: where
@@ -793,10 +820,9 @@ function buildIndex(ix) {
       h('figure', { class: 'wk-hero' }, orbitHero()),
       h('div', { class: 'wk-c bl' }, h('h1', { class: 'wk-lede' }, h('button', { type: 'button', class: 'wk-about', 'aria-label': S.person.now + ' About me', onclick: () => ready.then(openProfile) }, wisp(S.person.now), h('span', { class: 'wk-arrow', 'aria-hidden': 'true' }, h('i'), h('b')))),
         h('p', { class: 'wk-before' }, S.person.before),
-        // a small way down to the work, so nobody has to guess that it's there
-      h('button', { type: 'button', class: 'wk-cue', onclick: () => { const t = $('.wk-neel', ix); window.portfolioSound?.pat(); ix.scrollTo({ top: t.offsetTop - (mobile() ? 64 : 40), behavior: RM ? 'auto' : 'smooth' }); } }, h('span', {}, 'Selected work'), h('i', { 'aria-hidden': 'true' }))),
-      h('div', { class: 'wk-c br' }, contactLinks())),
-    h('section', { class: 'wk-sec wk-neel' }, h('h2', { class: 'wk-lab' }, 'Selected work', h('span', {}, String(work.length).padStart(2, '0'))), neel(work, ix)),
+),
+),
+    h('section', { class: 'wk-sec wk-neel', 'aria-label': 'Work' }, neel(work, ix)),
     h('section', { class: 'wk-sec wk-off' }, h('h2', { class: 'wk-lab' }, 'Off the clock'), lately,
       // the resemblance field (kinField) rests until there's more work to arrange
       h('p', { class: 'wk-offline' }, 'Theatre, films, clay, and collections of things worth keeping live on the map.', toMap('Go play →')))));
@@ -869,7 +895,7 @@ if (themeBtn) {
   markTheme(docEl.dataset.theme);
   themeBtn.onclick = () => {
     const t = docEl.dataset.theme === 'dark' ? 'light' : 'dark';
-    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
+    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme-v2', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
     window.portfolioSound?.dusk(t === 'dark');
     if (RM || !document.startViewTransition) return apply();
     const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
