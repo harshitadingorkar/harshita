@@ -8,6 +8,10 @@ head = re.search(r'<head>(.*?)</head>', src, re.S).group(1)
 body = re.search(r'<body[^>]*>(.*?)</body>', src, re.S).group(1)
 head = re.sub(r'<meta charset[^>]*>\s*|<meta name="viewport"[^>]*>\s*', '', head)
 head = re.sub(r'<title>.*?</title>', '<title>what Harshita keeps &amp; makes</title>', head, flags=re.S)
+# Mirror-only trials (kept out of git): .artifact/trial-*.js load at the end of the head, after the site's styles.
+import glob
+for f in sorted(glob.glob('.artifact/trial-*.js')):
+    head += '\n<script src="' + os.path.basename(f) + '"></script>'
 page = head.strip() + '\n' + body.strip() + '\n'
 # the live site stamps its CSS/JS links with ?v= to beat browser caches; the mirror serves plain paths
 page = re.sub(r'\?v=\d+"', '"', page)
