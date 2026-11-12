@@ -657,7 +657,10 @@ function orbitHero() {
   const svg = el('svg', { viewBox: `0 0 ${S0} ${S0}`, class: 'orb', role: 'img', 'aria-label': 'The subjects I work in, drawn as an orbit diagram: product work on the near orbits, the rest of me on the outer one. Work at the top, wonder at the bottom, gather on the left, make on the right.' });
   const plate = el('g', { class: 'orb-plate' }), g = el('g'), wire = el('g', { class: 'orb-wire' }), rings = el('g', { class: 'orb-rings' }), spokes = el('g', { class: 'orb-spokes' }), nodes = el('g', { class: 'orb-nodes' }), inner = el('g', { class: 'orb-inner' });
   // when a piece is touched and its orbit stills, the inside of that orbit opens like a window onto a picture of mine
-  const defs = el('defs'), win = el('g', { class: 'orb-win' }), winImg = el('image', { x: 0, y: 0, width: S0, height: S0, preserveAspectRatio: 'xMidYMid slice' }); win.append(winImg);
+  // the picture is laid on the orbit's own disc: it tilts, turns and spins in 3D with the ring, as if printed on it
+  const defs = el('defs'), win = el('g', { class: 'orb-win' }), winPlane = el('g'), winSpin = el('g'), winImg = el('image', { preserveAspectRatio: 'xMidYMid slice', 'clip-path': 'url(#orb-disc)' });
+  winSpin.append(winImg); winPlane.append(winSpin); win.append(winPlane);
+  const disc = el('clipPath', { id: 'orb-disc', clipPathUnits: 'objectBoundingBox' }); disc.append(el('circle', { cx: .5, cy: .5, r: .5 })); defs.append(disc);
   svg.append(defs, plate, el('circle', { class: 'orb-rim', cx: C, cy: C, r: R }), g); g.append(wire, win, inner, rings, spokes, nodes);
   // the plate: dotted cross and diagonals, ticks, the map's two axes named at the rim
   for (const [x1, y1, x2, y2] of [[C - R, C, C + R, C], [C, C - R, C, C + R]]) plate.append(el('line', { class: 'orb-dots', x1, y1, x2, y2 }));
@@ -678,6 +681,7 @@ function orbitHero() {
   hub.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ready.then(openProfile); } });
   // orbits: radius, tilt about x, tilt about z, speed; nodes sit on them by phase
   const W = id => S.points.find(p => p.id === id);
+  const pic = (id, o) => { const p = W(id); return o.quiet || !p ? A('whim/' + id + '.jpg') : A((p.still || p.img).replace(/^assets\//, '')); };
   const ORB = [
     { r: 138, tx: .82, tz: -.3, v: .05, pts: [['influence', 0], ['github', 3.1]] },
     { r: 206, tx: 1.02, tz: .5, v: -.035, pts: [['sony', .8], ['hpe', 2.9], ['safe', 5.0]] },
@@ -702,7 +706,9 @@ function orbitHero() {
       const sp = el('line', { class: 'orb-spoke' }); spokes.append(sp);
       const on = hand => { if (focus?.n === n) return; if (focus) focus.off(); focus = { n, o, sp, off }; svg.classList.add('focus'); n.classList.add('on'); o.path.classList.add('on');
         if (hand) window.portfolioSound?.pluck(k - 1 + (ph % 1) * .4, .9 - k * .55);
-        winImg.setAttribute('href', A('whim/' + id + '.jpg')); win.setAttribute('clip-path', `url(#${o.clipId})`); win.classList.add('on'); };
+        // product work shows the work itself; the outer orbit, the rest of my life, keeps its own pictures
+        winImg.setAttribute('href', pic(id, o)); for (const [k2, v2] of [['x', -o.r], ['y', -o.r], ['width', 2 * o.r], ['height', 2 * o.r]]) winImg.setAttribute(k2, v2);
+        focus.a0 = null; win.classList.add('on'); };
       const off = () => { if (focus?.n === n) focus = null; svg.classList.remove('focus'); n.classList.remove('on'); o.path.classList.remove('on'); win.classList.remove('on'); };
       n.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') { tour.stop(); on(true); } });
       n.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') off(); });
@@ -719,6 +725,8 @@ function orbitHero() {
   });
   const all = ORB.flatMap(o => o.nodes);
   let t = 0, last = 0, speed = 1, lean = [0, 0], want = [0, 0], raf = 0, seen = true, born = 0, grown = RM;
+  // the hand: drag the sphere to spin it either way, or press and hold to wind it up; it coasts on after you let go
+  let spinD = 0, velS = 0, tiltD = 0, grip = null, swallow = false;
   const ease = x => 1 - Math.pow(1 - x, 4);
   const ring = (rr, tx, tz, ay, steps = 96) => { let d = ''; for (let i = 0; i <= steps; i++) { const a = i / steps * Math.PI * 2; const [x, y] = rot(Math.cos(a) * rr, Math.sin(a) * rr, 0, tx + lean[1], ay, tz); d += (i ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } return d; };
   const frame = now => {
@@ -726,12 +734,16 @@ function orbitHero() {
     if (!grown) { born = born || now; const k = Math.min(1, (now - born) / 1900), e = ease(k);
       g.setAttribute('transform', `translate(${C} ${C}) scale(${(.55 + .45 * e).toFixed(4)}) rotate(${(-38 * (1 - e)).toFixed(2)}) translate(${-C} ${-C})`); g.style.opacity = Math.min(1, k * 2.2).toFixed(3);
       t += dt * 2.4 * (1 - e); if (k >= 1) { grown = true; g.removeAttribute('transform'); svg.classList.add('grown'); } }
-    speed += ((focus ? .42 : 1) - speed) * .06; t += dt * speed * .6; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] - lean[1]) * .05;
-    const spin = t * .08 + lean[0];
+    speed += ((focus ? .42 : 1) - speed) * .06; t += dt * speed * .6;
+    if (grip && !grip.moved && now - grip.t > 220) { grip.wound = true; svg.classList.add('spinning'); velS += (grip.dir * 2.6 - velS) * Math.min(1, dt * 2.2); }
+    else if (!grip?.moved) velS *= Math.pow(.22, dt);
+    if (!grip?.moved) { spinD += velS * dt; t += velS * .9 * dt; tiltD *= Math.pow(.35, dt); }
+    const lk = grip?.moved ? .25 : .05; lean[0] += (want[0] - lean[0]) * .05; lean[1] += (want[1] + tiltD - lean[1]) * lk;
+    const base = t * .08 + lean[0], spin = base + spinD;
     meridians.forEach((p, i) => p.setAttribute('d', ring(R, Math.PI / 2, 0, spin + i * Math.PI / 3)));
     lats.forEach((p, i) => { const y0 = [-.55, 0, .55][i] * R, rr = Math.sqrt(R * R - y0 * y0); let d = ''; for (let k = 0; k <= 72; k++) { const a = k / 72 * Math.PI * 2; let [x, y] = rot(Math.cos(a) * rr, y0, Math.sin(a) * rr, lean[1] * .6 - .32, 0, 0); d += (k ? 'L' : 'M') + (C + x).toFixed(1) + ' ' + (C + y).toFixed(1); } p.setAttribute('d', d); });
     flats.forEach(f => f.dots.forEach(q => { const a = q.ph + t * f.v; q.c.setAttribute('cx', (C + Math.cos(a) * f.rx).toFixed(1)); q.c.setAttribute('cy', (C + Math.sin(a) * f.ry).toFixed(1)); }));
-    ORB.forEach(o => { const ay = spin * .4, pos = a => rot(Math.cos(a) * o.r, Math.sin(a) * o.r, 0, o.tx + lean[1], ay, o.tz);
+    ORB.forEach(o => { const ay = base * .4 + spinD, pos = a => rot(Math.cos(a) * o.r, Math.sin(a) * o.r, 0, o.tx + lean[1], ay, o.tz);
       const rd = ring(o.r, o.tx, o.tz, ay); o.path.setAttribute('d', rd); o.hitPath.setAttribute('d', rd); if (focus?.o === o) o.clip.setAttribute('d', rd);
       const a0 = t * o.v * 6 + 1.6, [ax, ay2] = pos(a0), [bx, by] = pos(a0 + Math.sign(o.v) * .05);
       o.arrow.setAttribute('transform', `translate(${(C + ax).toFixed(1)} ${(C + ay2).toFixed(1)}) rotate(${(Math.atan2(by - ay2, bx - ax) * 180 / Math.PI).toFixed(1)})`);
@@ -742,7 +754,11 @@ function orbitHero() {
         q.L.setAttribute('transform', `translate(${right ? 11 : -11} ${y < 0 ? -16 : 15})`); for (const c of q.L.children) c.setAttribute('text-anchor', anchor);
         q.n.classList.toggle('back', z < -o.r * .25);
         // the picture inside a stilled orbit travels with its piece as the ring revolves, so it moves with the circles
-        if (focus?.n === q.n) winImg.setAttribute('transform', `translate(${(C + x * .5).toFixed(1)} ${(C + y * .5).toFixed(1)}) rotate(${(Math.atan2(y, x) * 180 / Math.PI * .08).toFixed(2)}) scale(1.46) translate(${-C} ${-C})`);
+        if (focus?.n === q.n) { const [ux, uy] = rot(1, 0, 0, o.tx + lean[1], ay, o.tz), [vx, vy] = rot(0, 1, 0, o.tx + lean[1], ay, o.tz);
+          // the picture starts upright on screen, then turns with its piece; seen from behind, it doesn't read mirrored
+          if (focus.a0 == null) focus.a0 = a - Math.atan2(-uy, vy);
+          winPlane.setAttribute('transform', `matrix(${ux.toFixed(4)} ${uy.toFixed(4)} ${vx.toFixed(4)} ${vy.toFixed(4)} ${C} ${C})`);
+          winSpin.setAttribute('transform', `rotate(${((a - focus.a0) * 180 / Math.PI).toFixed(2)})${ux * vy - vx * uy < 0 ? ' scale(-1 1)' : ''}`); }
         q.sp.setAttribute('x1', C); q.sp.setAttribute('y1', C); q.sp.setAttribute('x2', (C + x).toFixed(1)); q.sp.setAttribute('y2', (C + y).toFixed(1)); q.sp.classList.toggle('on', focus?.n === q.n);
         const lx = right ? x + 11 : x - 11 - q.w, ly = y < 0 ? y - 26 : y + 5; q.box = [C + lx, C + ly, C + lx + q.w, C + ly + 14]; q.z = z / o.r; }); });
     const taken = [[C - 40, C - 40, C + 40, C + 48], [C + 4, C - R - 18, C + 60, C - R - 2], [C + 4, C + R + 2, C + 76, C + R + 18], [C - R - 70, C - 20, C - R - 4, C - 2], [C + R + 4, C - 20, C + R + 56, C - 2]], hit = (a, b) => a[0] < b[2] + 4 && a[2] > b[0] - 4 && a[1] < b[3] + 2 && a[3] > b[1] - 2;
@@ -757,6 +773,20 @@ function orbitHero() {
     const inside = Math.hypot(x - C, y - C) < R + 10 && free(e); svg.classList.toggle('maphint', inside); if (inside) hint.setAttribute('transform', `translate(${(x + 14).toFixed(1)} ${(y + 22).toFixed(1)})`); }, { passive: true });
   svg.addEventListener('pointerleave', () => { want = [0, 0]; svg.classList.remove('maphint'); });
   svg.addEventListener('click', e => { const [x, y] = pt(e); if (free(e) && Math.hypot(x - C, y - C) < R + 10) toggleIndex(false); });
+  // hold it and it winds up, turning the way of the side you hold (right half one way, left the other); drag it and it
+  // follows the hand, sideways to spin, up and down to tip it; let go and it coasts back to its own slow turn
+  svg.style.touchAction = 'pan-y';
+  svg.addEventListener('pointerdown', e => { if (e.button) return; const [x, y] = pt(e); if (Math.hypot(x - C, y - C) > R + 20) return;
+    tour.stop(); grip = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, lt: e.timeStamp, t: performance.now(), id: e.pointerId, moved: false, wound: false, dir: Math.abs(x - C) < 24 ? (Math.sign(velS) || 1) : Math.sign(x - C) }; });
+  addEventListener('pointermove', e => { if (!grip || e.pointerId !== grip.id) return;
+    const k = S0 / svg.getBoundingClientRect().width, dx = (e.clientX - grip.lx) * k, dy = (e.clientY - grip.ly) * k, dtm = Math.max(.008, (e.timeStamp - grip.lt) / 1000);
+    grip.lx = e.clientX; grip.ly = e.clientY; grip.lt = e.timeStamp;
+    if (!grip.moved && Math.hypot(e.clientX - grip.x, e.clientY - grip.y) > 5) { grip.moved = true; svg.classList.add('spinning'); try { svg.setPointerCapture(e.pointerId); } catch {} }
+    if (!grip.moved) return;
+    const ds = dx * Math.PI / 520; spinD += ds; t += ds * 1.4; velS = velS * .55 + ds / dtm * .45; tiltD = Math.max(-.7, Math.min(.7, tiltD + dy * .004)); }, { passive: true });
+  const letGo = e => { if (!grip || e.pointerId !== grip.id) return; if (grip.moved || grip.wound) swallow = true; if (grip.moved && e.timeStamp - grip.lt > 90) velS *= .2; grip = null; svg.classList.remove('spinning'); setTimeout(() => { swallow = false; }, 0); };
+  addEventListener('pointerup', letGo); addEventListener('pointercancel', e => { if (grip && e.pointerId === grip.id) { grip = null; svg.classList.remove('spinning'); } });
+  svg.addEventListener('click', e => { if (swallow) { e.stopPropagation(); e.preventDefault(); swallow = false; } }, true);
   // only turn while it's on screen
   new IntersectionObserver(es => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(frame); }).observe(svg);
   if (RM) { requestAnimationFrame(frame); seen = false; } else raf = requestAnimationFrame(frame);
@@ -765,7 +795,7 @@ function orbitHero() {
   setTimeout(play, 2400);
   svg.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') { focus?.off(); setTimeout(play, 1200); } });
   // fetch the pictures ahead, so the window opens at once
-  requestIdleCallback?.(() => Object.keys(TOPIC).forEach(id => { new Image().src = A('whim/' + id + '.jpg'); }));
+  requestIdleCallback?.(() => ORB.forEach(o => o.pts.forEach(([id]) => { new Image().src = pic(id, o); })));
   // one corner note: where
   return svg;
 }

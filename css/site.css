@@ -2274,3 +2274,7 @@ a.nl-org:hover{color:var(--ink)}
 .c-toc{left:0;right:auto;top:50%;transform:translateY(-50%);width:calc(50% - 470px);max-width:none;justify-content:center;justify-items:start;padding:0 24px}
 @media (max-width:1279px){.c-toc{display:none}}
 .orb-win image{transition:none}
+/* Round 57: the sphere answers the hand. Held, it winds up; dragged, it spins and tips; the picture rides its orbit's disc */
+.orb.spinning{cursor:grabbing}
+.orb.spinning .orb-hint{opacity:0!important}
+.orb-win image{transition:none}
