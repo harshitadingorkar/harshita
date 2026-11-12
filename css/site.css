@@ -2270,3 +2270,6 @@ a.nl-org:hover{color:var(--ink)}
 .rc-btn{padding-right:16px!important}
 .reach .rc-list{padding-right:16px}
 .b-under #themeBtn{margin-right:12px}
+/* the case's contents sit close beside the text, centred in the height of the screen, not pinned to the far edge */
+.c-toc{left:0;right:auto;top:50%;transform:translateY(-50%);width:calc(50% - 470px);max-width:none;justify-content:center;justify-items:start;padding:0 24px}
+@media (max-width:1279px){.c-toc{display:none}}
