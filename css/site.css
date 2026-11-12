@@ -2241,3 +2241,7 @@ body.show-index .b-under #themeBtn{visibility:hidden}
 .orb-ring-hit{fill:none;stroke:transparent;stroke-width:16;pointer-events:stroke;cursor:pointer;vector-effect:non-scaling-stroke}
 .orb-rings{pointer-events:none}.orb-rings .orb-ring-hit{pointer-events:stroke}
 .orb-hub .orb-core{stroke-opacity:.8}
+/* the company beside each piece: a small mark in the text's colour, and a link out */
+a.nl-org{display:inline-flex;align-items:center;gap:7px;color:var(--ink2);text-decoration:none;transition:color .2s ease}
+a.nl-org:hover{color:var(--ink)}
+.org-mark{display:inline-block;width:15px;height:15px;background:currentColor;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}

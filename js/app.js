@@ -777,6 +777,10 @@ const TRIO = {
   influence: ['cases/salesloft/deal-map-screens.jpg', 'cases/salesloft/moments/01-catch-up.jpg', 'cases/salesloft/moments/03-new-exec.jpg'],
   github: ['github.jpg', 'github-02.jpg', 'github-04.jpg'],
 };
+// where each piece was made, with a small mark of the company in the text's own colour, linking out
+const ORGS = { Salesloft: ['salesloft', 'https://www.salesloft.com/'], GitHub: ['github', 'https://github.com/'], Sony: ['sony', 'https://www.sony.com/'], 'Hewlett Packard Enterprise': ['hpe', 'https://www.hpe.com/'], 'UW + UW Medicine': [null, 'https://www.uwmedicine.org/'] };
+const orgTag = p => { const [logo, href] = ORGS[p.org] || []; const name = p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org;
+  return href ? h('a', { class: 'nl-org', href, target: '_blank', rel: 'noopener' }, logo ? h('i', { class: 'org-mark', style: `-webkit-mask-image:url(assets/logos/${logo}.svg);mask-image:url(assets/logos/${logo}.svg)`, 'aria-hidden': 'true' }) : null, name) : h('span', { class: 'nl-org' }, name); };
 function neel(work, ix) {
   const org = p => p.org === 'Hewlett Packard Enterprise' ? 'HPE' : p.org;
   // the rect is read at the click, while the picture is still where the hand found it
@@ -787,7 +791,7 @@ function neel(work, ix) {
     const pics = TRIO[p.id] || [p.img], big = pics[0];
     const bigMedia = p.video && !RM && i === 0 ? h('video', { src: A(p.video), poster: A(big), muted: '', loop: '', playsinline: '', autoplay: '', preload: 'metadata', 'aria-hidden': 'true' }) : h('img', { src: A(big), alt: p.alt || p.title, loading: i < 2 ? 'eager' : 'lazy' });
     return h('article', { class: 'nl-item', id: 'nl-' + p.id },
-      h('header', { class: 'nl-head' }, h('h3', {}, p.title), h('span', { class: 'nl-org' }, org(p)), h('span', { class: 'nl-year' }, p.year)),
+      h('header', { class: 'nl-head' }, h('h3', {}, p.title), orgTag(p), h('span', { class: 'nl-year' }, p.year)),
       h('div', { class: 'nl-pics n' + pics.length },
         h('button', { type: 'button', class: 'nl-big pt-row', 'aria-label': 'Open ' + p.title, onclick: go(p) }, bigMedia),
         pics.length > 1 ? h('div', { class: 'nl-small' }, pics.slice(1).map(f => h('button', { type: 'button', class: 'pt-row', 'aria-label': 'Open ' + p.title, onclick: go(p) }, h('img', { src: A(f), alt: '', loading: 'lazy' })))) : null),
