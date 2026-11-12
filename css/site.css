@@ -2245,3 +2245,19 @@ body.show-index .b-under #themeBtn{visibility:hidden}
 a.nl-org{display:inline-flex;align-items:center;gap:7px;color:var(--ink2);text-decoration:none;transition:color .2s ease}
 a.nl-org:hover{color:var(--ink)}
 .org-mark{display:inline-block;width:15px;height:15px;background:currentColor;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+/* the right column reads as one stack: the switch, then Contact set exactly like its words, then the lights.
+   Contact's ways open in place, so the lights step down to make room rather than being covered. */
+.b-under{flex-direction:column;align-items:flex-end;gap:10px}
+.reach{display:grid;justify-items:end}
+.rc-btn{padding:3px 11px 4px!important;font:13px/18.85px var(--sans)!important;color:var(--ink2)!important;text-decoration:none!important;transition:color .25s ease,letter-spacing .4s ease}
+.rc-btn:hover,.reach.open .rc-btn{color:var(--ink)!important;letter-spacing:.02em}
+.rc-list{position:static;display:grid;grid-template-rows:0fr;padding:0 11px 0 0;transition:grid-template-rows .45s cubic-bezier(.16,1,.3,1)}
+.rc-list>li:first-child{margin-top:2px}
+.reach.open .rc-list{grid-template-rows:1fr}
+.rc-list{min-height:0;overflow:hidden}
+.reach .rc-list{display:grid;grid-auto-rows:min-content}
+.b-under #themeBtn{margin-right:7px;transition:transform .5s cubic-bezier(.34,1.56,.64,1),color .2s ease}
+.b-under #themeBtn:hover{transform:rotate(-14deg) scale(1.12)}
+.b-under #themeBtn:active{transform:scale(.86)}
+.reach .rc-list{display:grid;grid-template-rows:none;max-height:0;transition:max-height .5s cubic-bezier(.16,1,.3,1)}
+.reach.open .rc-list{max-height:240px}

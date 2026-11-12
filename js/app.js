@@ -45,7 +45,7 @@ const reach = (() => {
   addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
   return wrap;
 })();
-$('.b-menu').append(h('div', { class: 'b-under' }, $('#themeBtn'), reach));
+$('.b-menu').append(h('div', { class: 'b-under' }, reach, $('#themeBtn')));
 
 const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
@@ -92,7 +92,7 @@ function buildPlane() {
   if (mobile()) return buildMobile();
   plane.append(h('div', { class: 'axis h' }), h('div', { class: 'axis v' }));
   // the same plate as the drawing on the work: ticks at the axis ends, a ring where they cross, and where
-  plane.append(h('div', { class: 'm-plate', 'aria-hidden': 'true' }, ...['t', 'b', 'l', 'r'].map(k => h('i', { class: 'm-tick ' + k })), h('i', { class: 'm-hub' }), h('span', { class: 'm-where' }, 'San Francisco 37.77N 122.42W')));
+  plane.append(h('div', { class: 'm-plate', 'aria-hidden': 'true' }, ...['t', 'b', 'l', 'r'].map(k => h('i', { class: 'm-tick ' + k })), h('i', { class: 'm-hub' })));
   for (const [side, w] of [['top', 'work'], ['bottom', 'wonder'], ['left', 'gather'], ['right', 'make']]) plane.append(h('div', { class: 'alabel ' + side, tabindex: 0, 'aria-label': w }, wearWord(w)));
   for (const [q, d] of Object.entries(S.quads)) {
     const label=h('div', { class: 'qlabel q-' + q }, h('span',{class:'quad-name'},d.name),h('small',{},d.key));
@@ -765,7 +765,6 @@ function orbitHero() {
   // fetch the pictures ahead, so the window opens at once
   requestIdleCallback?.(() => Object.keys(TOPIC).forEach(id => { new Image().src = A('whim/' + id + '.jpg'); }));
   // one corner note: where
-  svg.append(txt('orb-corner', S0 - 8, S0 - 10, 'San Francisco 37.77N 122.42W', { 'text-anchor': 'end' }));
   return svg;
 }
 // a line that changes face on a touch: each word lifts away as a soft wisp and settles back in Averia, one after another
