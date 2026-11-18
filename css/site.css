@@ -2278,3 +2278,18 @@ a.nl-org:hover{color:var(--ink)}
 .orb.spinning{cursor:grabbing}
 .orb.spinning .orb-hint{opacity:0!important}
 .orb-win image{transition:none}
+
+/* ---------- Round 58: one column of rows ----------
+   Contact sits directly under "work", set exactly like it, and its ways open beneath as more rows the same size.
+   Every word starts on the line where "work" starts. The width comes from app.js (where "work" begins). */
+@media (min-width:761px){
+  .b-menu{gap:2px!important}
+  .b-under{align-items:stretch!important;gap:0!important}
+  .reach{justify-items:stretch!important}
+  .rc-btn{text-align:left;padding:5px 16px 6px!important;letter-spacing:0!important}
+  .reach .rc-list{padding:0!important;justify-items:stretch;gap:0}
+  .rc-list>li:first-child{margin-top:0}
+  .rc-list a,.rc-list button{display:block;width:100%;text-align:left;padding:5px 16px 6px;font:13px/18.85px var(--sans);color:var(--ink3)}
+  .rc-list a:hover,.rc-list button:hover,.rc-list a:focus-visible,.rc-list button:focus-visible{color:var(--ink)}
+  .b-under #themeBtn{align-self:flex-start;margin:6px 0 0 12px!important}
+}

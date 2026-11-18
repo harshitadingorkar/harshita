@@ -46,6 +46,11 @@ const reach = (() => {
   return wrap;
 })();
 $('.b-menu').append(h('div', { class: 'b-under' }, reach, $('#themeBtn')));
+// Contact and its ways are rows under "work": the column starts where "work" starts, so every word lines up beneath it
+{ const under = $('.b-under'), fit = () => { const v = $('.b-menu .views'), w = v && v.querySelector('[data-v=work]');
+    if (!w || !w.offsetWidth || matchMedia('(max-width:760px)').matches) return under.style.removeProperty('width');
+    under.style.width = Math.round(under.getBoundingClientRect().right - w.getBoundingClientRect().left) + 'px'; };
+  fit(); document.fonts?.ready.then(fit); addEventListener('resize', fit); }
 
 const editorShortcut = $('#editor-shortcut');
 const updateEditorShortcut = () => { let enabled = false; try { enabled = localStorage.getItem('site-editor') === '1'; } catch {} editorShortcut.hidden = !enabled; body.classList.toggle('editor-enabled', enabled); };
@@ -930,7 +935,7 @@ if (themeBtn) {
   markTheme(docEl.dataset.theme);
   themeBtn.onclick = () => {
     const t = docEl.dataset.theme === 'dark' ? 'light' : 'dark';
-    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme-v3', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
+    const apply = () => { docEl.classList.add('no-tx'); docEl.dataset.theme = t; markTheme(t); try { localStorage.setItem('theme-v2', t); } catch {} setTimeout(() => docEl.classList.remove('no-tx'), 900); };
     window.portfolioSound?.dusk(t === 'dark');
     if (RM || !document.startViewTransition) return apply();
     const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
